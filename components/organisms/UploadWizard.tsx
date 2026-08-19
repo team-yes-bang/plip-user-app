@@ -14,6 +14,9 @@ import { useCallback, useState } from "react";
 
 const TOPICS = ["#7시_러닝_인증", "#아침_식단"] as const;
 
+const wizardSectionClass =
+  "flex w-full min-h-0 flex-col gap-3.5 pb-[env(safe-area-inset-bottom,0px)]";
+
 export function UploadWizard() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [destination, setDestination] = useState<DestinationId>("agit");
@@ -31,6 +34,7 @@ export function UploadWizard() {
     maxDurationMs,
     previewUrl,
     startRecording,
+    cancelRecording,
     flipCamera,
     discardRecording,
   } = useVideoRecorder({
@@ -58,6 +62,7 @@ export function UploadWizard() {
         maxDurationMs={maxDurationMs}
         onBack={() => history.back()}
         onStartRecording={() => void startRecording()}
+        onCancelRecording={cancelRecording}
         onFlipCamera={() => void flipCamera()}
       />
     );
@@ -65,7 +70,7 @@ export function UploadWizard() {
 
   if (step === 2) {
     return (
-      <section className="flex w-full flex-col gap-3.5">
+      <section className={wizardSectionClass}>
         <AuthTopBar title="영상 확인" onBack={handleBackToCapture} />
         <CaptureVideoFrame variant="card">
           <video
@@ -101,7 +106,7 @@ export function UploadWizard() {
 
   if (step === 3) {
     return (
-      <section className="flex w-full flex-col gap-3.5">
+      <section className={wizardSectionClass}>
         <AuthTopBar title="업로드 설정" onBack={() => setStep(2)} />
         <p className="m-0 text-[14px] font-semibold text-[var(--dl-color-text-primary)]">기록 목적지</p>
         <DestinationToggle value={destination} onChange={setDestination} />
@@ -130,7 +135,7 @@ export function UploadWizard() {
   }
 
   return (
-    <section className="flex w-full flex-col gap-3.5">
+    <section className={wizardSectionClass}>
       <AuthTopBar title="업로드 완료" backHref={ROUTES.diary.root} />
       <div className="dl-success-hero">
         <div className="dl-success-hero__icon">

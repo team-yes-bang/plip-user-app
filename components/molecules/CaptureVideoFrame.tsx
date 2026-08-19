@@ -7,7 +7,7 @@ type CaptureVideoFrameProps = {
   className?: string;
 };
 
-/** Recorded playback — step2 / lab 공통 9:16 프레임 */
+/** Recorded playback — step2 / lab */
 export function CaptureVideoFrame({
   children,
   variant = "card",
@@ -15,7 +15,7 @@ export function CaptureVideoFrame({
 }: CaptureVideoFrameProps) {
   const base =
     variant === "lab"
-      ? "relative mx-auto w-full max-w-2xl aspect-[9/16] max-h-[420px] overflow-hidden rounded-lg border bg-black"
+      ? "relative mx-auto w-full max-w-2xl aspect-[9/16] max-h-[min(72dvh,420px)] overflow-hidden rounded-lg border bg-black sm:max-h-[420px]"
       : "relative w-full aspect-[9/16] max-h-[min(72dvh,680px)] overflow-hidden rounded-2xl bg-black";
 
   return <div className={`${base} ${className}`.trim()}>{children}</div>;

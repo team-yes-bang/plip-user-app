@@ -11,10 +11,10 @@ export async function requestCameraStream(
   };
 
   const attempts: MediaStreamConstraints[] = [
-    { video: portraitVideo, audio: true },
-    { video: { facingMode, aspectRatio: { ideal: 9 / 16 } }, audio: true },
-    { video: { facingMode }, audio: true },
-    { video: true, audio: true },
+    { video: portraitVideo, audio: false },
+    { video: { facingMode, aspectRatio: { ideal: 9 / 16 } }, audio: false },
+    { video: { facingMode }, audio: false },
+    { video: true, audio: false },
   ];
 
   let lastError: unknown;
@@ -29,11 +29,11 @@ export async function requestCameraStream(
 
   if (lastError instanceof DOMException) {
     if (lastError.name === "NotAllowedError") {
-      throw new Error("카메라·마이크 권한이 거부되었습니다. 브라우저 설정에서 허용해 주세요.");
+      throw new Error("카메라 권한이 거부되었습니다. 브라우저 설정에서 허용해 주세요.");
     }
 
     if (lastError.name === "NotFoundError") {
-      throw new Error("카메라 또는 마이크를 찾을 수 없습니다.");
+      throw new Error("카메라를 찾을 수 없습니다.");
     }
 
     throw new Error(lastError.message);

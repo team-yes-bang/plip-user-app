@@ -67,6 +67,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
   const startedAtRef = useRef<number>(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const autoPrepareStartedRef = useRef(false);
+  const recordingIntentRef = useRef<"complete" | "cancel">("complete");
 
   const syncVideoElement = useCallback(
     (node: HTMLVideoElement | null) => {
@@ -201,6 +202,15 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     recorder.onstop = () => {
       clearTimers();
 
+      if (recordingIntentRef.current === "cancel") {
+        chunksRef.current = [];
+        recorderRef.current = null;
+        setElapsedMs(0);
+        setError(null);
+        setStatus("ready");
+        return;
+      }
+
       const maxChunks = Math.ceil(maxDurationMs / RECORD_TIMESLICE_MS);
       const trimmedChunks = chunksRef.current.slice(0, maxChunks);
       const recordedBlob = new Blob(trimmedChunks, { type: selectedMimeType });
@@ -231,6 +241,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     startedAtRef.current = Date.now();
     setElapsedMs(0);
     setStatus("recording");
+    recordingIntentRef.current = "complete";
 
     recorder.start(RECORD_TIMESLICE_MS);
 
@@ -255,6 +266,18 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     stopRecording,
     stopStream,
   ]);
+
+  const cancelRecording = useCallback(() => {
+    const recorder = recorderRef.current;
+    if (!recorder || recorder.state !== "recording") {
+      return;
+    }
+
+    clearTimers();
+    recordingIntentRef.current = "cancel";
+    recorder.requestData();
+    recorder.stop();
+  }, [clearTimers]);
 
   const discardRecording = useCallback(async () => {
     clearTimers();
@@ -334,6 +357,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     prepareCamera,
     startRecording,
     stopRecording,
+    cancelRecording,
     discardRecording,
     flipCamera,
   };
