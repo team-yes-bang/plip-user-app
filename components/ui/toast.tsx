@@ -197,22 +197,31 @@ function ToastList() {
   ))
 }
 
+const TOAST_TIMEOUT_MS = 2200
+
 function Toaster({
   children,
   toastManager = toast,
   portalContainer,
+  timeout = TOAST_TIMEOUT_MS,
   ...props
 }: ToastPrimitive.Provider.Props & {
   portalContainer?: ToastPrimitive.Portal.Props["container"]
 }) {
+  const viewport = (
+    <ToastViewport>
+      <ToastList />
+    </ToastViewport>
+  )
+
   return (
-    <ToastProvider toastManager={toastManager} {...props}>
-      {children}
-      <ToastPortal container={portalContainer}>
-        <ToastViewport>
-          <ToastList />
-        </ToastViewport>
-      </ToastPortal>
+    <ToastProvider toastManager={toastManager} timeout={timeout} {...props}>
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
+      {portalContainer ? (
+        <ToastPortal container={portalContainer}>{viewport}</ToastPortal>
+      ) : (
+        viewport
+      )}
     </ToastProvider>
   )
 }
