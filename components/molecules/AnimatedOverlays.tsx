@@ -13,12 +13,14 @@ export function OverlayPortalProvider({ children }: { children: ReactNode }) {
 
   return (
     <OverlayPortalContext.Provider value={host}>
-      {children}
-      <div
-        id="plip-overlay-root"
-        ref={setHost}
-        className="pointer-events-none absolute inset-0 z-[40]"
-      />
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+        {children}
+        <div
+          id="plip-overlay-root"
+          ref={setHost}
+          className="pointer-events-none absolute inset-0 z-[40]"
+        />
+      </div>
     </OverlayPortalContext.Provider>
   );
 }

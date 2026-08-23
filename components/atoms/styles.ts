@@ -29,7 +29,7 @@ export const ui = {
   glass:
     "rounded-[var(--dc-radius)] border border-[var(--dc-glass-border)] bg-[linear-gradient(180deg,var(--dc-glass-from),var(--dc-glass-to))] shadow-[var(--dc-shadow)] backdrop-blur-[20px]",
   authPage:
-    "min-h-dvh w-full bg-[var(--dl-color-bg-elevated)] font-[family-name:var(--font-inter),var(--font-sans),system-ui,sans-serif] text-[var(--dl-color-text-primary)]",
+    "min-h-0 h-full w-full bg-[var(--dl-color-bg-elevated)] font-[family-name:var(--font-inter),var(--font-sans),system-ui,sans-serif] text-[var(--dl-color-text-primary)]",
   authContent: "mx-auto flex w-full max-w-[390px] flex-col gap-4 px-5 pb-10 pt-6",
   topbar: "flex w-full items-center gap-3",
   topbarBack:

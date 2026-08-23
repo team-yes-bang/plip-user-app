@@ -3,9 +3,9 @@ import { BottomNavigation } from "@/components/molecules";
 
 export function HomeFeedTemplate() {
   return (
-    <div className="md:!w-full md:!max-w-none md:h-full md:min-h-0 flex min-h-dvh w-full max-w-none mx-auto flex-col bg-[var(--plip-tt-bg)] text-[var(--plip-tt-text)]">
-      <div className="flex flex-1 min-w-0 min-h-0 flex-col w-full">
-        <main className="flex flex-1 min-h-0 flex-col w-full">
+    <div className="relative md:!w-full md:!max-w-none flex h-full min-h-0 w-full max-w-none mx-auto flex-col overflow-hidden bg-[var(--plip-tt-bg)] text-[var(--plip-tt-text)]">
+      <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden pb-[80px]">
+        <main className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">
           <HomeFeedSection />
         </main>
       </div>

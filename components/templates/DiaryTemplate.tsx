@@ -9,8 +9,8 @@ type DiaryTemplateProps = {
 
 export function DiaryTemplate({ children, fixedMain = false }: DiaryTemplateProps) {
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-full flex-col bg-[var(--dc-page-bg)] font-[family-name:var(--font-inter),var(--font-sans),system-ui,sans-serif] text-[var(--dc-fg-primary)] md:h-full md:min-h-0">
-      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
+    <div className="relative mx-auto flex h-full min-h-0 w-full max-w-full flex-col overflow-hidden bg-[var(--dc-page-bg)] font-[family-name:var(--font-inter),var(--font-sans),system-ui,sans-serif] text-[var(--dc-fg-primary)]">
+      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden pb-[80px]">
         <main
           className={
             fixedMain
