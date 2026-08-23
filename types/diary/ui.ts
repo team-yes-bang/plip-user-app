@@ -35,3 +35,14 @@ export type UiDiaryThemeDateGroup = {
   clipCount: number;
   clips?: UiDiaryClip[];
 };
+
+export type UiDiaryThemeTimelinePage = {
+  dateGroups: UiDiaryThemeDateGroup[];
+  nextCursor: string | null;
+  hasMore: boolean;
+};
+
+export type UiDiaryDateWindow = {
+  focusDate: string;
+  days: Record<string, UiDiaryDateThemeGroup[]>;
+};

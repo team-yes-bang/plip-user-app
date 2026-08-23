@@ -71,6 +71,18 @@ export type ApiDiaryTimelineSection = {
 
 export type ApiDiaryTimelineResponse = {
   sections: ApiDiaryTimelineSection[];
+  nextCursor?: string | null;
+  hasMore?: boolean;
+};
+
+export type ApiDiaryDateWindowDay = {
+  date: string;
+  sections: ApiDiaryDateSection[];
+};
+
+export type ApiDiaryDateWindowResponse = {
+  focusDate: string;
+  days: ApiDiaryDateWindowDay[];
 };
 
 export type ApiDiaryTopicTransferRequest = {

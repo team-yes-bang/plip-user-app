@@ -1,19 +1,21 @@
 "use client";
 
+import { fetchDiaryDateWindowAction } from "@/actions/diaryActions";
 import { TextLink } from "@/components/atoms";
 import { DiaryThemeClipGroup, HeaderBackLink, ScreenHeader } from "@/components/molecules";
 import { formatDiaryDate } from "@/config/diary-mock";
 import { ROUTES } from "@/config/routes";
-import type { UiDiaryDateThemeGroup } from "@/types/diary/ui";
+import type { UiDiaryDateWindow } from "@/types/diary/ui";
+import {
+  getTodayKstDateString,
+  isFutureDiaryDate,
+  shiftDiaryDate,
+} from "@/types/diary/schema";
 import { useRouter } from "next/navigation";
-import { useRef, type PointerEvent } from "react";
+import { useRef, useState, type PointerEvent } from "react";
 
 type DiaryDateDetailSectionProps = {
-  date: string;
-  themes: UiDiaryDateThemeGroup[];
-  prevDate: string;
-  nextDate: string;
-  canGoNext: boolean;
+  initialWindow: UiDiaryDateWindow;
   error?: string;
 };
 
@@ -22,15 +24,20 @@ const NAV_ARROW_CLASS =
   "!grid place-items-center w-[2.25rem] h-[2.25rem] rounded-[999px] border border-[var(--dc-glass-border)] bg-[linear-gradient(180deg,_var(--dc-glass-from),_var(--dc-glass-to))] shadow-[var(--dc-shadow)] !text-[var(--dc-fg-primary)] text-[1.35rem] font-bold leading-none !no-underline [&.is-disabled]:opacity-[0.28]";
 
 export function DiaryDateDetailSection({
-  date,
-  themes,
-  prevDate,
-  nextDate,
-  canGoNext,
-  error,
+  initialWindow,
+  error: initialError,
 }: DiaryDateDetailSectionProps) {
   const router = useRouter();
   const pointerStart = useRef<{ x: number; y: number; scrollTop: number } | null>(null);
+  const [focusDate, setFocusDate] = useState(initialWindow.focusDate);
+  const [daysCache, setDaysCache] = useState(initialWindow.days);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(initialError);
+
+  const themes = daysCache[focusDate] ?? [];
+  const prevDate = shiftDiaryDate(focusDate, -1);
+  const nextDate = shiftDiaryDate(focusDate, 1);
+  const canGoNext = !isFutureDiaryDate(nextDate, getTodayKstDateString());
 
   function isInteractiveTarget(target: EventTarget | null): boolean {
     return target instanceof Element && Boolean(target.closest("a, button, input, textarea, select"));
@@ -41,8 +48,34 @@ export function DiaryDateDetailSection({
     return (clientX - rect.left) / rect.width;
   }
 
+  async function navigateToDate(targetDate: string) {
+    if (isFutureDiaryDate(targetDate)) {
+      return;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(daysCache, targetDate)) {
+      setFocusDate(targetDate);
+      router.replace(ROUTES.diary.date(targetDate));
+      return;
+    }
+
+    setLoading(true);
+    const result = await fetchDiaryDateWindowAction(targetDate, 1);
+    setLoading(false);
+
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+
+    setDaysCache((current) => ({ ...current, ...result.data.days }));
+    setFocusDate(result.data.focusDate);
+    setError(undefined);
+    router.replace(ROUTES.diary.date(result.data.focusDate));
+  }
+
   function goPrev() {
-    router.push(ROUTES.diary.date(prevDate));
+    void navigateToDate(prevDate);
   }
 
   function goNext() {
@@ -50,7 +83,7 @@ export function DiaryDateDetailSection({
       return;
     }
 
-    router.push(ROUTES.diary.date(nextDate));
+    void navigateToDate(nextDate);
   }
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
@@ -116,7 +149,7 @@ export function DiaryDateDetailSection({
           titleAlign="center"
           className="mb-[1.15rem]"
           leading={<HeaderBackLink href={ROUTES.diary.root} />}
-          title={<span className="sr-only">{formatDiaryDate(date)}</span>}
+          title={<span className="sr-only">{formatDiaryDate(focusDate)}</span>}
         />
 
         <div className="grid grid-cols-[2.25rem_1fr_2.25rem] items-center gap-[0.5rem]">
@@ -124,15 +157,23 @@ export function DiaryDateDetailSection({
             href={ROUTES.diary.date(prevDate)}
             className={NAV_ARROW_CLASS}
             aria-label="이전 날짜"
+            onClick={(event) => {
+              event.preventDefault();
+              goPrev();
+            }}
           >
             ‹
           </TextLink>
-          <h2 className="m-0 text-center text-[1rem] font-extrabold text-[#111]">{formatDiaryDate(date)}</h2>
+          <h2 className="m-0 text-center text-[1rem] font-extrabold text-[#111]">{formatDiaryDate(focusDate)}</h2>
           {canGoNext ? (
             <TextLink
               href={ROUTES.diary.date(nextDate)}
               className={NAV_ARROW_CLASS}
               aria-label="다음 날짜"
+              onClick={(event) => {
+                event.preventDefault();
+                goNext();
+              }}
             >
               ›
             </TextLink>
@@ -150,6 +191,9 @@ export function DiaryDateDetailSection({
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
       >
+        {loading ? (
+          <p className="m-0 text-center text-[0.85rem] font-semibold text-[rgba(0,_0,_0,_0.4)]">불러오는 중...</p>
+        ) : null}
         {error ? <p className="m-0 text-center text-sm text-red-600">{error}</p> : null}
 
         {themes.length > 0 ? (
@@ -157,16 +201,16 @@ export function DiaryDateDetailSection({
             <DiaryThemeClipGroup
               key={group.themeId}
               themeName={group.themeName}
-              date={date}
+              date={focusDate}
               clipCount={group.clipCount}
               clips={group.clips}
             />
           ))
-        ) : (
+        ) : !loading ? (
           <p className="m-[2rem_0_0] text-center text-[0.85rem] font-semibold text-[rgba(0,_0,_0,_0.4)]">
             해당 날짜의 다이어리 기록이 없습니다.
           </p>
-        )}
+        ) : null}
       </div>
     </div>
   );
