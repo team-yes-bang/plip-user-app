@@ -1,5 +1,5 @@
 import { TextLink } from "@/components/atoms";
-import { AuthTopBar } from "@/components/molecules";
+import { AuthTopBar, HeaderBackLink, ScreenHeader } from "@/components/molecules";
 import { AgitManageForm } from "@/components/organisms/AgitManageForm";
 import { AgitProfileEditForm } from "@/components/organisms/AgitProfileEditForm";
 import { InvitesSafetySection } from "@/components/organisms/InvitesSafetySection";
@@ -52,15 +52,22 @@ export function TopicsLayoutTemplate({
   if (!agit) return <RoomMissing />;
 
   return (
-    <AgitFlowChrome>
-      <AuthTopBar title="토픽관리" backHref={ROUTES.agit.detail(agit.id)} />
-      <TopicsLayoutSection
-        agitId={agit.id}
-        sections={sections}
-        myRole={agit.myRole}
-        currentUserUuid={currentUserUuid}
-      />
-    </AgitFlowChrome>
+    <AppChromeTemplate activeTab="agit" variant="light">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <ScreenHeader
+          leading={<HeaderBackLink href={ROUTES.agit.detail(agit.id)} />}
+          title="토픽관리"
+        />
+        <div className="min-h-0 flex-1 overflow-y-auto px-[23px] pb-6">
+          <TopicsLayoutSection
+            agitId={agit.id}
+            sections={sections}
+            myRole={agit.myRole}
+            currentUserUuid={currentUserUuid}
+          />
+        </div>
+      </div>
+    </AppChromeTemplate>
   );
 }
 
