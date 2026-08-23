@@ -10,6 +10,7 @@ import type {
   ApiMyAgitItem,
   ApiUpdateAgitRequest,
   ApiUpdateAgitResponse,
+  ApiReissueInviteCodeResponse,
   ApiUpdateMyMemberProfileRequest,
   ApiUpdateMyMemberProfileResponse,
 } from "@/types/agit/api";
@@ -68,6 +69,16 @@ export async function banAgitMember(agitUuid: string, ampId: number): Promise<vo
 export async function transferAgitHost(agitUuid: string, ampId: number): Promise<void> {
   await withAuthRetry(async () =>
     apiFetch<void>(API_ENDPOINTS.agit.transferHost(agitUuid, ampId), {
+      method: "POST",
+      baseUrl: getApiUrl(),
+      headers: await getActorUserHeaders(),
+    }),
+  );
+}
+
+export async function reissueInviteCode(agitUuid: string): Promise<ApiReissueInviteCodeResponse> {
+  return withAuthRetry(async () =>
+    apiFetch<ApiReissueInviteCodeResponse>(API_ENDPOINTS.agit.inviteCode(agitUuid), {
       method: "POST",
       baseUrl: getApiUrl(),
       headers: await getActorUserHeaders(),

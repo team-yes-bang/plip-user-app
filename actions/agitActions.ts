@@ -65,6 +65,15 @@ export async function createAgitAction(
   }
 }
 
+export async function reissueInviteCodeAction(agitId: string): Promise<ActionResult<string>> {
+  try {
+    const code = await agitService.reissueInviteCode(agitId);
+    return actionSuccess(code);
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
 export async function updateAgitAction(
   agitId: string,
   input: {
