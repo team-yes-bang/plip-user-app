@@ -7,6 +7,7 @@ import type {
   ApiCreateDiaryThemeRequest,
   ApiDiaryCalendarResponse,
   ApiDiaryDateResponse,
+  ApiDiaryDateWindowResponse,
   ApiDiaryHomeResponse,
   ApiDiaryTheme,
   ApiDiaryThemesResponse,
@@ -71,13 +72,34 @@ export async function getDiaryCalendar(
   });
 }
 
-export async function getDiaryByDate(date: string): Promise<ApiDiaryDateResponse> {
-  return diaryFetch<ApiDiaryDateResponse>(API_ENDPOINTS.diary.dateDetail(date), { method: "GET" });
+export async function getDiaryByDate(date: string, window = 0): Promise<ApiDiaryDateResponse> {
+  return diaryFetch<ApiDiaryDateResponse>(API_ENDPOINTS.diary.dateDetail(date), {
+    method: "GET",
+    searchParams: window > 0 ? { window: String(window) } : undefined,
+  });
 }
 
-export async function getDiaryThemeTimeline(themeId: string): Promise<ApiDiaryTimelineResponse> {
+export async function getDiaryDateWindow(
+  date: string,
+  window = 1,
+): Promise<ApiDiaryDateWindowResponse> {
+  return diaryFetch<ApiDiaryDateWindowResponse>(API_ENDPOINTS.diary.dateDetail(date), {
+    method: "GET",
+    searchParams: { window: String(window) },
+  });
+}
+
+export async function getDiaryThemeTimeline(
+  themeId: string,
+  cursor?: string,
+  limit = 50,
+): Promise<ApiDiaryTimelineResponse> {
   return diaryFetch<ApiDiaryTimelineResponse>(API_ENDPOINTS.diary.themeTimeline(themeId), {
     method: "GET",
+    searchParams: {
+      limit: String(limit),
+      ...(cursor ? { cursor } : {}),
+    },
   });
 }
 

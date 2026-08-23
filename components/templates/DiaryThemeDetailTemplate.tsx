@@ -6,6 +6,8 @@ type DiaryThemeDetailTemplateProps = {
   themeId: string;
   themeName: string;
   dateGroups: UiDiaryThemeDateGroup[];
+  initialNextCursor: string | null;
+  initialHasMore: boolean;
   error?: string;
 };
 
@@ -13,6 +15,8 @@ export function DiaryThemeDetailTemplate({
   themeId,
   themeName,
   dateGroups,
+  initialNextCursor,
+  initialHasMore,
   error,
 }: DiaryThemeDetailTemplateProps) {
   return (
@@ -21,6 +25,8 @@ export function DiaryThemeDetailTemplate({
         themeId={themeId}
         themeName={themeName}
         dateGroups={dateGroups}
+        initialNextCursor={initialNextCursor}
+        initialHasMore={initialHasMore}
         error={error}
       />
     </DiaryTemplate>

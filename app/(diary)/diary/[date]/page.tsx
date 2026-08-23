@@ -1,11 +1,9 @@
 import { DiaryDateTemplate } from "@/components/templates";
-import { getDiaryDateGroup } from "@/services/diaryService";
-import type { UiDiaryDateGroup } from "@/types/diary/ui";
+import { getDiaryDateWindow } from "@/services/diaryService";
+import type { UiDiaryDateWindow } from "@/types/diary/ui";
 import {
-  getTodayKstDateString,
   isFutureDiaryDate,
   parseDiaryDateParam,
-  shiftDiaryDate,
 } from "@/types/diary/schema";
 import { notFound } from "next/navigation";
 
@@ -21,26 +19,21 @@ export default async function DiaryDatePage({ params }: DiaryDatePageProps) {
     notFound();
   }
 
-  const nextDate = shiftDiaryDate(parsedDate, 1);
-  const canGoNext = !isFutureDiaryDate(nextDate, getTodayKstDateString());
-
-  let dateGroup: UiDiaryDateGroup = { date: parsedDate, themes: [] };
+  let initialWindow: UiDiaryDateWindow = {
+    focusDate: parsedDate,
+    days: { [parsedDate]: [] },
+  };
   let error: string | undefined;
 
   try {
-    dateGroup = await getDiaryDateGroup(parsedDate);
+    initialWindow = await getDiaryDateWindow(parsedDate, 1);
   } catch (caught) {
-    dateGroup = { date: parsedDate, themes: [] };
+    initialWindow = {
+      focusDate: parsedDate,
+      days: { [parsedDate]: [] },
+    };
     error = caught instanceof Error ? caught.message : "날짜 상세를 불러오지 못했습니다.";
   }
 
-  return (
-    <DiaryDateTemplate
-      dateGroup={dateGroup}
-      prevDate={shiftDiaryDate(parsedDate, -1)}
-      nextDate={nextDate}
-      canGoNext={canGoNext}
-      error={error}
-    />
-  );
+  return <DiaryDateTemplate initialWindow={initialWindow} error={error} />;
 }

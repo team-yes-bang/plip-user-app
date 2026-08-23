@@ -2,6 +2,7 @@ import * as diaryApi from "@/lib/api/diaryApi";
 import type {
   ApiDiaryDateResponse,
   ApiDiaryDateSection,
+  ApiDiaryDateWindowResponse,
   ApiDiaryHomeSection,
   ApiDiaryTheme,
   ApiDiaryTimelineSection,
@@ -12,8 +13,10 @@ import type {
   UiDiaryDateEntry,
   UiDiaryDateGroup,
   UiDiaryDateThemeGroup,
+  UiDiaryDateWindow,
   UiDiaryTheme,
   UiDiaryThemeDateGroup,
+  UiDiaryThemeTimelinePage,
 } from "@/types/diary/ui";
 
 function mapTheme(theme: ApiDiaryTheme): UiDiaryTheme {
@@ -201,18 +204,52 @@ export async function getDiaryDateGroup(date: string): Promise<UiDiaryDateGroup>
   return mapDateResponse(response);
 }
 
+export async function getDiaryDateWindow(date: string, window = 1): Promise<UiDiaryDateWindow> {
+  const response = await diaryApi.getDiaryDateWindow(date, window);
+  return mapDateWindowResponse(response);
+}
+
+function mapDateWindowResponse(response: ApiDiaryDateWindowResponse): UiDiaryDateWindow {
+  const days: Record<string, UiDiaryDateThemeGroup[]> = {};
+
+  for (const day of response.days) {
+    days[day.date] = day.sections.map((group) => mapDateThemeGroup(group, day.date));
+  }
+
+  return {
+    focusDate: response.focusDate,
+    days,
+  };
+}
+
+export async function getDiaryThemeTimelinePage(
+  themeId: string,
+  cursor?: string,
+): Promise<UiDiaryThemeTimelinePage> {
+  const timeline = await diaryApi.getDiaryThemeTimeline(themeId, cursor);
+  return {
+    dateGroups: timeline.sections.map((section) => mapTimelineSection(section, themeId)),
+    nextCursor: timeline.nextCursor ?? null,
+    hasMore: Boolean(timeline.hasMore),
+  };
+}
+
 export async function getDiaryThemeTimeline(themeId: string): Promise<{
   theme: UiDiaryTheme;
   dateGroups: UiDiaryThemeDateGroup[];
+  nextCursor: string | null;
+  hasMore: boolean;
 }> {
   const [theme, timeline] = await Promise.all([
     diaryApi.getDiaryTheme(themeId).then(mapTheme),
-    diaryApi.getDiaryThemeTimeline(themeId),
+    getDiaryThemeTimelinePage(themeId),
   ]);
 
   return {
     theme,
-    dateGroups: timeline.sections.map((section) => mapTimelineSection(section, themeId)),
+    dateGroups: timeline.dateGroups,
+    nextCursor: timeline.nextCursor,
+    hasMore: timeline.hasMore,
   };
 }
 

@@ -64,7 +64,7 @@ function DiaryClipThumb({ thumbnailSrc }: { thumbnailSrc?: string }) {
 }
 
 function ThumbGrid({ clips, clipCount }: { clips?: UiDiaryClip[]; clipCount: number }) {
-  const slotCount = Math.min(Math.max(clipCount, clips?.length ?? 0), 5);
+  const slotCount = Math.max(clipCount, clips?.length ?? 0);
 
   if (slotCount === 0) {
     return null;

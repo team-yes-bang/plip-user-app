@@ -19,12 +19,16 @@ export default async function DiaryThemePage({ params }: DiaryThemePageProps) {
 
   let themeName = "";
   let dateGroups: UiDiaryThemeDateGroup[] = [];
+  let nextCursor: string | null = null;
+  let hasMore = false;
   let error: string | undefined;
 
   try {
     const result = await getDiaryThemeTimeline(parsedId.data);
     themeName = result.theme.name;
     dateGroups = result.dateGroups;
+    nextCursor = result.nextCursor;
+    hasMore = result.hasMore;
   } catch (caught) {
     if (caught instanceof ApiError && caught.status === 404) {
       notFound();
@@ -38,6 +42,8 @@ export default async function DiaryThemePage({ params }: DiaryThemePageProps) {
       themeId={parsedId.data}
       themeName={themeName}
       dateGroups={dateGroups}
+      initialNextCursor={nextCursor}
+      initialHasMore={hasMore}
       error={error}
     />
   );
