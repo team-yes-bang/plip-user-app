@@ -1,4 +1,6 @@
-import { DailyIcon } from "@/components/atoms";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Minus, Plus } from "lucide-react";
 
 type CapacityStepperProps = {
   value: number;
@@ -15,52 +17,73 @@ export function CapacityStepper({
   onChange,
   compact = false,
 }: CapacityStepperProps) {
+  const canDecrease = value > min;
+  const canIncrease = value < max;
+
+  function decrease() {
+    if (!canDecrease) return;
+    onChange(value - 1);
+  }
+
+  function increase() {
+    if (!canIncrease) return;
+    onChange(value + 1);
+  }
+
   if (compact) {
     return (
-      <div className="flex items-center gap-[14px] flex items-center justify-between w-[68px] h-[30px] p-[0_12px] rounded-[15px] bg-[var(--dl-color-bg-brand)] text-[#fff] text-xs font-medium m-dlStepperCompact">
-        <button
+      <div className="inline-flex h-8 shrink-0 items-center rounded-full bg-[var(--dl-color-bg-brand)] p-0.5">
+        <Button
           type="button"
-          className="grid place-items-center border border-[var(--dl-color-border-default)] rounded-[22px] bg-[var(--dl-color-bg-surface)] p-[14px] w-auto h-auto border-0 bg-[transparent] text-[inherit] text-sm leading-none p-0"
+          variant="ghost"
+          size="icon-xs"
+          className="size-7 text-white hover:bg-white/15 hover:text-white disabled:text-white/50"
           aria-label="인원 줄이기"
-          disabled={value <= min}
-          onClick={() => onChange(Math.max(min, value - 1))}
+          disabled={!canDecrease}
+          onClick={decrease}
         >
-          −
-        </button>
-        <button
+          <Minus />
+        </Button>
+        <Button
           type="button"
-          className="grid place-items-center border border-[var(--dl-color-border-default)] rounded-[22px] bg-[var(--dl-color-bg-surface)] p-[14px] w-auto h-auto border-0 bg-[transparent] text-[inherit] text-sm leading-none p-0"
+          variant="ghost"
+          size="icon-xs"
+          className="size-7 text-white hover:bg-white/15 hover:text-white disabled:text-white/50"
           aria-label="인원 늘리기"
-          disabled={value >= max}
-          onClick={() => onChange(Math.min(max, value + 1))}
+          disabled={!canIncrease}
+          onClick={increase}
         >
-          +
-        </button>
+          <Plus />
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-[14px]">
-      <button
+    <div className="inline-flex items-center gap-3">
+      <Button
         type="button"
-        className="grid place-items-center border border-[var(--dl-color-border-default)] rounded-[22px] bg-[var(--dl-color-bg-surface)] p-[14px] w-auto h-auto border-0 bg-[transparent] text-[inherit] text-sm leading-none p-0"
+        variant="outline"
+        size="icon-sm"
         aria-label="인원 줄이기"
-        disabled={value <= min}
-        onClick={() => onChange(Math.max(min, value - 1))}
+        disabled={!canDecrease}
+        onClick={decrease}
       >
-        <DailyIcon name="minus" size={16} />
-      </button>
-      <p className="m-0 text-xl font-semibold leading-[29px] text-[var(--dl-color-text-primary)]">{value}명</p>
-      <button
+        <Minus />
+      </Button>
+      <p className={cn("m-0 min-w-10 text-center text-xl font-semibold leading-none text-[var(--dl-color-text-primary)]")}>
+        {value}명
+      </p>
+      <Button
         type="button"
-        className="grid place-items-center border border-[var(--dl-color-border-default)] rounded-[22px] bg-[var(--dl-color-bg-surface)] p-[14px] w-auto h-auto border-0 bg-[transparent] text-[inherit] text-sm leading-none p-0"
+        variant="outline"
+        size="icon-sm"
         aria-label="인원 늘리기"
-        disabled={value >= max}
-        onClick={() => onChange(Math.min(max, value + 1))}
+        disabled={!canIncrease}
+        onClick={increase}
       >
-        <DailyIcon name="plus" size={16} />
-      </button>
+        <Plus />
+      </Button>
     </div>
   );
 }

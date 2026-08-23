@@ -106,6 +106,11 @@ export async function transferAgitHost(agitId: string, ampId: number): Promise<v
   await agitApi.transferAgitHost(agitId, ampId);
 }
 
+export async function reissueInviteCode(agitId: string): Promise<string> {
+  const result = await agitApi.reissueInviteCode(agitId);
+  return result.code;
+}
+
 export async function updateAgit(agitId: string, body: ApiUpdateAgitRequest): Promise<UiAgit> {
   await agitApi.updateAgit(agitId, body);
   return getAgit(agitId);

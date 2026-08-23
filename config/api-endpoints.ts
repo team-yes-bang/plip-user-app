@@ -34,6 +34,8 @@ export const API_ENDPOINTS = {
       gatewayPath("agit", `/api/v1/agits/${agitUuid}/members/${ampId}/ban`),
     transferHost: (agitUuid: string, ampId: number) =>
       gatewayPath("agit", `/api/v1/agits/${agitUuid}/members/${ampId}/transfer-host`),
+    inviteCode: (agitUuid: string) =>
+      gatewayPath("agit", `/api/v1/agits/${agitUuid}/invite-code`),
   },
   topic: {
     list: gatewayPath("topic", "/api/v1/topics"),

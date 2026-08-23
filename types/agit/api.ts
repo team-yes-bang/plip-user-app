@@ -81,3 +81,7 @@ export type ApiUpdateMyMemberProfileResponse = {
   nickname: string;
   profileImagePath: string | null;
 };
+
+export type ApiReissueInviteCodeResponse = {
+  code: string;
+};

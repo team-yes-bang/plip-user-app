@@ -46,7 +46,7 @@ export function AgitListSection({ items, error }: AgitListSectionProps) {
         <input
           className="flex-1 border-0 bg-[transparent] text-[15px] text-[var(--dl-color-text-primary)] [outline:none] placeholder:text-[var(--dl-color-text-tertiary)]"
           value={query}
-          placeholder="제목 또는 토픽으로 검색"
+          placeholder="제목 또는 참여 닉네임으로 검색"
           onChange={(event) => setQuery(event.target.value)}
         />
       </label>
@@ -65,11 +65,11 @@ export function AgitListSection({ items, error }: AgitListSectionProps) {
         <span className="grid min-w-[34px] h-[34px] place-items-center p-[0_10px] rounded-[999px] bg-[var(--dl-color-bg-brand-subtle)] text-[13px] font-bold text-[var(--dl-color-text-brand)]">{rooms.length}</span>
       </div>
 
-      <div className="flex flex-col gap-[12px]">
+      <div className="grid grid-cols-2 gap-[12px]">
         {rooms.length > 0 ? (
           rooms.map((room) => <AgitListRow key={room.id} agit={room} />)
         ) : (
-          <div className="flex flex-col items-center gap-[8px] p-[28px_16px] [border:1px_dashed_var(--dl-color-border-default)] rounded-[16px] text-center text-[var(--dl-color-text-secondary)]">
+          <div className="col-span-2 flex flex-col items-center gap-[8px] p-[28px_16px] [border:1px_dashed_var(--dl-color-border-default)] rounded-[16px] text-center text-[var(--dl-color-text-secondary)]">
             <p>{keyword ? "검색 결과가 없어요." : "참여 중인 아지트가 없어요."}</p>
             <TextLink href={ROUTES.agit.create} className="!text-[var(--dl-color-text-brand)] text-sm font-medium leading-5 !no-underline hover:!underline">
               새 아지트 만들기
