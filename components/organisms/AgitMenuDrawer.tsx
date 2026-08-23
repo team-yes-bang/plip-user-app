@@ -71,9 +71,11 @@ export function AgitMenuDrawer({ agit, open, onClose }: AgitMenuDrawerProps) {
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [reissuing, setReissuing] = useState(false);
   const [ongoingTopics, setOngoingTopics] = useState<UiTopicListItem[]>([]);
-  const [inviteCode, setInviteCode] = useState(agit.inviteCode?.trim() ?? "");
+  const [reissuedCode, setReissuedCode] = useState<{ agitId: string; code: string } | null>(null);
   const isHost = agit.myRole === "HOST";
   const menuItems = MENU.filter((item) => !item.hostOnly || isHost);
+  const inviteCode =
+    (reissuedCode?.agitId === agit.id ? reissuedCode.code : agit.inviteCode)?.trim() ?? "";
 
   useEffect(() => {
     if (!open) return;
@@ -86,11 +88,6 @@ export function AgitMenuDrawer({ agit, open, onClose }: AgitMenuDrawerProps) {
       cancelled = true;
     };
   }, [open, agit.id]);
-
-  useEffect(() => {
-    setInviteCode(agit.inviteCode?.trim() ?? "");
-    setCopied(false);
-  }, [agit.inviteCode]);
 
   async function copyInviteCode() {
     if (!inviteCode) return;
@@ -111,7 +108,7 @@ export function AgitMenuDrawer({ agit, open, onClose }: AgitMenuDrawerProps) {
       });
       return;
     }
-    setInviteCode(result.data);
+    setReissuedCode({ agitId: agit.id, code: result.data });
     setCopied(false);
     toast.add({ type: "success", title: "초대코드를 재설정했습니다" });
     router.refresh();
