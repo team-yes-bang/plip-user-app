@@ -61,7 +61,7 @@ export function BottomNavigation({
   active = "diary",
 }: BottomNavigationProps) {
   return (
-    <nav aria-label="주 메뉴" className="sticky bottom-[0] z-30 flex h-[80px] shrink-0 items-center justify-between p-[6px_16px] [border-top:1px_solid_var(--dl-color-border-default)] bg-[var(--dl-color-bg-elevated)]">
+    <nav aria-label="주 메뉴" className="absolute inset-x-0 bottom-0 z-30 flex h-[80px] shrink-0 items-center justify-between border-t border-[var(--dl-color-border-default)] bg-[var(--dl-color-bg-elevated)] p-[6px_16px]">
       {NAV_ITEMS.map((item) => {
         const isActive = active === item.id;
 

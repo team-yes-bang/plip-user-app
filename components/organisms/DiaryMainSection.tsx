@@ -15,11 +15,11 @@ export function DiaryMainSection({ entries, themes, error }: DiaryMainSectionPro
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div className="flex h-[calc(100dvh-80px)] flex-col overflow-hidden">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <DiaryHeader onMenuOpen={() => setMenuOpen(true)} />
       <DiarySideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
 
-      <div className="flex min-h-0 flex-1 flex-col px-4 pb-4 pt-3">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-4 pt-3">
         <ThemePreviewStrip themes={themes} />
         {error ? <p className="m-0 mt-3 px-1 text-sm text-red-600">{error}</p> : null}
         <div className="mt-8 flex min-h-0 flex-1 flex-col gap-4">

@@ -21,14 +21,14 @@ export function AppChromeTemplate({
 }: AppChromeTemplateProps) {
   const shellClass =
     variant === "light" || variant === "diary"
-      ? "mx-auto flex min-h-dvh w-full flex-col bg-[var(--dl-color-bg-elevated)] font-[family-name:var(--font-inter),var(--font-sans),system-ui,sans-serif] text-[var(--dl-color-text-primary)] md:h-full md:min-h-0"
-      : "mx-auto flex min-h-dvh w-full flex-col bg-[var(--plip-tt-bg)] text-[var(--plip-tt-text)] md:h-full md:min-h-0";
+      ? "relative mx-auto flex h-full min-h-0 w-full flex-col overflow-hidden bg-[var(--dl-color-bg-elevated)] font-[family-name:var(--font-inter),var(--font-sans),system-ui,sans-serif] text-[var(--dl-color-text-primary)]"
+      : "relative mx-auto flex h-full min-h-0 w-full flex-col overflow-hidden bg-[var(--plip-tt-bg)] text-[var(--plip-tt-text)]";
 
   return (
     <div className={`${shellClass} ${className}`.trim()}>
-      <div className="flex flex-1 min-w-0 min-h-0 flex-col w-full">
+      <div className={`flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden ${showNav ? "pb-[80px]" : ""}`}>
         {header}
-        <main className="flex flex-1 min-h-0 flex-col w-full">{children}</main>
+        <main className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto">{children}</main>
       </div>
       {showNav ? <BottomNavigation active={activeTab} variant={variant} /> : null}
     </div>

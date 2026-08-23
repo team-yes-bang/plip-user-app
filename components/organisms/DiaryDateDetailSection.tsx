@@ -109,7 +109,7 @@ export function DiaryDateDetailSection({
   }
 
   return (
-    <div className="flex h-[calc(100dvh-80px)] flex-col overflow-hidden bg-[var(--dc-page-bg)]">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[var(--dc-page-bg)]">
       <div className="shrink-0 px-4 pb-[1.15rem] pt-[0.9rem]">
         <ScreenHeader
           tone="plain"

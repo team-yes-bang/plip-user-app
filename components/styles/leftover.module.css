@@ -96,11 +96,9 @@ button.plipBottomNavItem {
   box-shadow: none;
 }
 
-@media (min-width: 768px) {
 .plipDeviceApp > * {
   flex: 1;
   min-height: 0;
-}
 }
 
 .plipTtFeedTop > * {
