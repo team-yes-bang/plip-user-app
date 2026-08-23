@@ -1,6 +1,6 @@
 "use client";
 
-import { leaveAgitAction } from "@/actions/agitActions";
+import { leaveAgitAction, reissueInviteCodeAction } from "@/actions/agitActions";
 import { listTopicsByStatusAction } from "@/actions/topicActions";
 import { DailyIcon, IconButton, Separator, TextLink } from "@/components/atoms";
 import { AnimatedSideSheet } from "@/components/molecules/AnimatedOverlays";
@@ -69,9 +69,11 @@ export function AgitMenuDrawer({ agit, open, onClose }: AgitMenuDrawerProps) {
   const [copied, setCopied] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
+  const [reissuing, setReissuing] = useState(false);
   const [ongoingTopics, setOngoingTopics] = useState<UiTopicListItem[]>([]);
-  const inviteCode = agit.inviteCode?.trim() ?? "";
-  const menuItems = MENU.filter((item) => !item.hostOnly || agit.myRole === "HOST");
+  const [inviteCode, setInviteCode] = useState(agit.inviteCode?.trim() ?? "");
+  const isHost = agit.myRole === "HOST";
+  const menuItems = MENU.filter((item) => !item.hostOnly || isHost);
 
   useEffect(() => {
     if (!open) return;
@@ -85,10 +87,34 @@ export function AgitMenuDrawer({ agit, open, onClose }: AgitMenuDrawerProps) {
     };
   }, [open, agit.id]);
 
+  useEffect(() => {
+    setInviteCode(agit.inviteCode?.trim() ?? "");
+    setCopied(false);
+  }, [agit.inviteCode]);
+
   async function copyInviteCode() {
     if (!inviteCode) return;
     const ok = await copyText(inviteCode);
     setCopied(ok);
+  }
+
+  async function reissueInviteCode() {
+    if (reissuing || !isHost) return;
+    setReissuing(true);
+    const result = await reissueInviteCodeAction(agit.id);
+    setReissuing(false);
+    if (!result.ok) {
+      toast.add({
+        type: "error",
+        title: "초대코드를 재설정하지 못했습니다",
+        description: result.error,
+      });
+      return;
+    }
+    setInviteCode(result.data);
+    setCopied(false);
+    toast.add({ type: "success", title: "초대코드를 재설정했습니다" });
+    router.refresh();
   }
 
   function handleClose() {
@@ -126,26 +152,38 @@ export function AgitMenuDrawer({ agit, open, onClose }: AgitMenuDrawerProps) {
       >
         <SideSheetHeader title={agit.name} onClose={handleClose} />
 
-        <button
-          type="button"
-          className="flex min-h-[32px] w-full shrink-0 cursor-pointer items-center justify-between gap-2 rounded-[10px] border border-[#e3e0ed] bg-[#fff] p-[6px_10px] text-left disabled:cursor-default"
-          onClick={copyInviteCode}
-          disabled={!inviteCode}
-          aria-label="초대코드 복사"
-        >
-          <div className="flex min-w-0 items-center gap-2">
-            <Link2 className="size-3.5 shrink-0 text-[#262433]" strokeWidth={2} />
-            <p className="m-0 overflow-hidden text-xs font-medium tracking-[0.04em] text-[#262433] whitespace-nowrap [text-overflow:ellipsis]">
-              {inviteCode || "초대코드"}
-            </p>
-          </div>
-          {copied ? (
-            <Check className="size-3.5 shrink-0 text-[var(--dl-color-text-brand)]" strokeWidth={2} aria-hidden />
-          ) : (
-            <Copy className="size-3.5 shrink-0 text-[var(--dl-color-text-brand)]" strokeWidth={2} aria-hidden />
-          )}
-          <span className="sr-only">{copied ? "복사됨" : "복사"}</span>
-        </button>
+        <div className="flex h-8 w-full shrink-0 overflow-hidden rounded-[10px] border border-[#e3e0ed] bg-[#fff]">
+          <button
+            type="button"
+            className="flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-2 bg-transparent px-2.5 text-left disabled:cursor-default"
+            onClick={copyInviteCode}
+            disabled={!inviteCode}
+            aria-label="초대코드 복사"
+          >
+            <div className="flex min-w-0 items-center gap-2">
+              <Link2 className="size-3.5 shrink-0 text-[#262433]" strokeWidth={2} />
+              <p className="m-0 overflow-hidden text-xs font-medium tracking-[0.04em] text-[#262433] whitespace-nowrap [text-overflow:ellipsis]">
+                {inviteCode || "초대코드"}
+              </p>
+            </div>
+            {copied ? (
+              <Check className="size-3.5 shrink-0 text-[var(--dl-color-text-brand)]" strokeWidth={2} aria-hidden />
+            ) : (
+              <Copy className="size-3.5 shrink-0 text-[var(--dl-color-text-brand)]" strokeWidth={2} aria-hidden />
+            )}
+            <span className="sr-only">{copied ? "복사됨" : "복사"}</span>
+          </button>
+          {isHost ? (
+            <button
+              type="button"
+              className="flex h-full shrink-0 w-14 items-center justify-center border-l border-[#e3e0ed] px-2.5 text-xs  font-semibold text-[var(--dl-color-text-brand)] bg-[var(--dl-color-bg-brand-subtle)] disabled:opacity-50"
+              onClick={reissueInviteCode}
+              disabled={reissuing}
+            >
+              {reissuing ? "..." : "재설정"}
+            </button>
+          ) : null}
+        </div>
 
         <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto">
           <div className="flex flex-col gap-1" aria-label="진행중인 토픽">
