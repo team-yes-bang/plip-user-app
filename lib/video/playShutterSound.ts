@@ -16,7 +16,10 @@ function AudioContextCtor(): (new (options?: AudioContextOptions) => AudioContex
   if (typeof window === "undefined") {
     return undefined;
   }
-  return window.AudioContext ?? window.webkitAudioContext;
+  return (
+    window.AudioContext ??
+    (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+  );
 }
 
 function getAudioContext(): WebAudioContext | null {
