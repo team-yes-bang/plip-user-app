@@ -14,6 +14,7 @@ type WithdrawAccountDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   email: string;
+  requiresPasswordConfirmation: boolean;
 };
 
 const dialogActionClassName =
@@ -23,6 +24,7 @@ export function WithdrawAccountDialog({
   open,
   onOpenChange,
   email,
+  requiresPasswordConfirmation,
 }: WithdrawAccountDialogProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -42,7 +44,7 @@ export function WithdrawAccountDialog({
     setPending(true);
 
     const result = await withdrawAccountAction(
-      email && password ? { email, password } : {},
+      requiresPasswordConfirmation && email && password ? { email, password } : {},
     );
     setPending(false);
 
@@ -91,7 +93,7 @@ export function WithdrawAccountDialog({
       </div>
 
       <form className="flex flex-col gap-3.5" onSubmit={handleSubmit}>
-        {email ? (
+        {requiresPasswordConfirmation ? (
           <div className="flex w-full flex-col gap-1.5">
             <label
               htmlFor="withdraw-password"

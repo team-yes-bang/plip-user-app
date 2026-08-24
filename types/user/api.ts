@@ -3,6 +3,7 @@ export type ApiUserProfileResponse = {
   nickname: string;
   profileImagePath: string | null;
   email: string;
+  hasLocalAuth: boolean;
 };
 
 export type ApiProfileUpdateRequest = {

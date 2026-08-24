@@ -19,6 +19,7 @@ function mapProfile(data: Awaited<ReturnType<typeof userApi.getMyProfile>>): UiU
     nickname: data.nickname,
     profileImageUrl: resolveProfileImageUrl(data.profileImagePath),
     email: data.email,
+    hasLocalAuth: data.hasLocalAuth === true,
   };
 }
 

@@ -24,7 +24,15 @@ export type UiRestoreSocialPayload = {
   accessToken: string;
 };
 
-export type UiRestorePayload = UiRestoreLocalPayload | UiRestoreSocialPayload;
+export type UiRestoreSocialPendingPayload = {
+  type: "social-pending";
+  provider: SocialProvider;
+};
+
+export type UiRestorePayload =
+  | UiRestoreLocalPayload
+  | UiRestoreSocialPayload
+  | UiRestoreSocialPendingPayload;
 
 export type UiOtpPurpose = "SIGNUP" | "PASSWORD_RESET";
 
@@ -40,4 +48,9 @@ export type UiSignupDraft = {
   password: string;
   verificationToken: string;
   termsAgreements: { termId: number; agreed: boolean }[];
+};
+
+export type UiPasswordResetDraft = {
+  email: string;
+  verificationToken: string;
 };
