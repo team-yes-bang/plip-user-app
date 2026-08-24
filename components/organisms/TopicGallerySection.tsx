@@ -1,5 +1,8 @@
 "use client";
 
+import { FullpageVideoViewer } from "@/components/organisms/FullpageVideoViewer";
+import { FullpageViewerTemplate } from "@/components/templates/FullpageViewerTemplate";
+import { useVideoViewer } from "@/components/providers/VideoViewerProvider";
 import { TopicClipPage } from "@/components/molecules/TopicClipPage";
 import { paginateTopicVideos } from "@/lib/topic/paginateTopicVideos";
 import type { UiTopicVideo } from "@/types/topic/ui";
@@ -61,12 +64,9 @@ export function TopicGallerySection({
       return;
     }
     const dx = event.clientX - start.x;
-    const dy = event.clientY - start.y;
-    if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.25) {
+    if (Math.abs(dx) < 48) {
       return;
     }
-    skipClick.current = true;
-    goToPage(dx < 0 ? safeIndex + 1 : safeIndex - 1);
   }
 
   function handleClickCapture(event: React.MouseEvent<HTMLElement>) {
@@ -78,6 +78,23 @@ export function TopicGallerySection({
     event.stopPropagation();
   }
 
+  const { isOpen, activeClipId, videoList, openViewer, closeViewer } = useVideoViewer();
+
+  function handleSelectVideo(videoId: string) {
+    if (onSelectVideo) {
+      onSelectVideo(videoId);
+    }
+    const formattedList = videos.map((v) => ({
+      clipId: v.id,
+      videoUuid: v.id,
+      title: v.caption || "토픽 클립",
+      authorName: v.authorNickname,
+      uploadedAt: v.createdAtText,
+      thumbnailUrl: v.thumbnailUrl,
+    }));
+    openViewer(videoId, formattedList, "agit");
+  }
+
   function renderPage(pageItems: GalleryPageItem[], key: string) {
     const pageVideos = pageItems.filter((item): item is UiTopicVideo => !isCaptureSlot(item));
     return (
@@ -86,7 +103,7 @@ export function TopicGallerySection({
         videos={pageVideos}
         captureHref={captureHref}
         showCaptureSlot={pageItems.some(isCaptureSlot)}
-        onSelectVideo={onSelectVideo}
+        onSelectVideo={handleSelectVideo}
       />
     );
   }
@@ -140,6 +157,16 @@ export function TopicGallerySection({
           />
         </>
       ) : null}
+
+      {isOpen && activeClipId && (
+        <FullpageViewerTemplate isOpen={isOpen} onClose={closeViewer}>
+          <FullpageVideoViewer
+            initialClipId={activeClipId}
+            videoList={videoList}
+            onClose={closeViewer}
+          />
+        </FullpageViewerTemplate>
+      )}
     </section>
   );
 }
