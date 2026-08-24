@@ -4,6 +4,7 @@ import { updateMyProfileAction } from "@/actions/userActions";
 import { DailyIcon, SubmitButton } from "@/components/atoms";
 import { AuthField } from "@/components/molecules";
 import { toast } from "@/components/ui/toast";
+import { handleClientActionResult } from "@/lib/action/handleClientActionResult";
 import { ROUTES } from "@/config/routes";
 import {
   USER_NICKNAME_MAX_LENGTH,
@@ -21,19 +22,16 @@ type ProfileEditFormProps = {
 export function ProfileEditForm({ profile }: ProfileEditFormProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(formData: FormData) {
     if (pending) return;
 
     setPending(true);
-    setError(null);
 
     const result = await updateMyProfileAction(formData.get("nickname"));
     setPending(false);
 
-    if (!result.ok) {
-      setError(result.error);
+    if (!(await handleClientActionResult(result, router, { errorTitle: "프로필 저장 실패" }))) {
       return;
     }
 
@@ -89,8 +87,6 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
           이미 방 전용 프로필을 사용 중인 방은 해당 프로필을 유지합니다.
         </p>
       </div>
-
-      {error ? <p className="m-0 text-[12px] text-red-600">{error}</p> : null}
 
       <div className="mt-auto flex w-full flex-col gap-[14px]">
         <SubmitButton variant="brand" disabled={pending}>

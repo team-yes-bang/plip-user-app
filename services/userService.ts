@@ -1,4 +1,5 @@
 import * as userApi from "@/lib/api/userApi";
+import { normalizeDiaryNotifyTime } from "@/lib/user/diaryNotifyTime";
 import { resolveProfileImageUrl } from "@/lib/user/profileImage";
 import type {
   ApiNotificationSettingsPatchRequest,
@@ -40,19 +41,6 @@ function mapTermsAgreement(item: Awaited<ReturnType<typeof userApi.getTermsAgree
     required: item.required,
     agreed: item.agreed,
   };
-}
-
-export function normalizeDiaryNotifyTime(value: string): string {
-  const match = /^(\d{2}):(\d{2})/.exec(value);
-  if (!match) {
-    return "21:00";
-  }
-  const hours = Number(match[1]);
-  const minutes = Number(match[2]);
-  const roundedMinutes = Math.round(minutes / 10) * 10;
-  const normalizedMinutes = roundedMinutes >= 60 ? 0 : roundedMinutes;
-  const normalizedHours = roundedMinutes >= 60 ? (hours + 1) % 24 : hours;
-  return `${String(normalizedHours).padStart(2, "0")}:${String(normalizedMinutes).padStart(2, "0")}`;
 }
 
 export function toApiDiaryNotifyTime(value: string): string {

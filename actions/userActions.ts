@@ -1,9 +1,9 @@
 "use server";
 
 import { signOut } from "@/auth";
-import { ApiError } from "@/lib/api/apiFetch";
 import * as authService from "@/services/authService";
 import * as userService from "@/services/userService";
+import { toUserActionError } from "@/lib/action/userActionError";
 import { actionFailure, actionSuccess, type ActionResult } from "@/types/action-result";
 import type { UiAuthTokens } from "@/types/auth/ui";
 import type { UiNotificationSettings, UiTermsAgreementItem, UiUserProfile } from "@/types/user/ui";
@@ -11,16 +11,7 @@ import {
   USER_NICKNAME_MAX_LENGTH,
   USER_NICKNAME_MIN_LENGTH,
 } from "@/types/user/ui";
-
-function toActionError(error: unknown): ActionResult<never> {
-  if (error instanceof ApiError) {
-    return actionFailure(`[${error.status}] ${error.message}`);
-  }
-  if (error instanceof Error) {
-    return actionFailure(error.message);
-  }
-  return actionFailure("Unknown error");
-}
+import { ApiError } from "@/lib/api/apiFetch";
 
 function parseNickname(value: FormDataEntryValue | null): string | null {
   if (typeof value !== "string") {
@@ -38,7 +29,7 @@ export async function getMyProfileAction(): Promise<ActionResult<UiUserProfile>>
     const profile = await userService.getMyProfile();
     return actionSuccess(profile);
   } catch (error) {
-    return toActionError(error);
+    return toUserActionError(error);
   }
 }
 
@@ -54,7 +45,7 @@ export async function updateMyProfileAction(
     const profile = await userService.updateMyProfile({ nickname: parsed });
     return actionSuccess(profile);
   } catch (error) {
-    return toActionError(error);
+    return toUserActionError(error);
   }
 }
 
@@ -76,7 +67,7 @@ export async function changePasswordAction(payload: {
     });
     return actionSuccess(tokens);
   } catch (error) {
-    return toActionError(error);
+    return toUserActionError(error);
   }
 }
 
@@ -85,7 +76,7 @@ export async function getNotificationSettingsAction(): Promise<ActionResult<UiNo
     const settings = await userService.getNotificationSettings();
     return actionSuccess(settings);
   } catch (error) {
-    return toActionError(error);
+    return toUserActionError(error);
   }
 }
 
@@ -96,7 +87,7 @@ export async function patchNotificationSettingsAction(
     const settings = await userService.patchNotificationSettings(payload);
     return actionSuccess(settings);
   } catch (error) {
-    return toActionError(error);
+    return toUserActionError(error);
   }
 }
 
@@ -105,7 +96,7 @@ export async function getOptionalTermsAgreementsAction(): Promise<ActionResult<U
     const agreements = await userService.getOptionalTermsAgreements();
     return actionSuccess(agreements);
   } catch (error) {
-    return toActionError(error);
+    return toUserActionError(error);
   }
 }
 
@@ -117,7 +108,7 @@ export async function patchTermsAgreementAction(
     await userService.patchTermsAgreement(termId, agreed);
     return actionSuccess(undefined);
   } catch (error) {
-    return toActionError(error);
+    return toUserActionError(error);
   }
 }
 
@@ -139,6 +130,6 @@ export async function withdrawAccountAction(payload: {
     if (error instanceof ApiError && payload.password) {
       return actionFailure("비밀번호가 올바르지 않습니다.");
     }
-    return toActionError(error);
+    return toUserActionError(error);
   }
 }

@@ -1,18 +1,31 @@
 "use client";
 
 import { patchNotificationSettingsAction } from "@/actions/userActions";
-import { Input } from "@/components/atoms";
 import { DailyToggle, SettingsRow } from "@/components/molecules";
 import { toast } from "@/components/ui/toast";
+import { handleClientActionResult } from "@/lib/action/handleClientActionResult";
+import {
+  DIARY_NOTIFY_TIME_OPTIONS,
+  formatDiaryNotifyTimeLabel,
+  normalizeDiaryNotifyTime,
+} from "@/lib/user/diaryNotifyTime";
 import type { UiNotificationSettings } from "@/types/user/ui";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type NotificationSettingsFormProps = {
   initialSettings: UiNotificationSettings;
 };
 
+const timeSelectClassName =
+  "h-12 w-full rounded-[var(--dl-radius-md)] border border-[var(--dl-color-border-default)] bg-[var(--dl-color-bg-surface)] px-4 text-base leading-6 text-[var(--dl-color-text-primary)] outline-none disabled:cursor-not-allowed disabled:opacity-50";
+
 export function NotificationSettingsForm({ initialSettings }: NotificationSettingsFormProps) {
-  const [settings, setSettings] = useState(initialSettings);
+  const router = useRouter();
+  const [settings, setSettings] = useState({
+    ...initialSettings,
+    diaryNotifyTime: normalizeDiaryNotifyTime(initialSettings.diaryNotifyTime),
+  });
   const [pendingKey, setPendingKey] = useState<string | null>(null);
 
   async function patchPartial(
@@ -25,10 +38,11 @@ export function NotificationSettingsForm({ initialSettings }: NotificationSettin
     const result = await patchNotificationSettingsAction(payload);
     setPendingKey(null);
 
-    if (!result.ok) {
-      toast.add({ type: "error", title: "알림 설정 저장 실패", description: result.error });
+    if (!(await handleClientActionResult(result, router, { errorTitle: "알림 설정 저장 실패" }))) {
       return;
     }
+
+    if (!result.ok) return;
 
     setSettings(result.data);
     toast.add({ type: "success", title: "알림 설정을 저장했습니다" });
@@ -43,14 +57,14 @@ export function NotificationSettingsForm({ initialSettings }: NotificationSettin
   }
 
   async function handleTimeChange(value: string) {
-    setSettings((current) => ({ ...current, diaryNotifyTime: value }));
-    await patchPartial({ diaryNotifyTime: value }, "time");
+    const normalized = normalizeDiaryNotifyTime(value);
+    setSettings((current) => ({ ...current, diaryNotifyTime: normalized }));
+    await patchPartial({ diaryNotifyTime: normalized }, "time");
   }
 
   return (
     <section className="flex w-full flex-col gap-3.5">
       <SettingsRow
-        icon="bell"
         title="아지트 알림"
         description="아지트 활동 알림"
         trailing={
@@ -64,7 +78,6 @@ export function NotificationSettingsForm({ initialSettings }: NotificationSettin
       />
 
       <SettingsRow
-        icon="calendarBrand"
         title="다이어리 알림"
         description={settings.diaryNotifyEnabled ? "알림 켜짐" : "알림 꺼짐"}
         trailing={
@@ -81,15 +94,19 @@ export function NotificationSettingsForm({ initialSettings }: NotificationSettin
         <label htmlFor="diary-notify-time" className="text-sm font-semibold text-[var(--dl-color-text-primary)]">
           다이어리 알림 시간
         </label>
-        <Input
+        <select
           id="diary-notify-time"
-          type="time"
-          variant="daily"
-          step={600}
+          className={timeSelectClassName}
           value={settings.diaryNotifyTime}
           disabled={!settings.diaryNotifyEnabled || pendingKey === "time"}
           onChange={(event) => handleTimeChange(event.target.value)}
-        />
+        >
+          {DIARY_NOTIFY_TIME_OPTIONS.map((option) => (
+            <option key={option} value={option}>
+              {formatDiaryNotifyTimeLabel(option)}
+            </option>
+          ))}
+        </select>
       </div>
     </section>
   );

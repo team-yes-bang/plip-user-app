@@ -3,7 +3,9 @@
 import { patchTermsAgreementAction } from "@/actions/userActions";
 import { DailyToggle, SettingsRow } from "@/components/molecules";
 import { toast } from "@/components/ui/toast";
+import { handleClientActionResult } from "@/lib/action/handleClientActionResult";
 import type { UiTermsAgreementItem } from "@/types/user/ui";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type TermsAgreementsFormProps = {
@@ -11,6 +13,7 @@ type TermsAgreementsFormProps = {
 };
 
 export function TermsAgreementsForm({ initialAgreements }: TermsAgreementsFormProps) {
+  const router = useRouter();
   const [agreements, setAgreements] = useState(initialAgreements);
   const [pendingTermId, setPendingTermId] = useState<number | null>(null);
 
@@ -21,8 +24,7 @@ export function TermsAgreementsForm({ initialAgreements }: TermsAgreementsFormPr
     const result = await patchTermsAgreementAction(termId, agreed);
     setPendingTermId(null);
 
-    if (!result.ok) {
-      toast.add({ type: "error", title: "약관 설정 저장 실패", description: result.error });
+    if (!(await handleClientActionResult(result, router, { errorTitle: "약관 설정 저장 실패" }))) {
       return;
     }
 

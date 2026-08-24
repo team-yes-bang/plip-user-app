@@ -99,13 +99,11 @@ export function ProfileHubSection({ profile }: ProfileHubSectionProps) {
         />
         <SettingsRow
           href={ROUTES.mypage.notifications}
-          icon="bell"
           title="알림 설정"
           description="아지트·다이어리 알림"
         />
         <SettingsRow
           href={ROUTES.mypage.termsAgreements}
-          icon="list"
           title="선택 약관 동의"
           description="마케팅 등 선택 약관 관리"
         />

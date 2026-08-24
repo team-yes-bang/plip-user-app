@@ -4,6 +4,7 @@ import { changePasswordAction } from "@/actions/userActions";
 import { SubmitButton } from "@/components/atoms";
 import { PasswordInput } from "@/components/molecules";
 import { toast } from "@/components/ui/toast";
+import { handleClientActionResult } from "@/lib/action/handleClientActionResult";
 import { ROUTES } from "@/config/routes";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -16,7 +17,6 @@ type ChangePasswordFormProps = {
 export function ChangePasswordForm({ email }: ChangePasswordFormProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,16 +28,18 @@ export function ChangePasswordForm({ email }: ChangePasswordFormProps) {
     const confirmPassword = String(formData.get("newPasswordConfirm") ?? "");
 
     if (newPassword !== confirmPassword) {
-      setError("새 비밀번호 확인이 일치하지 않습니다.");
+      toast.add({
+        type: "error",
+        title: "비밀번호 변경 실패",
+        description: "새 비밀번호 확인이 일치하지 않습니다.",
+      });
       return;
     }
 
     setPending(true);
-    setError(null);
 
     const result = await changePasswordAction({ currentPassword, newPassword });
-    if (!result.ok) {
-      setError(result.error);
+    if (!(await handleClientActionResult(result, router, { errorTitle: "비밀번호 변경 실패" }))) {
       setPending(false);
       return;
     }
@@ -49,7 +51,11 @@ export function ChangePasswordForm({ email }: ChangePasswordFormProps) {
         redirect: false,
       });
       if (signInResult?.error) {
-        setError("비밀번호 변경 후 세션 갱신에 실패했습니다.");
+        toast.add({
+          type: "error",
+          title: "비밀번호 변경 실패",
+          description: "비밀번호 변경 후 세션 갱신에 실패했습니다.",
+        });
         setPending(false);
         return;
       }
@@ -101,8 +107,6 @@ export function ChangePasswordForm({ email }: ChangePasswordFormProps) {
           required
         />
       </div>
-
-      {error ? <p className="m-0 text-[12px] text-red-600">{error}</p> : null}
 
       <div className="mt-auto flex w-full flex-col gap-[14px]">
         <SubmitButton variant="brand" disabled={pending}>

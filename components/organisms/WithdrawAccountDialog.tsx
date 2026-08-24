@@ -5,6 +5,7 @@ import { SubmitButton } from "@/components/atoms";
 import { AnimatedDialog } from "@/components/molecules/AnimatedOverlays";
 import { PasswordInput } from "@/components/molecules";
 import { toast } from "@/components/ui/toast";
+import { handleClientActionResult } from "@/lib/action/handleClientActionResult";
 import { ROUTES } from "@/config/routes";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -24,12 +25,10 @@ export function WithdrawAccountDialog({
   email,
 }: WithdrawAccountDialogProps) {
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   function handleClose() {
     if (pending) return;
-    setError(null);
     onOpenChange(false);
   }
 
@@ -41,15 +40,13 @@ export function WithdrawAccountDialog({
     const password = String(formData.get("password") ?? "");
 
     setPending(true);
-    setError(null);
 
     const result = await withdrawAccountAction(
       email && password ? { email, password } : {},
     );
     setPending(false);
 
-    if (!result.ok) {
-      setError(result.error);
+    if (!(await handleClientActionResult(result, router, { errorTitle: "회원 탈퇴 실패" }))) {
       return;
     }
 
@@ -109,8 +106,6 @@ export function WithdrawAccountDialog({
             />
           </div>
         ) : null}
-
-        {error ? <p className="m-0 text-[12px] text-red-600">{error}</p> : null}
 
         <div className="flex justify-end gap-2">
           <SubmitButton
