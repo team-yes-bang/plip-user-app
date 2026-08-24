@@ -99,6 +99,7 @@ export function toUiTopicDetail(topic: ApiTopic): UiTopicDetail {
     startDate: Number.isNaN(parsed.getTime()) ? topic.startAt.slice(0, 10) : toKstDateString(parsed),
     videoCount: topic.videoCount,
     creatorUuid: topic.creatorUuid,
+    uploadedByMe: topic.uploadedByMe ?? null,
   };
 }
 

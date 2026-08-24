@@ -5,20 +5,18 @@ import type { UiTopicVideo } from "@/types/topic/ui";
 type TopicClipPageProps = {
   videos: UiTopicVideo[];
   captureHref: string;
+  showCaptureSlot?: boolean;
   onSelectVideo?: (videoId: string) => void;
 };
 
 export function TopicClipPage({
   videos,
   captureHref,
+  showCaptureSlot = false,
   onSelectVideo,
 }: TopicClipPageProps) {
-  if (videos.length === 0) {
-    return (
-      <div className="flex h-full min-h-0 w-full flex-col">
-        <TopicEmptySlot captureHref={captureHref} />
-      </div>
-    );
+  if (videos.length === 0 && !showCaptureSlot) {
+    return <div className="flex h-full min-h-0 w-full flex-col" />;
   }
 
   return (
@@ -26,6 +24,7 @@ export function TopicClipPage({
       {videos.map((video) => (
         <TopicVideoTile key={video.id} video={video} onSelect={onSelectVideo} />
       ))}
+      {showCaptureSlot ? <TopicEmptySlot captureHref={captureHref} /> : null}
     </div>
   );
 }

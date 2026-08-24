@@ -1,4 +1,4 @@
-import { DailyIcon, UserAvatar } from "@/components/atoms";
+import { UserAvatar } from "@/components/atoms";
 import { VideoClipThumbnail } from "@/components/molecules/VideoClipThumbnail";
 import type { UiTopicVideo } from "@/types/topic/ui";
 
@@ -27,20 +27,13 @@ export function TopicVideoTile({ video, onSelect }: TopicVideoTileProps) {
         className="absolute inset-0 size-full object-cover"
       />
       <span
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.45)_0%,transparent_28%,transparent_58%,rgba(0,0,0,0.38)_100%)]"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.28)_0%,transparent_22%,transparent_55%,rgba(0,0,0,0.48)_100%)]"
         aria-hidden
       />
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-3 top-3 flex min-w-0 items-center gap-2">
-          <UserAvatar src={video.profileImageSrc} size={28} />
-          <p className="m-0 overflow-hidden text-[13px] font-semibold leading-4 text-white [text-overflow:ellipsis] whitespace-nowrap [text-shadow:0_1px_2px_rgba(0,0,0,0.45)]">
-            {video.profileNickname}
-          </p>
-        </div>
         <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
-          <DailyIcon name="play" size={36} />
-          <div className="relative mt-1">
-            <p className="m-0 text-[28px] font-bold leading-none text-white [text-shadow:0_1px_4px_rgba(0,0,0,0.5)]">
+          <div className="relative">
+            <p className="m-0 text-[40px] font-bold leading-none text-white [text-shadow:0_1px_4px_rgba(0,0,0,0.5)]">
               {time}
             </p>
             {caption ? (
@@ -49,6 +42,12 @@ export function TopicVideoTile({ video, onSelect }: TopicVideoTileProps) {
               </p>
             ) : null}
           </div>
+        </div>
+        <div className="absolute bottom-3 left-3 flex min-w-0 max-w-[calc(100%-1.5rem)] items-center gap-2">
+          <UserAvatar src={video.profileImageSrc} size={28} />
+          <p className="m-0 overflow-hidden text-[13px] font-semibold leading-4 text-white [text-overflow:ellipsis] whitespace-nowrap [text-shadow:0_1px_2px_rgba(0,0,0,0.45)]">
+            {video.profileNickname}
+          </p>
         </div>
       </div>
     </>
