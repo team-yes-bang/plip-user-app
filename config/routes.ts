@@ -31,9 +31,9 @@ export const ROUTES = {
     topics: (agitId: string) => `/agit/${agitId}/topics` as const,
     topicCreate: (agitId: string) => `/agit/${agitId}/topics/create` as const,
     topicFeed: (agitId: string, topicId?: string) =>
-      (topicId
-        ? `/agit/${agitId}/feed?topic=${encodeURIComponent(topicId)}`
-        : `/agit/${agitId}/feed`) as const,
+      topicId
+        ? (`/agit/${agitId}/feed?topic=${encodeURIComponent(topicId)}` as const)
+        : (`/agit/${agitId}/feed` as const),
     topicDetail: (agitId: string, topicId: string) =>
       `/agit/${agitId}/topics/${topicId}` as const,
     topicEdit: (agitId: string, topicId: string) =>
