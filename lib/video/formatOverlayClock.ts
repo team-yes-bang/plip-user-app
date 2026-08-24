@@ -1,3 +1,9 @@
+export function formatOverlayClock(date: Date = new Date()): string {
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
 export function extractDate(uploadedAt?: string): string {
   if (!uploadedAt) return "2026.08.24";
   const trimmed = uploadedAt.trim();

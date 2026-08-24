@@ -1,6 +1,7 @@
 "use client";
 
 import { DailyIcon, FeedPill, FeedPillIconButton } from "@/components/atoms";
+import { VideoBottomInfo, VideoCenterClock } from "@/components/molecules";
 import { BaseVideoViewer, type BaseVideoViewerOverlayProps } from "@/components/organisms/BaseVideoViewer";
 import { MoveTopicSheet } from "@/components/organisms/MoveTopicSheet";
 import { ViewerActionsSheet } from "@/components/organisms/ViewerActionsSheet";
@@ -41,17 +42,15 @@ export function AgitVideoViewer({
         }
         headerSubtitle={agitName}
         headerTrailing={
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-white/90">
-              {extractTime(currentItem?.uploadedAt)}
-            </span>
-            <FeedPillIconButton label="더보기" onClick={() => setActionsOpen(true)}>
-              <DailyIcon name="ellipsis" size={16} className="brightness-0 invert" />
-            </FeedPillIconButton>
-          </div>
+          <FeedPillIconButton label="더보기" onClick={() => setActionsOpen(true)}>
+            <DailyIcon name="ellipsis" size={16} className="brightness-0 invert" />
+          </FeedPillIconButton>
         }
         overlayChildren={({ currentItem: item, currentDetail }: BaseVideoViewerOverlayProps) => (
           <>
+            {/* 중앙 크게 시각 표시 (그룹뷰어 오버레이 스타일) */}
+            <VideoCenterClock time={extractTime(item.uploadedAt)} />
+
             {/* Side Reaction Actions */}
             <div
               className="absolute right-5 bottom-32 z-20 flex flex-col gap-3 rounded-2xl bg-black/30 p-3 text-white text-xs font-medium backdrop-blur-md"
@@ -63,25 +62,12 @@ export function AgitVideoViewer({
               <span>＋</span>
             </div>
 
-            {/* Bottom Info Overlay */}
-            <div className="relative z-10 mt-auto flex items-end justify-between px-6 pb-12 text-white">
-              {/* 하단 좌측 작성자 & 캡션 */}
-              <div className="flex flex-col gap-0.5">
-                <span className="text-base font-bold">
-                  {item.authorName || "작성자"}
-                </span>
-                {currentDetail?.caption && (
-                  <span className="text-xs text-white/80">
-                    {currentDetail.caption}
-                  </span>
-                )}
-              </div>
-
-              {/* 하단 우측 날짜 */}
-              <span className="text-xs font-medium text-white/80">
-                {extractDate(item.uploadedAt)}
-              </span>
-            </div>
+            {/* 하단 좌측 작성자 & 하단 우측 날짜 */}
+            <VideoBottomInfo
+              authorName={item.authorName}
+              date={extractDate(item.uploadedAt)}
+              caption={item.title || currentDetail?.caption}
+            />
           </>
         )}
       />
