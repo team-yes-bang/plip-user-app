@@ -5,7 +5,7 @@ import { CreateRoomBasicForm } from "@/components/organisms/CreateRoomBasicForm"
 import { InviteConfirmSection } from "@/components/organisms/InviteConfirmSection";
 import { InviteJoinProfileForm } from "@/components/organisms/InviteJoinProfileForm";
 import { JoinCompleteSection } from "@/components/organisms/JoinCompleteSection";
-import { PublicRoomDetail } from "@/components/organisms/PublicRoomDetail";
+import { AgitLandingDetail } from "@/components/organisms/AgitLandingDetail";
 import { RoomProfileSelect } from "@/components/organisms/RoomProfileSelect";
 import { AgitFlowChrome } from "@/components/templates/AppChromeTemplate";
 import { DailyLoopAuthTemplate } from "@/components/templates/DailyLoopAuthTemplate";
@@ -24,15 +24,15 @@ function RoomMissing({ backHref = ROUTES.agit.root }: { backHref?: string }) {
   );
 }
 
-export function PublicRoomTemplate({ agitId }: { agitId: string }) {
+export function AgitLandingTemplate({ agitId }: { agitId: string }) {
   const agit = getAgitById(agitId);
   if (!agit) return <RoomMissing />;
 
   return (
     <DailyLoopAuthTemplate>
-      <p className="m-0 text-xs font-semibold leading-[17px] text-[var(--dl-color-text-brand)]">R01 · PUBLIC ROOM</p>
-      <AuthTopBar title="방 정보" backHref={ROUTES.agit.root} />
-      <PublicRoomDetail agit={agit} />
+      <p className="m-0 text-xs font-semibold leading-[17px] text-[var(--dl-color-text-brand)]">R01 · AGIT</p>
+      <AuthTopBar title="아지트 정보" backHref={ROUTES.agit.root} />
+      <AgitLandingDetail agit={agit} />
     </DailyLoopAuthTemplate>
   );
 }
@@ -140,8 +140,8 @@ export function InviteJoinLandingTemplate({
   return (
     <DailyLoopAuthTemplate>
       <p className="m-0 text-xs font-semibold leading-[17px] text-[var(--dl-color-text-brand)]">INVITE · LANDING</p>
-      <AuthTopBar title="방 정보" backHref={ROUTES.agit.root} />
-      <PublicRoomDetail agit={agit} joinHref={ROUTES.agit.joinProfile(agit.inviteCode ?? agit.id)} />
+      <AuthTopBar title="아지트 정보" backHref={ROUTES.agit.root} />
+      <AgitLandingDetail agit={agit} joinHref={ROUTES.agit.joinProfile(agit.inviteCode ?? agit.id)} />
     </DailyLoopAuthTemplate>
   );
 }
@@ -159,10 +159,5 @@ export function InviteJoinProfileTemplate({ code }: { code: string }) {
 }
 
 export function AgitEnterFlowTemplate({ agitId }: { agitId: string }) {
-  const agit = getAgitById(agitId);
-  if (!agit) return <RoomMissing />;
-  if (agit.visibility === "private") {
-    return <InviteConfirmTemplate agitId={agitId} />;
-  }
-  return <PublicRoomTemplate agitId={agitId} />;
+  return <AgitLandingTemplate agitId={agitId} />;
 }

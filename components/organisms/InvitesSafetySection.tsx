@@ -1,6 +1,5 @@
 "use client";
 
-import { DailyToggle } from "@/components/molecules/DailyToggle";
 import { NotificationIconToggle } from "@/components/molecules/NotificationIconToggle";
 import { useState } from "react";
 
@@ -8,7 +7,6 @@ const INVITE_LINK = "dailyloop.app/join/7K2M9";
 
 export function InvitesSafetySection() {
   const [copied, setCopied] = useState(false);
-  const [isPublic, setIsPublic] = useState(true);
   const [notify, setNotify] = useState(true);
 
   async function copyLink() {
@@ -48,15 +46,6 @@ export function InvitesSafetySection() {
         <p className="m-0 text-[11px] font-medium text-[var(--dl-color-text-danger)]">
           재발급하면 기존 링크는 즉시 사용할 수 없어요.
         </p>
-      </div>
-
-      <h2 className="m-0 text-base font-semibold leading-[23px] text-[var(--dl-color-text-primary)] text-[17px]">공개 설정</h2>
-      <div className="flex w-full items-center gap-[10px] border border-[var(--dl-color-border-default)] rounded-[var(--dl-radius-lg)] bg-[var(--dl-color-bg-surface)] p-[12px_14px]">
-        <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
-          <p className="m-0 text-sm font-medium leading-5 text-[var(--dl-color-text-primary)] font-semibold">공개 방</p>
-          <p className="m-0 text-xs font-normal leading-[17px] text-[var(--dl-color-text-secondary)]">검색 결과에 노출됩니다.</p>
-        </div>
-        <DailyToggle checked={isPublic} label="공개 방" onChange={setIsPublic} />
       </div>
 
       <div className="flex items-center justify-between">

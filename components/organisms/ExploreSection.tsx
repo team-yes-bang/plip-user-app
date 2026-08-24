@@ -78,7 +78,6 @@ export function ExploreSection() {
 
       {showFeatured && featured ? (
         <TextLink href={roomHref(featured.id, featured.joined)} className="relative flex w-full flex-col items-start gap-[10px] overflow-hidden rounded-[20px] bg-[var(--dl-color-bg-brand-subtle)] p-[18px] !no-underline no-underline">
-          <span className="inline-flex items-center justify-center h-[28px] rounded-[14px] p-[0_12px] text-xs font-semibold leading-none bg-[var(--dl-color-bg-brand-subtle)] text-[var(--dl-color-text-brand)]">공개 방</span>
           <p className="m-0 text-[24px] font-semibold leading-[34px] text-[var(--dl-color-text-primary)]">
             러닝 메이트의
             <br />

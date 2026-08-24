@@ -32,7 +32,7 @@ const MENU = [
   {
     id: "manage",
     title: "방 관리",
-    description: "초대·공개·안전 설정",
+    description: "초대·안전 설정",
     icon: "usersBrand" as const,
     href: (id: string) => ROUTES.agit.manage(id),
   },

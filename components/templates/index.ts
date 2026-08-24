@@ -44,7 +44,7 @@ export {
   InviteJoinLandingTemplate,
   InviteJoinProfileTemplate,
   JoinCompleteTemplate,
-  PublicRoomTemplate,
+  AgitLandingTemplate,
   RoomProfileTemplate,
 } from "./RoomFlowTemplates";
 export { SettingsTemplate } from "./SettingsTemplate";

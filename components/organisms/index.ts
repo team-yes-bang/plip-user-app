@@ -25,7 +25,7 @@ export { CreateRoomBasicForm } from "./CreateRoomBasicForm";
 export { InviteConfirmSection } from "./InviteConfirmSection";
 export { InviteJoinProfileForm } from "./InviteJoinProfileForm";
 export { JoinCompleteSection } from "./JoinCompleteSection";
-export { PublicRoomDetail } from "./PublicRoomDetail";
+export { AgitLandingDetail } from "./AgitLandingDetail";
 export { RoomProfileSelect } from "./RoomProfileSelect";
 export { AgitDetailSection } from "./AgitDetailSection";
 export { AgitListSection } from "./AgitListSection";
