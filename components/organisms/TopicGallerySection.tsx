@@ -67,6 +67,8 @@ export function TopicGallerySection({
     if (Math.abs(dx) < 48) {
       return;
     }
+    skipClick.current = true;
+    goToPage(dx < 0 ? safeIndex + 1 : safeIndex - 1);
   }
 
   function handleClickCapture(event: React.MouseEvent<HTMLElement>) {
