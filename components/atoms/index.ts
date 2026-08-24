@@ -23,6 +23,7 @@ export {
 } from "./NavIcons";
 export { CursorSpark } from "./CursorSpark";
 export { DailyIcon, type DailyIconName } from "./DailyIcon";
+export { FeedPill, feedOverlayGlassClass } from "./FeedPill";
 export { Pill } from "./Pill";
 export { PageTitle } from "./PageTitle";
 export { ScreenSubtitle, ScreenTitle } from "./ScreenTitle";

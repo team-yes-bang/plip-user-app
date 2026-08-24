@@ -1,15 +1,17 @@
 "use client";
 
 import { getTopicFeedWindowAction, getTopicVideosAction } from "@/actions/topicActions";
-import { HeaderBackLink, ScreenHeader } from "@/components/molecules";
+import { HeaderBackLink, ScreenHeader, TopicFeedPillHeader } from "@/components/molecules";
 import { TopicGallerySection } from "@/components/organisms/TopicGallerySection";
 import { ROUTES } from "@/config/routes";
 import { mergeUniqueById } from "@/lib/topic/mergeTopicFeed";
+import { shouldShowTopicCaptureSlot } from "@/lib/topic/selectAgitTopic";
 import type { UiTopicDetail, UiTopicFeedWindow, UiTopicVideo } from "@/types/topic/ui";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const NEIGHBOR_LIMIT = 3;
+const EMPTY_TOPIC_VIDEOS: UiTopicVideo[] = [];
 
 type TopicFeedSectionProps = {
   agitId: string;
@@ -241,11 +243,12 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
   const videoCount = loadedVideos && loadedVideos.length > 0 ? loadedVideos.length : current.videoCount;
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-      <ScreenHeader
-        leading={<HeaderBackLink href={backHref} />}
+    <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+      <TopicFeedPillHeader
+        backHref={backHref}
         title={current.title || "제목 없음"}
-        subtitle={`${current.startDate.replaceAll("-", ".")} · ${videoCount}개 영상`}
+        videoCount={videoCount}
+        dateLabel={current.startDate.replaceAll("-", ".")}
       />
       <div
         ref={scrollerRef}
@@ -260,8 +263,9 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
           >
             {Math.abs(topicIndex - index) <= 1 ? (
               <TopicGallerySection
-                videos={videosByTopic[topic.id] ?? []}
-                captureHref={ROUTES.agit.upload(agitId)}
+                videos={videosByTopic[topic.id] ?? EMPTY_TOPIC_VIDEOS}
+                captureHref={ROUTES.capture.videoWith({ agitUuid: agitId, topicUuid: topic.id })}
+                showCaptureSlot={shouldShowTopicCaptureSlot(topic)}
                 onSelectVideo={(videoId) => router.push(ROUTES.viewer.clip(videoId))}
               />
             ) : null}

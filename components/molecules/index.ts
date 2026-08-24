@@ -17,6 +17,7 @@ export { CaptureClipOverlays } from "./CaptureClipOverlays";
 export { TopicChip } from "./TopicChip";
 export { TopicClipPage } from "./TopicClipPage";
 export { TopicEmptySlot } from "./TopicEmptySlot";
+export { TopicFeedPillHeader } from "./TopicFeedPillHeader";
 export { TopicVideoTile } from "./TopicVideoTile";
 export { AgreementRow } from "./AgreementRow";
 export { AuthDivider } from "./AuthDivider";

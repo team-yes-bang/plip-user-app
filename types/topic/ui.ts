@@ -33,6 +33,7 @@ export type UiTopicDetail = {
   startDate: string;
   videoCount: number;
   creatorUuid: string;
+  uploadedByMe: boolean | null;
 };
 
 export type UiTopicListSectionKey = "ongoing" | "upcoming" | "past";

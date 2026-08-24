@@ -5,23 +5,46 @@ import { paginateTopicVideos } from "@/lib/topic/paginateTopicVideos";
 import type { UiTopicVideo } from "@/types/topic/ui";
 import { useMemo, useRef, useState } from "react";
 
+const CAPTURE_SLOT_ID = "__capture-slot__";
+
+type CaptureSlotItem = { id: typeof CAPTURE_SLOT_ID };
+type GalleryPageItem = UiTopicVideo | CaptureSlotItem;
+
+const CAPTURE_SLOT: CaptureSlotItem = { id: CAPTURE_SLOT_ID };
+
+function isCaptureSlot(item: GalleryPageItem): item is CaptureSlotItem {
+  return item.id === CAPTURE_SLOT_ID;
+}
+
 type TopicGallerySectionProps = {
   videos: UiTopicVideo[];
   captureHref: string;
+  showCaptureSlot?: boolean;
   onSelectVideo?: (videoId: string) => void;
 };
 
 export function TopicGallerySection({
   videos,
   captureHref,
+  showCaptureSlot = false,
   onSelectVideo,
 }: TopicGallerySectionProps) {
-  const pages = useMemo(() => paginateTopicVideos(videos), [videos]);
+  const items = useMemo<GalleryPageItem[]>(
+    () => (showCaptureSlot ? [...videos, CAPTURE_SLOT] : videos),
+    [showCaptureSlot, videos],
+  );
+  const pages = useMemo(() => paginateTopicVideos(items), [items]);
   const pageCount = pages.length;
   const [pageIndex, setPageIndex] = useState(0);
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const skipClick = useRef(false);
   const safeIndex = Math.min(pageIndex, Math.max(pageCount - 1, 0));
+
+  const [prevKey, setPrevKey] = useState({ showCaptureSlot, len: videos.length });
+  if (prevKey.showCaptureSlot !== showCaptureSlot || prevKey.len !== videos.length) {
+    setPrevKey({ showCaptureSlot, len: videos.length });
+    setPageIndex(0);
+  }
 
   function goToPage(nextIndex: number) {
     setPageIndex(Math.min(Math.max(nextIndex, 0), pageCount - 1));
@@ -55,16 +78,20 @@ export function TopicGallerySection({
     event.stopPropagation();
   }
 
-  function renderPage(pageVideos: UiTopicVideo[], key: string) {
+  function renderPage(pageItems: GalleryPageItem[], key: string) {
+    const pageVideos = pageItems.filter((item): item is UiTopicVideo => !isCaptureSlot(item));
     return (
       <TopicClipPage
         key={key}
         videos={pageVideos}
         captureHref={captureHref}
+        showCaptureSlot={pageItems.some(isCaptureSlot)}
         onSelectVideo={onSelectVideo}
       />
     );
   }
+
+  const paddedEmpty = videos.length === 0;
 
   return (
     <section
@@ -80,19 +107,19 @@ export function TopicGallerySection({
       {pageCount <= 1 ? (
         <div
           className={
-            videos.length === 0 ? "flex h-full min-h-0 flex-col px-[23px] pb-6" : "flex h-full min-h-0 flex-col"
+            paddedEmpty ? "flex h-full min-h-0 flex-col px-[23px] pb-6" : "flex h-full min-h-0 flex-col"
           }
         >
           {renderPage(pages[0] ?? [], "topic-page-0")}
         </div>
       ) : (
-        pages.map((pageVideos, index) => (
+        pages.map((pageItems, index) => (
           <div
             key={`topic-page-${index}`}
             className="absolute inset-0 flex flex-col"
             style={{ transform: `translate3d(${(index - safeIndex) * 100}%, 0, 0)` }}
           >
-            {renderPage(pageVideos, `topic-page-${index}`)}
+            {renderPage(pageItems, `topic-page-${index}`)}
           </div>
         ))
       )}
