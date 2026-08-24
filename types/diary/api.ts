@@ -45,6 +45,7 @@ export type ApiDiaryHomeSection = {
 
 export type ApiDiaryHomeResponse = {
   sections: ApiDiaryHomeSection[];
+  themes: ApiDiaryTheme[];
 };
 
 export type ApiDiaryCalendarResponse = {
