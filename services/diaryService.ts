@@ -194,6 +194,17 @@ export async function getDiaryHomeFeed(): Promise<UiDiaryDateEntry[]> {
   return normalizeHomeFeed(entries);
 }
 
+export async function getDiaryHomePageData(): Promise<{
+  entries: UiDiaryDateEntry[];
+  themes: UiDiaryTheme[];
+}> {
+  const response = await diaryApi.getDiaryHome();
+  return {
+    entries: normalizeHomeFeed(response.sections.map(mapHomeSection)),
+    themes: (response.themes ?? []).map(mapTheme),
+  };
+}
+
 export async function getDiaryCalendarDates(year: number, month: number): Promise<string[]> {
   const response = await diaryApi.getDiaryCalendar(year, month);
   return response.writtenDates;

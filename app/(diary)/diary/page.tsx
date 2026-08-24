@@ -1,5 +1,5 @@
 import { DiaryMainTemplate } from "@/components/templates";
-import { getDiaryHomeFeed, listDiaryThemes } from "@/services/diaryService";
+import { getDiaryHomePageData } from "@/services/diaryService";
 import type { UiDiaryDateEntry, UiDiaryTheme } from "@/types/diary/ui";
 
 export default async function DiaryPage() {
@@ -8,7 +8,7 @@ export default async function DiaryPage() {
   let error: string | undefined;
 
   try {
-    [entries, themes] = await Promise.all([getDiaryHomeFeed(), listDiaryThemes()]);
+    ({ entries, themes } = await getDiaryHomePageData());
   } catch (caught) {
     entries = [];
     themes = [];
