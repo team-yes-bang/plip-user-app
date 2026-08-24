@@ -27,7 +27,7 @@ export function SubmitButton({
   return (
     <button
       type={type}
-      className={cn(variantClass[variant], "disabled:opacity-50", className)}
+      className={cn(variantClass[variant], "cursor-pointer disabled:cursor-not-allowed disabled:opacity-50", className)}
       {...props}
     >
       {children}

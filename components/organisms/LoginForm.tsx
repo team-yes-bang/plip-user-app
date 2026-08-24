@@ -3,21 +3,16 @@
 import { SubmitButton, TextLink } from "@/components/atoms";
 import { ui } from "@/components/atoms/styles";
 import { cn } from "@/lib/utils";
-import { AuthDivider, AuthField } from "@/components/molecules";
+import { AuthDivider, AuthField, SocialAuthButtons } from "@/components/molecules";
 import { RestoreAccountDialog } from "@/components/organisms/RestoreAccountDialog";
 import { ROUTES } from "@/config/routes";
 import { AUTH_ERROR_CODES } from "@/lib/auth/auth-errors";
 import { getSafeCallbackUrl } from "@/lib/auth/safe-callback-url";
-import type { SocialProvider, UiRestorePayload } from "@/types/auth/ui";
+import { isSocialProvider } from "@/lib/auth/social-providers";
+import type { UiRestorePayload } from "@/types/auth/ui";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
-
-const SOCIAL_PROVIDERS: { id: SocialProvider; label: string }[] = [
-  { id: "kakao", label: "카카오로 계속" },
-  { id: "naver", label: "네이버로 계속" },
-  { id: "google", label: "Google로 계속" },
-];
+import { useEffect, useMemo, useState } from "react";
 
 function resolveOAuthErrorMessage(searchParams: URLSearchParams): string | null {
   const error = searchParams.get("error");
@@ -56,6 +51,34 @@ export function LoginForm() {
   const [pending, setPending] = useState(false);
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [restorePayload, setRestorePayload] = useState<UiRestorePayload | null>(null);
+  const [dismissedUrlRestore, setDismissedUrlRestore] = useState(false);
+
+  const urlRestorePayload = useMemo((): UiRestorePayload | null => {
+    const restore = searchParams.get("restore");
+    const provider = searchParams.get("provider");
+    if (restore !== "pending" || !isSocialProvider(provider)) {
+      return null;
+    }
+    return { type: "social-pending", provider };
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!urlRestorePayload) {
+      return;
+    }
+    router.replace(ROUTES.login);
+  }, [router, urlRestorePayload]);
+
+  const activeRestorePayload = restorePayload ?? urlRestorePayload;
+  const activeRestoreOpen =
+    restoreOpen || (urlRestorePayload !== null && !dismissedUrlRestore);
+
+  function handleRestoreOpenChange(open: boolean) {
+    setRestoreOpen(open);
+    if (!open && urlRestorePayload) {
+      setDismissedUrlRestore(true);
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -85,16 +108,6 @@ export function LoginForm() {
       return;
     }
 
-    router.push(callbackUrl);
-    router.refresh();
-  }
-
-  function handleSocial(provider: SocialProvider) {
-    setSubmitError(null);
-    void signIn(provider, { callbackUrl });
-  }
-
-  function handleRestoreCompleted() {
     router.push(callbackUrl);
     router.refresh();
   }
@@ -131,17 +144,11 @@ export function LoginForm() {
           로그인
         </SubmitButton>
         <AuthDivider />
-        {SOCIAL_PROVIDERS.map((provider) => (
-          <SubmitButton
-            key={provider.id}
-            type="button"
-            variant="outline"
-            disabled={pending}
-            onClick={() => handleSocial(provider.id)}
-          >
-            {provider.label}
-          </SubmitButton>
-        ))}
+        <SocialAuthButtons
+          actionLabel="계속"
+          callbackUrl={searchParams.get("callbackUrl")}
+          disabled={pending}
+        />
         <p className="text-center text-[13px] font-medium leading-4 text-[var(--dl-color-text-brand)]">
           계정이 없나요?{" "}
           <TextLink href={ROUTES.signup} className={cn(ui.link, "text-[13px]")}>
@@ -151,10 +158,13 @@ export function LoginForm() {
       </form>
 
       <RestoreAccountDialog
-        open={restoreOpen}
-        onOpenChange={setRestoreOpen}
-        payload={restorePayload}
-        onCompleted={handleRestoreCompleted}
+        open={activeRestoreOpen}
+        onOpenChange={handleRestoreOpenChange}
+        payload={activeRestorePayload}
+        onCompleted={() => {
+          router.push(callbackUrl);
+          router.refresh();
+        }}
       />
     </>
   );

@@ -3,6 +3,7 @@ export type UiUserProfile = {
   nickname: string;
   profileImageUrl: string;
   email: string;
+  hasLocalAuth: boolean;
 };
 
 export type UiNotificationSettings = {

@@ -3,6 +3,8 @@ import type {
   ApiLocalLoginRequest,
   ApiLocalSignupRequest,
   ApiOtpPurpose,
+  ApiPasswordResetRequest,
+  ApiTermAgreement,
   ApiTokenReissueResponse,
   ApiTokenResponse,
 } from "@/types/auth/api";
@@ -31,8 +33,12 @@ export async function loginLocal(payload: ApiLocalLoginRequest): Promise<UiAuthT
   return mapTokenResponse(data);
 }
 
-export async function loginSocial(provider: string, accessToken: string): Promise<UiAuthTokens> {
-  const data = await authApi.postLoginSocial(provider, { accessToken });
+export async function loginSocial(
+  provider: string,
+  accessToken: string,
+  termsAgreements?: ApiTermAgreement[],
+): Promise<UiAuthTokens> {
+  const data = await authApi.postLoginSocial(provider, { accessToken, termsAgreements });
   return mapTokenResponse(data);
 }
 
@@ -76,15 +82,44 @@ export async function signupLocal(payload: ApiLocalSignupRequest): Promise<UiAut
 
 export async function restoreAccount(payload: UiRestorePayload): Promise<UiAuthTokens> {
   if (payload.type === "local") {
-    const data = await authApi.postRestoreAccount({
+    const data = await authApi.postRestoreLocal({
       email: payload.email,
       password: payload.password,
     });
     return mapTokenResponse(data);
   }
 
-  const data = await authApi.postRestoreAccount({
+  if (payload.type === "social-pending") {
+    throw new Error("social-pending restore must use restoreSocialPending()");
+  }
+
+  const data = await authApi.postRestoreSocial(payload.provider, {
     accessToken: payload.accessToken,
   });
   return mapTokenResponse(data);
+}
+
+export async function restoreSocialPending(pendingToken: string): Promise<UiAuthTokens> {
+  const data = await authApi.postSocialRestorePending({ pendingToken });
+  return mapTokenResponse(data);
+}
+
+export async function saveSocialSignupPending(
+  provider: string,
+  accessToken: string,
+): Promise<string> {
+  const data = await authApi.postSocialSignupPending({ provider, accessToken });
+  return data.pendingToken;
+}
+
+export async function completeSocialSignup(
+  pendingToken: string,
+  termsAgreements: ApiTermAgreement[],
+): Promise<UiAuthTokens> {
+  const data = await authApi.postSocialSignupComplete({ pendingToken, termsAgreements });
+  return mapTokenResponse(data);
+}
+
+export async function resetPassword(payload: ApiPasswordResetRequest): Promise<void> {
+  await authApi.postPasswordReset(payload);
 }

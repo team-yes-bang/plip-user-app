@@ -67,6 +67,7 @@ export { RoomInfoRow } from "./RoomInfoRow";
 export { ThumbnailUpload } from "./ThumbnailUpload";
 export { PasswordInput } from "./PasswordInput";
 export { SectionHeader } from "./SectionHeader";
+export { SocialAuthButtons } from "./SocialAuthButtons";
 export { SocialLoginSection } from "./SocialLoginSection";
 export { SwitchField } from "./SwitchField";
 export { ThemePreviewStrip } from "./ThemePreviewStrip";

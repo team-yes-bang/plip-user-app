@@ -60,7 +60,7 @@ export function ProfileSetupForm() {
       return;
     }
 
-    router.push(ROUTES.home);
+    router.push(ROUTES.diary.root);
     router.refresh();
   }
 
@@ -85,10 +85,11 @@ export function ProfileSetupForm() {
         required
       />
       {error ? <p className="text-[12px] text-red-600">{error}</p> : null}
-      <div className="h-16" />
-      <SubmitButton variant="brand" disabled={pending}>
-        {pending ? "가입 중..." : "프로필 저장"}
-      </SubmitButton>
+      <div className="mt-auto flex w-full flex-col gap-[14px]">
+        <SubmitButton variant="brand" disabled={pending}>
+          {pending ? "가입 중..." : "설정"}
+        </SubmitButton>
+      </div>
     </form>
   );
 }

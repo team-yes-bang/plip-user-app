@@ -1,5 +1,6 @@
-import { SubmitButton, TextLink } from "@/components/atoms";
+import { TextLink } from "@/components/atoms";
 import { ui } from "@/components/atoms/styles";
+import { SocialAuthButtons } from "@/components/molecules";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/config/routes";
 import Image from "next/image";
@@ -17,9 +18,7 @@ export function WelcomeSection() {
         </p>
       </div>
       <div className="flex w-full flex-col gap-3.5">
-        <SubmitButton type="button" variant="brand">
-          Google로 시작
-        </SubmitButton>
+        <SocialAuthButtons actionLabel="시작" />
         <TextLink href={ROUTES.signup} className={cn(ui.btn, ui.btnSecondary)}>
           이메일로 시작
         </TextLink>

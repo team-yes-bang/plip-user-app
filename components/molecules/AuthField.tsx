@@ -10,6 +10,7 @@ type AuthFieldProps = {
   type?: ComponentProps<typeof Input>["type"];
   placeholder?: string;
   autoComplete?: string;
+  inputMode?: ComponentProps<typeof Input>["inputMode"];
   required?: boolean;
   defaultValue?: string;
   maxLength?: number;
@@ -25,6 +26,7 @@ export function AuthField({
   type = "text",
   placeholder,
   autoComplete,
+  inputMode,
   required,
   defaultValue,
   maxLength,
@@ -42,6 +44,7 @@ export function AuthField({
         type={type}
         placeholder={placeholder}
         autoComplete={autoComplete}
+        inputMode={inputMode}
         required={required}
         defaultValue={defaultValue}
         maxLength={maxLength}

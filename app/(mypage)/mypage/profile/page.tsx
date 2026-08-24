@@ -8,6 +8,7 @@ export default async function ProfileEditPage() {
     nickname: "사용자",
     profileImageUrl: DEFAULT_PROFILE_AVATAR,
     email: "",
+    hasLocalAuth: false,
   };
 
   try {

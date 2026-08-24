@@ -24,6 +24,7 @@ export function ProfileHubSection({ profile }: ProfileHubSectionProps) {
     nickname: "사용자",
     profileImageUrl: DEFAULT_PROFILE_AVATAR,
     email: "",
+    hasLocalAuth: false,
   };
 
   const nickname = displayProfile.nickname.trim() || "사용자";
@@ -92,11 +93,13 @@ export function ProfileHubSection({ profile }: ProfileHubSectionProps) {
         </div>
 
         <div className="mt-4 flex w-full flex-col gap-3.5">
-          <SettingsRow
-            href={ROUTES.mypage.password}
-            title="비밀번호 변경"
-            description="계정 비밀번호 수정"
-          />
+          {displayProfile.hasLocalAuth ? (
+            <SettingsRow
+              href={ROUTES.mypage.password}
+              title="비밀번호 변경"
+              description="계정 비밀번호 수정"
+            />
+          ) : null}
           <SettingsRow
             href={ROUTES.mypage.notifications}
             title="알림 설정"
@@ -133,6 +136,7 @@ export function ProfileHubSection({ profile }: ProfileHubSectionProps) {
         open={withdrawOpen}
         onOpenChange={setWithdrawOpen}
         email={displayProfile.email}
+        requiresPasswordConfirmation={displayProfile.hasLocalAuth}
       />
     </>
   );

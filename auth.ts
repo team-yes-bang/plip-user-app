@@ -9,6 +9,9 @@ import type { NextRequest } from "next/server";
 import authConfig from "@/auth.config";
 import { ApiError } from "@/lib/api/apiFetch";
 import { AUTH_ERROR_CODES, getApiErrorCode } from "@/lib/auth/auth-errors";
+import { saveSocialSignupPendingToken } from "@/lib/auth/social-signup-pending";
+import { isSocialProvider } from "@/lib/auth/social-providers";
+import type { SocialProvider } from "@/types/auth/ui";
 import * as authService from "@/services/authService";
 
 class PendingRestoreError extends CredentialsSignin {
@@ -78,6 +81,22 @@ function matchesPrefix(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
+function buildAuthRedirect(path: string): string {
+  const base = process.env.AUTH_URL?.trim() || process.env.NEXTAUTH_URL?.trim();
+  if (!base) {
+    return path;
+  }
+  return new URL(path, base.endsWith("/") ? base : `${base}/`).toString();
+}
+
+async function persistSocialSignupPending(
+  provider: SocialProvider,
+  providerAccessToken: string,
+): Promise<void> {
+  const pendingToken = await authService.saveSocialSignupPending(provider, providerAccessToken);
+  await saveSocialSignupPendingToken(pendingToken);
+}
+
 async function refreshAccessToken(token: JWT): Promise<JWT> {
   if (!token.refreshToken) {
     return { ...token, accessToken: undefined, refreshToken: undefined };
@@ -105,6 +124,43 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
     KakaoProvider,
     NaverProvider,
+    Credentials({
+      id: "session-tokens",
+      credentials: {
+        userUuid: { label: "User UUID", type: "text" },
+        accessToken: { label: "Access Token", type: "text" },
+        refreshToken: { label: "Refresh Token", type: "text" },
+        accessTokenExpiresAt: { label: "Access Token Expires At", type: "text" },
+      },
+      async authorize(credentials) {
+        const userUuid = credentials?.userUuid;
+        const accessToken = credentials?.accessToken;
+        const refreshToken = credentials?.refreshToken;
+        const accessTokenExpiresAt = credentials?.accessTokenExpiresAt;
+
+        if (
+          typeof userUuid !== "string" ||
+          typeof accessToken !== "string" ||
+          typeof refreshToken !== "string" ||
+          typeof accessTokenExpiresAt !== "string"
+        ) {
+          return null;
+        }
+
+        const expiresAt = Number(accessTokenExpiresAt);
+        if (!userUuid || !accessToken || !refreshToken || !Number.isFinite(expiresAt)) {
+          return null;
+        }
+
+        return {
+          id: userUuid,
+          userUuid,
+          accessToken,
+          refreshToken,
+          accessTokenExpiresAt: expiresAt,
+        };
+      },
+    }),
     Credentials({
       credentials: {
         email: { label: "Email", type: "email" },
@@ -145,7 +201,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const isLoggedIn = session?.isLoggedIn === true;
 
       if (matchesPrefix(pathname, GUEST_ONLY_PREFIXES) && isLoggedIn) {
-        return Response.redirect(new URL("/home", request.nextUrl));
+        return Response.redirect(new URL("/diary", request.nextUrl));
       }
 
       if (matchesPrefix(pathname, PROTECTED_PREFIXES) && !isLoggedIn) {
@@ -155,7 +211,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
     async signIn({ account, user }: { account?: Account | null; user: User }) {
-      if (account?.provider === "credentials") {
+      if (account?.provider === "credentials" || account?.provider === "session-tokens") {
         return !!user?.accessToken;
       }
 
@@ -178,10 +234,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (error instanceof ApiError) {
           const code = getApiErrorCode(error.body);
           if (code === AUTH_ERROR_CODES.PENDING_RESTORE) {
-            return `/login?restore=pending&provider=${provider}`;
+            if (isSocialProvider(provider)) {
+              try {
+                await persistSocialSignupPending(provider, providerAccessToken);
+              } catch (pendingError) {
+                console.error("[auth] social restore pending save failed", pendingError);
+                return buildAuthRedirect(
+                  `/login?error=social_pending&provider=${provider}`,
+                );
+              }
+            }
+            return buildAuthRedirect(`/login?restore=pending&provider=${provider}`);
           }
-          if (error.status === 422) {
-            return `/signup/social-terms?provider=${provider}`;
+          if (code === AUTH_ERROR_CODES.SOCIAL_SIGNUP_REQUIRED) {
+            if (!isSocialProvider(provider)) {
+              return buildAuthRedirect(
+                `/login?error=social_backend&provider=${provider}&status=${error.status}`,
+              );
+            }
+            try {
+              await persistSocialSignupPending(provider, providerAccessToken);
+            } catch (pendingError) {
+              console.error("[auth] social signup pending save failed", pendingError);
+              return buildAuthRedirect(
+                `/login?error=social_pending&provider=${provider}`,
+              );
+            }
+            return buildAuthRedirect(`/signup?mode=social&provider=${provider}`);
           }
           const message =
             typeof error.body === "object" &&

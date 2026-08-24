@@ -106,3 +106,32 @@ export type ApiTermResponse = {
 export type ApiTermsListResponse = {
   terms: ApiTermResponse[];
 };
+
+export type ApiPasswordResetRequest = {
+  email: string;
+  verificationToken: string;
+  newPassword: string;
+};
+
+export type ApiPasswordResetResponse = {
+  message?: string;
+};
+
+export type ApiSocialSignupPendingRequest = {
+  provider: string;
+  accessToken: string;
+};
+
+export type ApiSocialSignupPendingResponse = {
+  pendingToken: string;
+  expiresInSeconds: number;
+};
+
+export type ApiSocialSignupCompleteRequest = {
+  pendingToken: string;
+  termsAgreements?: ApiTermAgreement[];
+};
+
+export type ApiSocialRestorePendingRequest = {
+  pendingToken: string;
+};

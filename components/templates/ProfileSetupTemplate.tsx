@@ -7,8 +7,7 @@ import { ROUTES } from "@/config/routes";
 export function ProfileSetupTemplate() {
   return (
     <DailyLoopAuthTemplate>
-      <AuthTopBar title="" backHref={ROUTES.signup} />
-      <h2 className={ui.title}>유저 프로필 만들기</h2>
+      <AuthTopBar title="프로필 설정" backHref={ROUTES.signup} />
       <p className={ui.subtitle}>가입 후 모든 아지트에서 선택할 기본 유저 프로필입니다.</p>
       <ProfileSetupForm />
     </DailyLoopAuthTemplate>

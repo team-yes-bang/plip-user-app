@@ -2,7 +2,6 @@ import { API_ENDPOINTS } from "@/config/api-endpoints";
 import { apiFetch } from "@/lib/api/apiFetch";
 import { getApiUrl } from "@/lib/api/env";
 import type {
-  ApiAccountRestoreRequest,
   ApiAccountRestoreResponse,
   ApiEmailOtpRequest,
   ApiEmailOtpRequestResponse,
@@ -14,23 +13,18 @@ import type {
   ApiLocalSignupResponse,
   ApiLogoutRequest,
   ApiLogoutResponse,
+  ApiPasswordResetRequest,
+  ApiPasswordResetResponse,
   ApiSocialLoginRequest,
   ApiSocialLoginResponse,
+  ApiSocialSignupCompleteRequest,
+  ApiSocialSignupPendingRequest,
+  ApiSocialSignupPendingResponse,
+  ApiSocialRestorePendingRequest,
   ApiTermsListResponse,
   ApiTokenReissueRequest,
   ApiTokenReissueResponse,
 } from "@/types/auth/api";
-
-type AuthFetchOptions = {
-  bearerToken?: string;
-};
-
-function buildAuthHeaders(bearerToken?: string): Record<string, string> | undefined {
-  if (!bearerToken) {
-    return undefined;
-  }
-  return { Authorization: `Bearer ${bearerToken}` };
-}
 
 export async function postLoginLocal(body: ApiLocalLoginRequest): Promise<ApiLocalLoginResponse> {
   return apiFetch<ApiLocalLoginResponse>(API_ENDPOINTS.auth.loginLocal, {
@@ -109,15 +103,69 @@ export async function postSignupLocal(body: ApiLocalSignupRequest): Promise<ApiL
   });
 }
 
-export async function postRestoreAccount(
-  body: ApiAccountRestoreRequest,
-  options: AuthFetchOptions = {},
+export async function postRestoreLocal(
+  body: ApiLocalLoginRequest,
 ): Promise<ApiAccountRestoreResponse> {
-  return apiFetch<ApiAccountRestoreResponse>(API_ENDPOINTS.users.restore, {
+  return apiFetch<ApiAccountRestoreResponse>(API_ENDPOINTS.auth.restoreLocal, {
     method: "POST",
     baseUrl: getApiUrl(),
     body,
     auth: false,
-    headers: buildAuthHeaders(options.bearerToken),
+  });
+}
+
+export async function postRestoreSocial(
+  provider: string,
+  body: ApiSocialLoginRequest,
+): Promise<ApiAccountRestoreResponse> {
+  return apiFetch<ApiAccountRestoreResponse>(API_ENDPOINTS.auth.restoreSocial(provider), {
+    method: "POST",
+    baseUrl: getApiUrl(),
+    body,
+    auth: false,
+  });
+}
+
+export async function postSocialSignupPending(
+  body: ApiSocialSignupPendingRequest,
+): Promise<ApiSocialSignupPendingResponse> {
+  return apiFetch<ApiSocialSignupPendingResponse>(API_ENDPOINTS.auth.socialSignupPending, {
+    method: "POST",
+    baseUrl: getApiUrl(),
+    body,
+    auth: false,
+  });
+}
+
+export async function postSocialSignupComplete(
+  body: ApiSocialSignupCompleteRequest,
+): Promise<ApiSocialLoginResponse> {
+  return apiFetch<ApiSocialLoginResponse>(API_ENDPOINTS.auth.socialSignupComplete, {
+    method: "POST",
+    baseUrl: getApiUrl(),
+    body,
+    auth: false,
+  });
+}
+
+export async function postSocialRestorePending(
+  body: ApiSocialRestorePendingRequest,
+): Promise<ApiAccountRestoreResponse> {
+  return apiFetch<ApiAccountRestoreResponse>(API_ENDPOINTS.auth.socialRestorePending, {
+    method: "POST",
+    baseUrl: getApiUrl(),
+    body,
+    auth: false,
+  });
+}
+
+export async function postPasswordReset(
+  body: ApiPasswordResetRequest,
+): Promise<ApiPasswordResetResponse> {
+  return apiFetch<ApiPasswordResetResponse>(API_ENDPOINTS.auth.passwordReset, {
+    method: "POST",
+    baseUrl: getApiUrl(),
+    body,
+    auth: false,
   });
 }

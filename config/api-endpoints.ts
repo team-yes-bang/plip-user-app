@@ -16,6 +16,12 @@ export const API_ENDPOINTS = {
     reissue: gatewayPath("user", "/api/v1/auth/reissue"),
     logout: gatewayPath("user", "/api/v1/auth/logout"),
     passwordReset: gatewayPath("user", "/api/v1/auth/password-reset"),
+    restoreLocal: gatewayPath("user", "/api/v1/auth/restore/local"),
+    restoreSocial: (provider: string) =>
+      gatewayPath("user", `/api/v1/auth/restore/social/${provider}`),
+    socialRestorePending: gatewayPath("user", "/api/v1/auth/social/restore-pending"),
+    socialSignupPending: gatewayPath("user", "/api/v1/auth/social/signup-pending"),
+    socialSignupComplete: gatewayPath("user", "/api/v1/auth/social/signup/complete"),
   },
   users: {
     me: gatewayPath("user", "/api/v1/users/me"),
@@ -23,7 +29,6 @@ export const API_ENDPOINTS = {
     password: gatewayPath("user", "/api/v1/users/me/password"),
     notificationSettings: gatewayPath("user", "/api/v1/users/me/notification-settings"),
     termsAgreements: gatewayPath("user", "/api/v1/users/me/terms-agreements"),
-    restore: gatewayPath("user", "/api/v1/users/me/restore"),
   },
   agit: {
     create: gatewayPath("agit", "/api/v1/agits"),
