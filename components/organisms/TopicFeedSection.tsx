@@ -1,6 +1,7 @@
 "use client";
 
 import { getTopicVideosAction } from "@/actions/topicActions";
+import { DailyIcon } from "@/components/atoms";
 import { HeaderBackLink, HeaderMenuButton, ScreenHeader, TopicFeedPillHeader } from "@/components/molecules";
 import { AgitMenuDrawer } from "@/components/organisms/AgitMenuDrawer";
 import { MoveTopicSheet } from "@/components/organisms/MoveTopicSheet";
@@ -8,7 +9,7 @@ import { TopicGallerySection } from "@/components/organisms/TopicGallerySection"
 import { ViewerActionsSheet } from "@/components/organisms/ViewerActionsSheet";
 import { getAgitById } from "@/config/agit-mock";
 import { ROUTES } from "@/config/routes";
-import { shouldShowTopicCaptureSlot } from "@/lib/topic/selectAgitTopic";
+import { isSameKstDate, shouldShowTopicCaptureSlot } from "@/lib/topic/selectAgitTopic";
 import { extractDate } from "@/lib/video/formatOverlayClock";
 import type { UiAgit } from "@/types/agit/ui";
 import type { UiTopicDetail, UiTopicFeedWindow, UiTopicVideo } from "@/types/topic/ui";
@@ -68,9 +69,12 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
     return () => window.removeEventListener("resize", updateHeight);
   }, []);
 
-  const current = topics[index];
-  const backHref = ROUTES.agit.topics(agitId);
   const resolvedAgit = agit ?? getAgitById(agitId) ?? null;
+  const backHref = ROUTES.agit.topics(agitId);
+
+  // 오늘 진행 중인 토픽 존재 여부 확인
+  const hasActiveTopic = topics.some((t) => isSameKstDate(t.startDate, new Date()));
+  const showCoverSlide = !hasActiveTopic && topics.length > 0;
 
   const loadVideosAround = useCallback(
     async (list: UiTopicDetail[], center: number) => {
@@ -104,9 +108,9 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
 
   const prefetchNearEdge = useCallback(() => {
     const list = topicsRef.current;
-    const currentIndex = indexRef.current;
+    const currentIndex = showCoverSlide ? Math.max(0, indexRef.current - 1) : indexRef.current;
     loadVideosAround(list, currentIndex);
-  }, [loadVideosAround]);
+  }, [loadVideosAround, showCoverSlide]);
 
   function handleScroll() {
     const el = scrollerRef.current;
@@ -114,13 +118,14 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
     const h = el.clientHeight;
     if (h <= 0) return;
     const newIndex = Math.round(el.scrollTop / h);
-    if (newIndex !== indexRef.current && newIndex >= 0 && newIndex < topicsRef.current.length) {
+    if (newIndex !== indexRef.current && newIndex >= 0) {
       setIndex(newIndex);
     }
     prefetchNearEdge();
   }
 
-  if (!current) {
+  // 토픽이 아예 0개인 경우
+  if (topics.length === 0) {
     return (
       <>
         <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[var(--dl-color-bg-surface-default)]">
@@ -157,30 +162,87 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
     );
   }
 
-  const loadedVideos = videosByTopic[current.id];
-  const videoCount = loadedVideos && loadedVideos.length > 0 ? loadedVideos.length : current.videoCount;
+  // 진행 중 토픽 부재 시 커버 슬라이드 포함 피드 목록 계산
+  const effectiveIndex = showCoverSlide ? Math.max(0, index - 1) : index;
+  const currentTopic = topics[effectiveIndex] ?? topics[0];
+  const isAtCoverSlide = showCoverSlide && index === 0;
+
+  const loadedVideos = videosByTopic[currentTopic.id];
+  const videoCount = loadedVideos && loadedVideos.length > 0 ? loadedVideos.length : currentTopic.videoCount;
 
   return (
     <>
       <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-        <TopicFeedPillHeader
-          backHref={backHref}
-          title={current.title || "제목 없음"}
-          videoCount={videoCount}
-          onMenuClick={() => setMenuOpen(true)}
-        />
+        {/* 상단 헤더: 커버 슬라이드 일 때는 ScreenHeader, 피드 진입 시 TopicFeedPillHeader로 동적 전환 */}
+        {isAtCoverSlide ? (
+          <ScreenHeader
+            leading={<HeaderBackLink href={ROUTES.agit.root} />}
+            title={resolvedAgit?.name || "아지트"}
+            subtitle="오늘 진행 중인 토픽 없음"
+            trailing={<HeaderMenuButton label="아지트 메뉴" onClick={() => setMenuOpen(true)} />}
+          />
+        ) : (
+          <TopicFeedPillHeader
+            backHref={backHref}
+            title={currentTopic.title || "제목 없음"}
+            videoCount={videoCount}
+            onMenuClick={() => setMenuOpen(true)}
+          />
+        )}
+
         <div
           ref={scrollerRef}
           onScroll={handleScroll}
           className="min-h-0 flex-1 snap-y snap-mandatory overflow-x-hidden overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
+          {/* 커버 슬라이드 (진행 중인 토픽이 없을 때 슬라이드 0) */}
+          {showCoverSlide && (
+            <div
+              className="flex h-full min-h-0 w-full shrink-0 snap-start snap-always flex-col items-center justify-center p-6 text-center bg-[var(--dl-color-bg-surface-default)]"
+              style={{ height: viewportHeight > 0 ? viewportHeight : "100%" }}
+            >
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--dl-color-bg-surface-subtle)] mb-4 text-2xl">
+                💬
+              </div>
+              <p className="m-0 text-base font-semibold text-[var(--dl-color-text-primary)]">
+                오늘 진행 중인 토픽이 없습니다.
+              </p>
+              <p className="mt-1.5 mb-6 text-xs font-normal leading-relaxed text-[var(--dl-color-text-secondary)]">
+                새로운 토픽을 생성하거나, 아래로 끌어 이전 기록을 확인하세요.
+              </p>
+              <button
+                type="button"
+                onClick={() => router.push(ROUTES.agit.topicCreate(agitId))}
+                className="flex items-center justify-center rounded-xl bg-[#09080f] px-5 py-3 text-sm font-semibold text-white transition-opacity active:opacity-80 shadow-md"
+              >
+                ＋ 토픽 생성하기
+              </button>
+
+              {/* 아래로 끌어서 피드 시작하도록 안내하는 바운스 화살표 힌트 */}
+              <button
+                type="button"
+                onClick={() => {
+                  scrollerRef.current?.scrollTo({
+                    top: viewportHeight > 0 ? viewportHeight : 500,
+                    behavior: "smooth",
+                  });
+                }}
+                className="mt-8 flex flex-col items-center gap-1.5 text-xs font-semibold text-[var(--dl-color-text-secondary)] animate-bounce cursor-pointer border-0 bg-transparent"
+              >
+                <span>이전 기록 피드 보기</span>
+                <DailyIcon name="chevronLeft" size={16} className="-rotate-90 brightness-0 opacity-60" />
+              </button>
+            </div>
+          )}
+
+          {/* 과거/진행 토픽 피드 슬라이드 목록 */}
           {topics.map((topic, topicIndex) => (
             <div
               key={topic.id}
               className="flex h-full min-h-0 w-full shrink-0 snap-start snap-always flex-col"
               style={{ height: viewportHeight > 0 ? viewportHeight : "100%" }}
             >
-              {Math.abs(topicIndex - index) <= 1 ? (
+              {Math.abs(topicIndex - effectiveIndex) <= 1 ? (
                 <TopicGallerySection
                   videos={videosByTopic[topic.id] ?? EMPTY_TOPIC_VIDEOS}
                   captureHref={ROUTES.capture.videoWith({ agitUuid: agitId, topicUuid: topic.id })}
@@ -190,11 +252,15 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
             </div>
           ))}
         </div>
-        <div className="pointer-events-none absolute bottom-4 right-4 z-30 flex items-center">
-          <span className="text-xs font-medium text-white/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]">
-            {extractDate(current.startDate)}
-          </span>
-        </div>
+
+        {/* 피드 슬라이드 노출 시 하단 우측 고정 날짜 */}
+        {!isAtCoverSlide && (
+          <div className="pointer-events-none absolute bottom-4 right-4 z-30 flex items-center">
+            <span className="text-xs font-medium text-white/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]">
+              {extractDate(currentTopic.startDate)}
+            </span>
+          </div>
+        )}
       </div>
 
       {resolvedAgit && (
