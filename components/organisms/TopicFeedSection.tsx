@@ -167,7 +167,7 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
           backHref={backHref}
           title={current.title || "제목 없음"}
           videoCount={videoCount}
-          onMenuClick={() => setActionsOpen(true)}
+          onMenuClick={() => setMenuOpen(true)}
         />
         <div
           ref={scrollerRef}
@@ -197,6 +197,9 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
         </div>
       </div>
 
+      {resolvedAgit && (
+        <AgitMenuDrawer agit={resolvedAgit} open={menuOpen} onClose={() => setMenuOpen(false)} />
+      )}
       <ViewerActionsSheet
         open={actionsOpen}
         onClose={() => setActionsOpen(false)}
