@@ -1,7 +1,7 @@
 "use client";
 
 import { getTopicVideosAction } from "@/actions/topicActions";
-import { HeaderBackLink, ScreenHeader, TopicFeedPillHeader } from "@/components/molecules";
+import { TopicFeedPillHeader } from "@/components/molecules";
 import { MoveTopicSheet } from "@/components/organisms/MoveTopicSheet";
 import { TopicGallerySection } from "@/components/organisms/TopicGallerySection";
 import { ViewerActionsSheet } from "@/components/organisms/ViewerActionsSheet";
@@ -12,7 +12,6 @@ import type { UiTopicDetail, UiTopicFeedWindow, UiTopicVideo } from "@/types/top
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const NEIGHBOR_LIMIT = 3;
 const EMPTY_TOPIC_VIDEOS: UiTopicVideo[] = [];
 
 type TopicFeedSectionProps = {
@@ -117,14 +116,41 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
 
   if (!current) {
     return (
-      <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-        <ScreenHeader leading={<HeaderBackLink href={backHref} />} title="토픽" />
-        <div className="min-h-0 flex-1 px-[23px] pb-6">
-          <p className="m-0 text-sm font-normal leading-5 text-[var(--dl-color-text-secondary)]">
-            피드에 보여줄 토픽이 없습니다.
-          </p>
+      <>
+        <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[var(--dl-color-bg-surface-default)]">
+          <TopicFeedPillHeader
+            backHref={backHref}
+            title="토픽 피드"
+            videoCount={0}
+            onMenuClick={() => setActionsOpen(true)}
+          />
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center p-6 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--dl-color-bg-surface-subtle)] mb-4 text-2xl">
+              💬
+            </div>
+            <p className="m-0 text-base font-semibold text-[var(--dl-color-text-primary)]">
+              등록된 토픽이 없습니다.
+            </p>
+            <p className="mt-1.5 mb-6 text-xs font-normal leading-relaxed text-[var(--dl-color-text-secondary)]">
+              새로운 토픽을 생성하고 영상 기록을 시작해 보세요.
+            </p>
+            <button
+              type="button"
+              onClick={() => router.push(ROUTES.agit.topicCreate(agitId))}
+              className="flex items-center justify-center rounded-xl bg-[#09080f] px-5 py-3 text-sm font-semibold text-white transition-opacity active:opacity-80 shadow-md"
+            >
+              ＋ 토픽 생성하기
+            </button>
+          </div>
         </div>
-      </div>
+
+        <ViewerActionsSheet
+          open={actionsOpen}
+          onClose={() => setActionsOpen(false)}
+          onMoveTopic={() => setMoveOpen(true)}
+        />
+        <MoveTopicSheet open={moveOpen} onClose={() => setMoveOpen(false)} />
+      </>
     );
   }
 
