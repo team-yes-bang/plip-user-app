@@ -36,21 +36,11 @@ export function DiaryVideoViewer({
       headerSubtitle={dateStr}
       headerTrailing={undefined}
       overlayChildren={({ currentItem: item, currentDetail }: BaseVideoViewerOverlayProps) => (
-        <>
-          {/* 비디오 중앙 대형 시각 + 캡션 오버레이 (CaptureClipOverlays) */}
-          <CaptureClipOverlays
-            capturedAt={parseUploadedAtToDate(item.uploadedAt)}
-            caption={currentDetail?.caption || ""}
-            scale={1}
-          />
-
-          {/* 하단 오버레이: 좌측 작성자 */}
-          <div className="relative z-10 mt-auto flex items-end justify-between px-6 pb-12 text-white">
-            <span className="text-base font-bold truncate">
-              {item.authorName || "나의 기록"}
-            </span>
-          </div>
-        </>
+        <CaptureClipOverlays
+          capturedAt={parseUploadedAtToDate(item.uploadedAt)}
+          caption={currentDetail?.caption || ""}
+          scale={1}
+        />
       )}
     />
   );
