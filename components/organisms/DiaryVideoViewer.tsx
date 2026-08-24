@@ -1,10 +1,10 @@
 "use client";
 
 import { FeedPill } from "@/components/atoms";
-import { VideoBottomInfo, VideoCenterClock } from "@/components/molecules";
+import { CaptureClipOverlays } from "@/components/molecules";
 import { BaseVideoViewer, type BaseVideoViewerOverlayProps } from "@/components/organisms/BaseVideoViewer";
 import type { VideoViewerItem } from "@/components/providers/VideoViewerProvider";
-import { extractDate, extractTime } from "@/lib/video/formatOverlayClock";
+import { extractDate, parseUploadedAtToDate } from "@/lib/video/formatOverlayClock";
 
 type DiaryVideoViewerProps = {
   initialClipId: string;
@@ -21,6 +21,7 @@ export function DiaryVideoViewer({
     videoList.find((item) => item.clipId === initialClipId) ?? videoList[0];
 
   const themeName = currentItem?.themeName || currentItem?.title || "다이어리 테마";
+  const dateStr = extractDate(currentItem?.uploadedAt);
 
   return (
     <BaseVideoViewer
@@ -32,19 +33,23 @@ export function DiaryVideoViewer({
           {themeName}
         </FeedPill>
       }
-      headerSubtitle={undefined}
+      headerSubtitle={dateStr}
       headerTrailing={undefined}
       overlayChildren={({ currentItem: item, currentDetail }: BaseVideoViewerOverlayProps) => (
         <>
-          {/* 중앙 크게 시각 표시 (그룹뷰어 오버레이 스타일) */}
-          <VideoCenterClock time={extractTime(item.uploadedAt)} />
-
-          {/* 하단 좌측 작성자 & 하단 우측 날짜 */}
-          <VideoBottomInfo
-            authorName={item.authorName || "나의 기록"}
-            date={extractDate(item.uploadedAt)}
-            caption={currentDetail?.caption}
+          {/* 비디오 중앙 대형 시각 + 캡션 오버레이 (CaptureClipOverlays) */}
+          <CaptureClipOverlays
+            capturedAt={parseUploadedAtToDate(item.uploadedAt)}
+            caption={currentDetail?.caption || ""}
+            scale={1}
           />
+
+          {/* 하단 오버레이: 좌측 작성자 */}
+          <div className="relative z-10 mt-auto flex items-end justify-between px-6 pb-12 text-white">
+            <span className="text-base font-bold truncate">
+              {item.authorName || "나의 기록"}
+            </span>
+          </div>
         </>
       )}
     />
