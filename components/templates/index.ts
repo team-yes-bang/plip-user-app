@@ -41,6 +41,8 @@ export {
   CreateRoomAccessTemplate,
   CreateRoomBasicTemplate,
   InviteConfirmTemplate,
+  InviteJoinLandingTemplate,
+  InviteJoinProfileTemplate,
   JoinCompleteTemplate,
   PublicRoomTemplate,
   RoomProfileTemplate,

@@ -23,6 +23,7 @@ export { ProfileHubSection } from "./ProfileHubSection";
 export { CreateRoomAccessForm } from "./CreateRoomAccessForm";
 export { CreateRoomBasicForm } from "./CreateRoomBasicForm";
 export { InviteConfirmSection } from "./InviteConfirmSection";
+export { InviteJoinProfileForm } from "./InviteJoinProfileForm";
 export { JoinCompleteSection } from "./JoinCompleteSection";
 export { PublicRoomDetail } from "./PublicRoomDetail";
 export { RoomProfileSelect } from "./RoomProfileSelect";

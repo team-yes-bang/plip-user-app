@@ -7,6 +7,7 @@ import { AuthDivider, AuthField } from "@/components/molecules";
 import { RestoreAccountDialog } from "@/components/organisms/RestoreAccountDialog";
 import { ROUTES } from "@/config/routes";
 import { AUTH_ERROR_CODES } from "@/lib/auth/auth-errors";
+import { getSafeCallbackUrl } from "@/lib/auth/safe-callback-url";
 import type { SocialProvider, UiRestorePayload } from "@/types/auth/ui";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -48,6 +49,7 @@ function resolveOAuthErrorMessage(searchParams: URLSearchParams): string | null 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const callbackUrl = getSafeCallbackUrl(searchParams.get("callbackUrl"));
   const urlError = resolveOAuthErrorMessage(searchParams);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const error = submitError ?? urlError;
@@ -83,17 +85,17 @@ export function LoginForm() {
       return;
     }
 
-    router.push(ROUTES.home);
+    router.push(callbackUrl);
     router.refresh();
   }
 
   function handleSocial(provider: SocialProvider) {
     setSubmitError(null);
-    void signIn(provider, { callbackUrl: ROUTES.home });
+    void signIn(provider, { callbackUrl });
   }
 
   function handleRestoreCompleted() {
-    router.push(ROUTES.home);
+    router.push(callbackUrl);
     router.refresh();
   }
 

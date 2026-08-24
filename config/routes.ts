@@ -42,6 +42,8 @@ export const ROUTES = {
     poll: (agitId: string) => `/agit/${agitId}/chat/poll` as const,
     pollEdit: (agitId: string) => `/agit/${agitId}/chat/poll/edit` as const,
     search: "/agit/search",
+    join: (code: string) => `/agit/join/${encodeURIComponent(code)}` as const,
+    joinProfile: (code: string) => `/agit/join/${encodeURIComponent(code)}/profile` as const,
   },
   viewer: {
     clip: (clipId: string) => `/viewer/${clipId}` as const,

@@ -6,11 +6,13 @@ import Image from "next/image";
 
 type PublicRoomDetailProps = {
   agit: UiAgit;
+  joinHref?: string;
 };
 
-export function PublicRoomDetail({ agit }: PublicRoomDetailProps) {
+export function PublicRoomDetail({ agit, joinHref }: PublicRoomDetailProps) {
   const maxMembers = agit.maxMembers ?? agit.memberCount;
   const remaining = Math.max(0, maxMembers - agit.memberCount);
+  const participateHref = joinHref ?? ROUTES.agit.profile(agit.id);
 
   return (
     <section className="flex w-full flex-col gap-3.5">
@@ -51,7 +53,7 @@ export function PublicRoomDetail({ agit }: PublicRoomDetailProps) {
       </p>
 
       <div className="flex w-full flex-col gap-[14px] mt-auto">
-        <TextLink href={ROUTES.agit.profile(agit.id)} className="inline-flex h-[44px] w-full items-center justify-center gap-[8px] rounded-[var(--dl-radius-md)] p-[12px_20px] text-sm font-medium leading-5 !no-underline border-0 bg-[var(--dl-color-bg-brand-subtle)] border-0 bg-[var(--dl-color-bg-brand)] !text-[var(--dl-color-text-inverse)] shadow-[none] [backdrop-filter:none] m-dlBtnPrimary no-underline">
+        <TextLink href={participateHref} className="inline-flex h-[44px] w-full items-center justify-center gap-[8px] rounded-[var(--dl-radius-md)] p-[12px_20px] text-sm font-medium leading-5 !no-underline border-0 bg-[var(--dl-color-bg-brand-subtle)] border-0 bg-[var(--dl-color-bg-brand)] !text-[var(--dl-color-text-inverse)] shadow-[none] [backdrop-filter:none] m-dlBtnPrimary no-underline">
           이 방에 참여하기
         </TextLink>
       </div>
