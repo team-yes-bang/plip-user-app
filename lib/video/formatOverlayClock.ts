@@ -13,8 +13,16 @@ export function extractDate(uploadedAt?: string): string {
     return `${y}.${m}.${d}`;
   }
 
+  const parsedDate = new Date(uploadedAt);
+  if (!Number.isNaN(parsedDate.getTime())) {
+    const y = parsedDate.getFullYear();
+    const m = (parsedDate.getMonth() + 1).toString().padStart(2, "0");
+    const d = parsedDate.getDate().toString().padStart(2, "0");
+    return `${y}.${m}.${d}`;
+  }
+
   const trimmed = uploadedAt.trim();
-  const datePart = trimmed.split(/\s+/)[0] ?? trimmed;
+  const datePart = trimmed.split(/[T\s]+/)[0] ?? trimmed;
   const parts = datePart.replace(/[년월일]/g, ".").split(/[-./]/).filter(Boolean);
 
   if (parts.length >= 3) {
