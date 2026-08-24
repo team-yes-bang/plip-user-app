@@ -3,8 +3,30 @@
 import { ApiError } from "@/lib/api/apiFetch";
 import * as agitService from "@/services/agitService";
 import { actionFailure, actionSuccess, type ActionResult } from "@/types/action-result";
+import { getApiErrorCode } from "@/lib/auth/auth-errors";
+import type { ApiJoinAgitResponse } from "@/types/agit/api";
 import { parseAgitNickname, parseCreateAgitInput, parseUpdateAgitInput } from "@/types/agit/schema";
 import type { UiAgit, UiCreateAgitInput } from "@/types/agit/ui";
+
+function joinAgitErrorMessage(error: ApiError): string {
+  const code = getApiErrorCode(error.body);
+  if (code === "ALREADY_JOINED") {
+    return "이미 참여 중인 아지트입니다.";
+  }
+  if (code === "CAPACITY_FULL") {
+    return "정원이 가득 찼어요.";
+  }
+  if (code === "MEMBER_BANNED") {
+    return "이 아지트에서 내보내진 상태입니다.";
+  }
+  if (code === "INVALID_INVITE_CODE" || code === "AGIT_NOT_FOUND") {
+    return "유효하지 않은 초대 코드입니다.";
+  }
+  if (error.status === 401) {
+    return "로그인이 필요합니다.";
+  }
+  return `[${error.status}] ${error.message}`;
+}
 
 function toActionError(error: unknown): ActionResult<never> {
   if (error instanceof ApiError) {
@@ -45,6 +67,26 @@ export async function transferAgitHostAction(
     await agitService.transferAgitHost(agitId, ampId);
     return actionSuccess(undefined);
   } catch (error) {
+    return toActionError(error);
+  }
+}
+
+export async function joinAgitAction(
+  code: string,
+  nickname: unknown,
+): Promise<ActionResult<ApiJoinAgitResponse>> {
+  const parsed = parseAgitNickname(nickname);
+  if (!parsed.ok) {
+    return actionFailure(parsed.error);
+  }
+
+  try {
+    const joined = await agitService.joinAgitByCode(code, { nickname: parsed.nickname });
+    return actionSuccess(joined);
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return actionFailure(joinAgitErrorMessage(error));
+    }
     return toActionError(error);
   }
 }

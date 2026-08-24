@@ -60,7 +60,6 @@ export { CapacityStepper } from "./CapacityStepper";
 export { ProfileOption } from "./ProfileOption";
 export { RoomInfoRow } from "./RoomInfoRow";
 export { ThumbnailUpload } from "./ThumbnailUpload";
-export { VisibilityToggle } from "./VisibilityToggle";
 export { PasswordInput } from "./PasswordInput";
 export { SectionHeader } from "./SectionHeader";
 export { SocialLoginSection } from "./SocialLoginSection";

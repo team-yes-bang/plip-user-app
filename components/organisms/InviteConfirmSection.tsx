@@ -13,7 +13,7 @@ export function InviteConfirmSection({ agit }: InviteConfirmSectionProps) {
   return (
     <section className="flex w-full flex-col gap-3.5">
       <div className="w-full rounded-[var(--dl-radius-lg)] bg-[var(--dl-color-bg-elevated)] p-[16px_14px] bg-[var(--dl-color-bg-brand-subtle)] m-dlPanelSubtle">
-        <RoomInfoRow icon="link" title="비공개 방 초대" description="초대 링크가 유효합니다" />
+        <RoomInfoRow icon="link" title="아지트 초대" description="초대 링크가 유효합니다" />
       </div>
 
       <h2 className="m-0 text-[28px] font-bold leading-[34px] text-[var(--dl-color-text-primary)]">{agit.name}</h2>

@@ -92,11 +92,11 @@ export function AgitSearchSection() {
       <div className="px-4 py-3">
         <input
           type="search"
-          placeholder="공개 아지트 · 카테고리 검색"
+          placeholder="아지트 · 카테고리 검색"
           className="border border-[var(--dc-glass-border)] rounded-[var(--dc-radius)] bg-[linear-gradient(180deg,_var(--dc-glass-from),_var(--dc-glass-to))] shadow-[var(--dc-shadow)] backdrop-blur-[20px] w-full px-4 py-3 text-sm text-black outline-none"
         />
       </div>
-      <p className="px-4 text-xs text-black/45">공개방만 검색됩니다. 비공개는 초대 링크로 입장하세요.</p>
+      <p className="px-4 text-xs text-black/45">초대 링크로 입장할 수 있어요.</p>
     </section>
   );
 }

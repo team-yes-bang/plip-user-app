@@ -48,7 +48,6 @@ export function RoomManageHub({ agit }: RoomManageHubProps) {
   };
 
   const memberLabel = agit.maxMembers ? `${agit.memberCount}/${agit.maxMembers}명` : `${agit.memberCount}명`;
-  const visibilityLabel = agit.visibility === "private" ? "비공개" : "공개";
 
   return (
     <section className="flex flex-col gap-[16px]" aria-label="방 관리">
@@ -56,7 +55,7 @@ export function RoomManageHub({ agit }: RoomManageHubProps) {
         tone="brand"
         className="gap-[5px] min-h-[76px] p-[12px_14px] rounded-[14px] m-dlNoticeCardSummary"
         title={agit.name}
-        body={`${memberLabel} · ${visibilityLabel} 아지트`}
+        body={`${memberLabel} · 아지트`}
       />
 
       <div className="grid grid-cols-[1fr_1fr] gap-[14px]">
