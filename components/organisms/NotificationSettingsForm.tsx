@@ -1,105 +1,97 @@
 "use client";
 
-import { NotificationIconToggle } from "@/components/molecules/NotificationIconToggle";
-import { SettingsRow } from "@/components/molecules/SettingsRow";
+import { patchNotificationSettingsAction } from "@/actions/userActions";
+import { Input } from "@/components/atoms";
+import { DailyToggle, SettingsRow } from "@/components/molecules";
+import { toast } from "@/components/ui/toast";
+import type { UiNotificationSettings } from "@/types/user/ui";
 import { useState } from "react";
 
-type ToggleKey = "all" | "chat" | "reaction" | "invite" | "roomRun" | "roomWalk";
-
-const INITIAL: Record<ToggleKey, boolean> = {
-  all: true,
-  chat: true,
-  reaction: false,
-  invite: true,
-  roomRun: true,
-  roomWalk: false,
+type NotificationSettingsFormProps = {
+  initialSettings: UiNotificationSettings;
 };
 
-export function NotificationSettingsForm() {
-  const [toggles, setToggles] = useState(INITIAL);
+export function NotificationSettingsForm({ initialSettings }: NotificationSettingsFormProps) {
+  const [settings, setSettings] = useState(initialSettings);
+  const [pendingKey, setPendingKey] = useState<string | null>(null);
 
-  function setToggle(key: ToggleKey, value: boolean) {
-    setToggles((current) => ({ ...current, [key]: value }));
+  async function patchPartial(
+    payload: Partial<UiNotificationSettings>,
+    pendingLabel: string,
+  ) {
+    if (pendingKey) return;
+
+    setPendingKey(pendingLabel);
+    const result = await patchNotificationSettingsAction(payload);
+    setPendingKey(null);
+
+    if (!result.ok) {
+      toast.add({ type: "error", title: "알림 설정 저장 실패", description: result.error });
+      return;
+    }
+
+    setSettings(result.data);
+    toast.add({ type: "success", title: "알림 설정을 저장했습니다" });
+  }
+
+  async function handleAgitToggle(checked: boolean) {
+    await patchPartial({ agitNotifyEnabled: checked }, "agit");
+  }
+
+  async function handleDiaryToggle(checked: boolean) {
+    await patchPartial({ diaryNotifyEnabled: checked }, "diary");
+  }
+
+  async function handleTimeChange(value: string) {
+    setSettings((current) => ({ ...current, diaryNotifyTime: value }));
+    await patchPartial({ diaryNotifyTime: value }, "time");
   }
 
   return (
     <section className="flex w-full flex-col gap-3.5">
       <SettingsRow
         icon="bell"
-        title="전체 알림"
-        description="모든 푸시 알림 허용"
+        title="아지트 알림"
+        description="아지트 활동 알림"
         trailing={
-          <NotificationIconToggle
-            checked={toggles.all}
-            label="전체 알림"
-            onChange={(value) => setToggle("all", value)}
+          <DailyToggle
+            checked={settings.agitNotifyEnabled}
+            label="아지트 알림"
+            onChange={handleAgitToggle}
           />
         }
+        showChevron={false}
       />
 
-      <h2 className="m-0 text-base font-semibold leading-[23px] text-[var(--dl-color-text-primary)]">기능별 알림</h2>
       <SettingsRow
-        icon="bell"
-        title="채팅 알림"
-        description="새 메시지와 답장"
+        icon="calendarBrand"
+        title="다이어리 알림"
+        description={settings.diaryNotifyEnabled ? "알림 켜짐" : "알림 꺼짐"}
         trailing={
-          <NotificationIconToggle
-            checked={toggles.chat}
-            label="채팅 알림"
-            onChange={(value) => setToggle("chat", value)}
+          <DailyToggle
+            checked={settings.diaryNotifyEnabled}
+            label="다이어리 알림"
+            onChange={handleDiaryToggle}
           />
         }
-      />
-      <SettingsRow
-        icon="bell"
-        title="영상 반응"
-        description="내 영상의 이모지 반응"
-        trailing={
-          <NotificationIconToggle
-            checked={toggles.reaction}
-            label="영상 반응"
-            onChange={(value) => setToggle("reaction", value)}
-          />
-        }
-      />
-      <SettingsRow
-        icon="bell"
-        title="방 초대 및 관리"
-        description="초대 링크·추방·방장 위임"
-        trailing={
-          <NotificationIconToggle
-            checked={toggles.invite}
-            label="방 초대 및 관리"
-            onChange={(value) => setToggle("invite", value)}
-          />
-        }
+        showChevron={false}
       />
 
-      <h2 className="m-0 text-base font-semibold leading-[23px] text-[var(--dl-color-text-primary)]">방별 채팅 알림</h2>
-      <SettingsRow
-        icon="users"
-        title="러닝 메이트의 30일"
-        description={toggles.roomRun ? "채팅 알림 켜짐" : "채팅 알림 꺼짐"}
-        trailing={
-          <NotificationIconToggle
-            checked={toggles.roomRun}
-            label="러닝 메이트의 30일 채팅 알림"
-            onChange={(value) => setToggle("roomRun", value)}
+      {settings.diaryNotifyEnabled ? (
+        <div className="flex w-full flex-col gap-2 rounded-[var(--dl-radius-lg)] bg-[var(--dl-color-bg-elevated)] p-[14px]">
+          <label htmlFor="diary-notify-time" className="text-sm font-semibold text-[var(--dl-color-text-primary)]">
+            알림 시간
+          </label>
+          <Input
+            id="diary-notify-time"
+            type="time"
+            variant="daily"
+            value={settings.diaryNotifyTime}
+            disabled={pendingKey === "time"}
+            onChange={(event) => handleTimeChange(event.target.value)}
           />
-        }
-      />
-      <SettingsRow
-        icon="users"
-        title="주말 한강 산책 모임"
-        description={toggles.roomWalk ? "채팅 알림 켜짐" : "채팅 알림 꺼짐"}
-        trailing={
-          <NotificationIconToggle
-            checked={toggles.roomWalk}
-            label="주말 한강 산책 모임 채팅 알림"
-            onChange={(value) => setToggle("roomWalk", value)}
-          />
-        }
-      />
+        </div>
+      ) : null}
     </section>
   );
 }
