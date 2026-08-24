@@ -1,4 +1,5 @@
 import * as diaryApi from "@/lib/api/diaryApi";
+import { resolveVideoThumbnail } from "@/lib/video/thumbnail";
 import type {
   ApiDiaryDateResponse,
   ApiDiaryDateSection,
@@ -29,7 +30,12 @@ function mapTheme(theme: ApiDiaryTheme): UiDiaryTheme {
 }
 
 function toOptionalThumbnail(path: string | null | undefined): string | undefined {
-  return path?.trim() ? path.trim() : undefined;
+  const trimmed = path?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function toClipThumbnail(path: string | null | undefined): string {
+  return resolveVideoThumbnail(path);
 }
 
 function mapVideoSummary(
@@ -53,7 +59,7 @@ function mapVideoSummary(
     id: clipId,
     themeId,
     date,
-    thumbnailSrc: toOptionalThumbnail(legacyVideo.thumbnailUrl ?? legacyVideo.thumbnailPath),
+    thumbnailSrc: toClipThumbnail(legacyVideo.thumbnailUrl ?? legacyVideo.thumbnailPath),
   };
 }
 

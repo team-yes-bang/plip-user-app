@@ -23,3 +23,11 @@ export function getDevLoginPassword(): string | undefined {
   const password = process.env.DEV_LOGIN_PASSWORD?.trim();
   return password || undefined;
 }
+
+export function isVideoDestinationNotWiredFallbackEnabled(): boolean {
+  const raw = process.env.VIDEO_DESTINATION_NOT_WIRED_FALLBACK?.trim().toLowerCase();
+  if (raw === "false" || raw === "0" || raw === "off") {
+    return false;
+  }
+  return true;
+}
