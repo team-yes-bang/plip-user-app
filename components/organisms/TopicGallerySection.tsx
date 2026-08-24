@@ -90,9 +90,9 @@ export function TopicGallerySection({
       clipId: v.id,
       videoUuid: v.id,
       title: v.caption || "토픽 클립",
-      authorName: v.authorNickname,
-      uploadedAt: v.createdAtText,
-      thumbnailUrl: v.thumbnailUrl,
+      authorName: v.profileNickname,
+      uploadedAt: v.uploadedAt,
+      thumbnailUrl: v.thumbnailSrc,
     }));
     openViewer(videoId, formattedList, "agit");
   }
