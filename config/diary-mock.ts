@@ -6,9 +6,9 @@ import type {
 } from "@/types/diary/ui";
 
 export const DIARY_THEMES: UiDiaryTheme[] = [
-  { id: "daily", name: "일상" },
-  { id: "exercise", name: "운동" },
-  { id: "cooking", name: "요리" },
+  { id: "daily", themeUuid: "00000000-0000-4000-8000-000000000001", name: "일상" },
+  { id: "exercise", themeUuid: "00000000-0000-4000-8000-000000000002", name: "운동" },
+  { id: "cooking", themeUuid: "00000000-0000-4000-8000-000000000003", name: "요리" },
 ];
 
 export const DIARY_MAIN_ENTRIES: UiDiaryDateEntry[] = [

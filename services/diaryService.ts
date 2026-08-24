@@ -21,8 +21,9 @@ import type {
 
 function mapTheme(theme: ApiDiaryTheme): UiDiaryTheme {
   return {
-    // 단건 PATCH/DELETE 경로는 numeric id 사용 (themeUuid 아님)
+    // 단건 PATCH/DELETE 경로는 numeric id. destination Kafka는 themeUuid.
     id: String(theme.id),
+    themeUuid: theme.themeUuid,
     name: theme.name,
   };
 }

@@ -5,8 +5,7 @@ type TopicEmptySlotProps = {
 };
 
 export function TopicEmptySlot({ captureHref }: TopicEmptySlotProps) {
-  // TODO: 아지트 부착 후 촬영 이동 시 토픽 지정을 querystring 등으로 넘길지 결정
-  // 예: /create?topicId= 또는 /agit/{agitId}/upload?topicId=
+  // /video?agitUuid=&topicUuid= 또는 /video?themeId=
   return (
     <TextLink
       href={captureHref}

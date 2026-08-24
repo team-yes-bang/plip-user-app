@@ -11,6 +11,27 @@ export type VideoCompleteRequest = {
   caption?: string | null;
 };
 
+export type VideoTopicDestinationRequest = {
+  kind: "TOPIC";
+  topicUuid: string;
+  agitUuid: string;
+  caption?: string;
+};
+
+export type VideoDiaryDestinationRequest = {
+  kind: "DIARY";
+  themeUuid: string;
+  caption?: string;
+};
+
+export type VideoDestinationRequest = VideoTopicDestinationRequest | VideoDiaryDestinationRequest;
+
+export type VideoDestinationResponse = {
+  videoUuid: string;
+  status?: "PUBLISHED" | "accepted";
+  accepted?: boolean;
+};
+
 export type VideoCompleteResponse = {
   videoUuid: string;
   caption: string | null;

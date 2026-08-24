@@ -6,5 +6,5 @@ type PageProps = {
 
 export default async function AgitUploadPage({ params }: PageProps) {
   const { agitId } = await params;
-  return <RoomUploadTemplate agitId={agitId} />;
+  return RoomUploadTemplate({ agitId });
 }

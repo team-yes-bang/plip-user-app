@@ -88,6 +88,7 @@ export function TopicViewerTemplate({
     <AppChromeTemplate activeTab="agit" variant="light">
       <TopicViewerSection
         agitId={agit.id}
+        topicId={topic.id}
         title={topic.title || "제목 없음"}
         meta={`${dateLabel} · ${videos.length}개 영상`}
         videos={videos}

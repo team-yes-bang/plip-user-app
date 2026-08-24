@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 
 type TopicViewerSectionProps = {
   agitId: string;
+  topicId?: string;
   title?: string;
   meta?: string;
   videos?: UiTopicVideo[];
@@ -17,6 +18,7 @@ type TopicViewerSectionProps = {
 
 export function TopicViewerSection({
   agitId,
+  topicId,
   title = "오늘의 토픽",
   meta = "",
   videos = [],
@@ -35,7 +37,7 @@ export function TopicViewerSection({
       />
       <TopicGallerySection
         videos={videos}
-        captureHref={ROUTES.agit.upload(agitId)}
+        captureHref={ROUTES.capture.videoWith({ agitUuid: agitId, topicUuid: topicId })}
         onSelectVideo={(videoId) => router.push(ROUTES.viewer.clip(videoId))}
       />
     </div>

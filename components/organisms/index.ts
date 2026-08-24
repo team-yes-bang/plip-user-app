@@ -37,6 +37,10 @@ export {
   AgitTopicsSection,
 } from "./AgitSubSections";
 export { ChangePasswordForm } from "./ChangePasswordForm";
+export { CaptureCameraStage } from "./CaptureCameraStage";
+export { CaptureFlowSection } from "./CaptureFlowSection";
+export { CapturePreviewStage } from "./CapturePreviewStage";
+export { CaptureUploadSettingsStage } from "./CaptureUploadSettingsStage";
 export { ClipViewerSection } from "./ClipViewerSection";
 export { CreateClipSection } from "./CreateClipSection";
 export { UploadWizard } from "./UploadWizard";

@@ -76,7 +76,10 @@ export function AgitDetailSection({ agit, gallery, error, galleryError }: AgitDe
           <p className="m-0 text-sm font-normal leading-5 text-[var(--dl-color-text-secondary)]">{galleryError}</p>
         </section>
       ) : (
-        <TopicGallerySection videos={gallery.videos} captureHref={ROUTES.agit.upload(agit.id)} />
+        <TopicGallerySection
+          videos={gallery.videos}
+          captureHref={ROUTES.capture.videoWith({ agitUuid: agit.id })}
+        />
       )}
 
       <AgitMenuDrawer agit={agit} open={menuOpen} onClose={() => setMenuOpen(false)} />

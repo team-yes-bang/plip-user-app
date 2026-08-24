@@ -3,13 +3,17 @@ import { cn } from "@/lib/utils";
 import type { ComponentProps } from "react";
 
 type SubmitButtonProps = ComponentProps<"button"> & {
-  variant?: "glass" | "brand" | "outline" | "danger";
+  variant?: "glass" | "brand" | "outline" | "brandOutline" | "danger";
 };
 
 const variantClass: Record<NonNullable<SubmitButtonProps["variant"]>, string> = {
   glass: cn(ui.glassBtn, ui.glassBtnBlock),
   brand: cn(ui.btn, ui.btnPrimary),
   outline: cn(ui.btn, ui.btnSecondary),
+  brandOutline: cn(
+    ui.btn,
+    "border border-[var(--dl-color-border-brand)] bg-[var(--dl-color-bg-surface)] text-[var(--dl-color-text-brand)]",
+  ),
   danger: cn(ui.btn, ui.btnDanger),
 };
 

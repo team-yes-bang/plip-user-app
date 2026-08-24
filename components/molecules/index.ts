@@ -13,6 +13,7 @@ export { MemberManageRow } from "./MemberManageRow";
 export { NoticeCard } from "./NoticeCard";
 export { NotificationIconToggle } from "./NotificationIconToggle";
 export { ProgressTrack } from "./ProgressTrack";
+export { CaptureClipOverlays } from "./CaptureClipOverlays";
 export { TopicChip } from "./TopicChip";
 export { TopicClipPage } from "./TopicClipPage";
 export { TopicEmptySlot } from "./TopicEmptySlot";

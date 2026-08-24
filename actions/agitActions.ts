@@ -38,6 +38,15 @@ function toActionError(error: unknown): ActionResult<never> {
   return actionFailure("Unknown error");
 }
 
+export async function listMyAgitsAction(): Promise<ActionResult<UiAgit[]>> {
+  try {
+    const items = await agitService.listMyAgits();
+    return actionSuccess(items);
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
 export async function leaveAgitAction(agitId: string): Promise<ActionResult<void>> {
   try {
     await agitService.leaveAgit(agitId);

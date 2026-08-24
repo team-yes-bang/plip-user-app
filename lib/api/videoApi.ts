@@ -4,6 +4,8 @@ import { withAuthRetry } from "@/lib/api/withAuthRetry";
 import type {
   VideoCompleteRequest,
   VideoCompleteResponse,
+  VideoDestinationRequest,
+  VideoDestinationResponse,
   VideoDetailResponse,
   VideoDownloadUrlProcessingResponse,
   VideoDownloadUrlResponse,
@@ -44,6 +46,18 @@ export async function getVideoDetail(videoUuid: string): Promise<VideoDetailResp
   return withAuthRetry(() =>
     apiFetch<VideoDetailResponse>(API_ENDPOINTS.video.detail(videoUuid), {
       method: "GET",
+    }),
+  );
+}
+
+export async function postDestination(
+  videoUuid: string,
+  request: VideoDestinationRequest,
+): Promise<VideoDestinationResponse> {
+  return withAuthRetry(() =>
+    apiFetch<VideoDestinationResponse>(API_ENDPOINTS.video.destination(videoUuid), {
+      method: "POST",
+      body: request,
     }),
   );
 }

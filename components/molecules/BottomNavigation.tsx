@@ -38,7 +38,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     id: "create",
-    href: ROUTES.create,
+    href: ROUTES.capture.video,
     label: "카메라",
     icon: <Camera className="w-[20px] h-[20px] text-[#fff]" strokeWidth={2} />,
     create: true,

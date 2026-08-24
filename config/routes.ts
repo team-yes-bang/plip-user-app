@@ -67,9 +67,21 @@ export const ROUTES = {
     notifications: "/mypage/notifications",
     settings: "/mypage/settings",
   },
-  /** plip-video Phase 0-F — user-app 본 UI와 분리 (route group `(capture)`) */
+  /** 제품 촬영은 /video. /create·/video-api는 목업·랩 */
   capture: {
     video: "/video",
     videoApi: "/video-api",
+    videoWith: (query?: {
+      agitUuid?: string;
+      topicUuid?: string;
+      themeId?: string;
+    }) => {
+      const params = new URLSearchParams();
+      if (query?.agitUuid) params.set("agitUuid", query.agitUuid);
+      if (query?.topicUuid) params.set("topicUuid", query.topicUuid);
+      if (query?.themeId) params.set("themeId", query.themeId);
+      const search = params.toString();
+      return search ? (`/video?${search}` as const) : ("/video" as const);
+    },
   },
 } as const;

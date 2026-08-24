@@ -5,6 +5,7 @@ import { ROUTES } from "@/config/routes";
 import { useVideoCaptureFlow } from "@/hooks/useVideoCaptureFlow";
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_MB } from "@/lib/video/constants";
 import { formatBlobSummary } from "@/lib/video/recorderMime";
+import { shouldMirrorVideo } from "@/lib/video/shouldMirrorVideo";
 import { isWithinUploadLimit } from "@/lib/video/uploadLimits";
 import Link from "next/link";
 import { useRef } from "react";
@@ -18,6 +19,7 @@ export function VideoCaptureSection() {
     blob,
     mimeType,
     facingMode,
+    pixelsMirrored,
     flowPhase,
     flowError,
     uploadResult,
@@ -36,9 +38,7 @@ export function VideoCaptureSection() {
   const progressPct = Math.min(100, Math.round((elapsedMs / maxDurationMs) * 100));
   const canUploadBlob = blob !== null && isWithinUploadLimit(blob.size);
   const blobOverLimit = blob !== null && blob.size > MAX_UPLOAD_BYTES;
-  const isLivePreview =
-    status === "requesting" || status === "ready" || status === "recording";
-  const mirrorFrontCamera = facingMode === "user" && isLivePreview;
+  const mirrorFrontCamera = shouldMirrorVideo(facingMode, status, pixelsMirrored);
 
   return (
     <section className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-6 font-mono text-sm">
