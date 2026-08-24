@@ -74,9 +74,59 @@ export async function deleteTopic(topicUuid: string): Promise<void> {
 }
 
 export async function listTopicVideos(topicUuid: string): Promise<ApiTopicVideo[]> {
-  return topicFetch<ApiTopicVideo[]>(API_ENDPOINTS.topic.videos(topicUuid), {
+  const payload = await topicFetch<unknown>(API_ENDPOINTS.topic.videos(topicUuid), {
     method: "GET",
   });
+  return toTopicVideoList(payload);
+}
+
+function toTopicVideoList(payload: unknown): ApiTopicVideo[] {
+  const rows = Array.isArray(payload)
+    ? payload
+    : payload !== null &&
+        typeof payload === "object" &&
+        "data" in payload &&
+        Array.isArray((payload as { data: unknown }).data)
+      ? (payload as { data: unknown[] }).data
+      : [];
+  return rows.flatMap((row) => {
+    if (!row || typeof row !== "object") {
+      return [];
+    }
+    const record = row as Record<string, unknown>;
+    const videoUuid = readString(record, ["videoUuid", "videoId", "id"]);
+    if (!videoUuid) {
+      return [];
+    }
+    return [
+      {
+        videoUuid,
+        userUuid: readString(record, ["userUuid", "userId", "memberUuid"]) ?? "",
+        createdAt: readTimestamp(record.createdAt),
+      },
+    ];
+  });
+}
+
+function readString(record: Record<string, unknown>, keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  return undefined;
+}
+
+function readTimestamp(value: unknown): string {
+  if (typeof value === "string" && value.trim()) {
+    return value;
+  }
+  if (Array.isArray(value) && value.length >= 3 && value.every((part) => typeof part === "number")) {
+    const [year, month, day, hour = 0, minute = 0, second = 0] = value as number[];
+    return new Date(year, month - 1, day, hour, minute, second).toISOString();
+  }
+  return new Date(0).toISOString();
 }
 
 export async function getTopicFeed(params: {

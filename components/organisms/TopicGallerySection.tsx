@@ -55,9 +55,20 @@ export function TopicGallerySection({
     event.stopPropagation();
   }
 
+  function renderPage(pageVideos: UiTopicVideo[], key: string) {
+    return (
+      <TopicClipPage
+        key={key}
+        videos={pageVideos}
+        captureHref={captureHref}
+        onSelectVideo={onSelectVideo}
+      />
+    );
+  }
+
   return (
     <section
-      className="relative h-full min-h-0 w-full touch-pan-y overflow-hidden"
+      className="relative h-full min-h-0 w-full overflow-hidden"
       aria-label="토픽 영상"
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
@@ -66,35 +77,37 @@ export function TopicGallerySection({
       }}
       onClickCapture={handleClickCapture}
     >
-      {pages.map((pageVideos, index) => (
+      {pageCount <= 1 ? (
         <div
-          key={`topic-page-${index}`}
           className={
-            videos.length === 0
-              ? "absolute inset-0 flex flex-col px-[23px] pb-6"
-              : "absolute inset-0 flex flex-col"
+            videos.length === 0 ? "flex h-full min-h-0 flex-col px-[23px] pb-6" : "flex h-full min-h-0 flex-col"
           }
-          style={{ transform: `translate3d(${(index - safeIndex) * 100}%, 0, 0)` }}
         >
-          <TopicClipPage
-            videos={pageVideos}
-            captureHref={captureHref}
-            onSelectVideo={onSelectVideo}
-          />
+          {renderPage(pages[0] ?? [], "topic-page-0")}
         </div>
-      ))}
+      ) : (
+        pages.map((pageVideos, index) => (
+          <div
+            key={`topic-page-${index}`}
+            className="absolute inset-0 flex flex-col"
+            style={{ transform: `translate3d(${(index - safeIndex) * 100}%, 0, 0)` }}
+          >
+            {renderPage(pageVideos, `topic-page-${index}`)}
+          </div>
+        ))
+      )}
 
       {pageCount > 1 ? (
         <>
           <button
             type="button"
-            className="absolute inset-y-0 left-0 z-10 w-[12.5%] touch-pan-y border-0 bg-transparent p-0"
+            className="absolute inset-y-0 left-0 z-10 w-[12.5%] border-0 bg-transparent p-0"
             aria-label="이전 페이지"
             onClick={() => goToPage(safeIndex - 1)}
           />
           <button
             type="button"
-            className="absolute inset-y-0 right-0 z-10 w-[12.5%] touch-pan-y border-0 bg-transparent p-0"
+            className="absolute inset-y-0 right-0 z-10 w-[12.5%] border-0 bg-transparent p-0"
             aria-label="다음 페이지"
             onClick={() => goToPage(safeIndex + 1)}
           />

@@ -27,16 +27,12 @@ function sliceAroundAnchor(topics: UiTopicDetail[], anchorId: string, edge: "sta
 
 export function TopicFeedSection({ agitId, initialWindow, initialVideos }: TopicFeedSectionProps) {
   const router = useRouter();
-  const viewportRef = useRef<HTMLDivElement>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const didSyncScroll = useRef(false);
   const loadingEdge = useRef<"start" | "end" | null>(null);
-  const loadedVideoIds = useRef(new Set(Object.keys(initialVideos)));
-  const pointerStart = useRef<{ x: number; y: number } | null>(null);
-  const gestureAxis = useRef<"x" | "y" | null>(null);
-  const dragOffsetRef = useRef(0);
-  const wheelLock = useRef(false);
+  const loadingVideoIds = useRef(new Set<string>());
+  const videosRef = useRef(initialVideos);
   const [viewportHeight, setViewportHeight] = useState(0);
-  const [dragOffset, setDragOffset] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
 
   const [topics, setTopics] = useState(initialWindow.topics);
   const [index, setIndex] = useState(() => {
@@ -57,7 +53,8 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
     indexRef.current = index;
     hasMoreBeforeRef.current = hasMoreBefore;
     hasMoreAfterRef.current = hasMoreAfter;
-  }, [topics, index, hasMoreBefore, hasMoreAfter]);
+    videosRef.current = videosByTopic;
+  }, [hasMoreAfter, hasMoreBefore, index, topics, videosByTopic]);
 
   const current = topics[index];
   const backHref = ROUTES.agit.topics(agitId);
@@ -69,15 +66,22 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
       );
       await Promise.all(
         ids.map(async (id) => {
-          if (loadedVideoIds.current.has(id)) {
+          const topic = list.find((item) => item.id === id);
+          const existing = videosRef.current[id];
+          const knownEmpty = (topic?.videoCount ?? 0) === 0;
+          if (existing && (existing.length > 0 || knownEmpty)) {
             return;
           }
-          loadedVideoIds.current.add(id);
+          if (loadingVideoIds.current.has(id)) {
+            return;
+          }
+          loadingVideoIds.current.add(id);
           const result = await getTopicVideosAction(agitId, id);
+          loadingVideoIds.current.delete(id);
           if (!result.ok) {
-            loadedVideoIds.current.delete(id);
             return;
           }
+          videosRef.current = { ...videosRef.current, [id]: result.data };
           setVideosByTopic((currentMap) => ({ ...currentMap, [id]: result.data }));
         }),
       );
@@ -102,19 +106,6 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
       void extendWindowRef.current("end", endId);
     }
   }, []);
-
-  const goToIndex = useCallback(
-    (nextIndex: number) => {
-      const clamped = Math.min(Math.max(nextIndex, 0), topicsRef.current.length - 1);
-      if (clamped === indexRef.current) {
-        return;
-      }
-      indexRef.current = clamped;
-      setIndex(clamped);
-      prefetchNearEdge();
-    },
-    [prefetchNearEdge],
-  );
 
   const extendWindow = useCallback(
     async (edge: "start" | "end", anchorId: string) => {
@@ -151,6 +142,12 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
           const nextIndex = indexRef.current + added;
           indexRef.current = nextIndex;
           setIndex(nextIndex);
+          requestAnimationFrame(() => {
+            const root = scrollerRef.current;
+            if (root) {
+              root.scrollTop += added * root.clientHeight;
+            }
+          });
         }
         return merged;
       });
@@ -171,7 +168,7 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
   }, [extendWindow]);
 
   useEffect(() => {
-    const root = viewportRef.current;
+    const root = scrollerRef.current;
     if (!root) {
       return;
     }
@@ -183,7 +180,16 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
     const observer = new ResizeObserver(applyHeight);
     observer.observe(root);
     return () => observer.disconnect();
-  }, []);
+  }, [current]);
+
+  useEffect(() => {
+    const root = scrollerRef.current;
+    if (!root || viewportHeight === 0 || didSyncScroll.current) {
+      return;
+    }
+    didSyncScroll.current = true;
+    root.scrollTop = indexRef.current * viewportHeight;
+  }, [viewportHeight]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => prefetchNearEdge(), 0);
@@ -202,94 +208,21 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
     void loadVideosAround(topics, index);
   }, [agitId, current, index, loadVideosAround, topics]);
 
-  function resetDrag() {
-    dragOffsetRef.current = 0;
-    setDragOffset(0);
-    setIsDragging(false);
-    pointerStart.current = null;
-    gestureAxis.current = null;
-  }
-
-  function handlePointerDown(event: React.PointerEvent<HTMLDivElement>) {
-    pointerStart.current = { x: event.clientX, y: event.clientY };
-    gestureAxis.current = null;
-    dragOffsetRef.current = 0;
-  }
-
-  function handlePointerMove(event: React.PointerEvent<HTMLDivElement>) {
-    const start = pointerStart.current;
-    if (!start) {
+  function handleScroll() {
+    const root = scrollerRef.current;
+    if (!root || root.clientHeight === 0 || topics.length === 0) {
       return;
     }
-    const dx = event.clientX - start.x;
-    const dy = event.clientY - start.y;
-    if (!gestureAxis.current) {
-      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
-        return;
-      }
-      gestureAxis.current = Math.abs(dy) >= Math.abs(dx) ? "y" : "x";
+    const nextIndex = Math.min(
+      topics.length - 1,
+      Math.max(0, Math.round(root.scrollTop / root.clientHeight)),
+    );
+    if (nextIndex !== indexRef.current) {
+      indexRef.current = nextIndex;
+      setIndex(nextIndex);
     }
-    if (gestureAxis.current !== "y") {
-      return;
-    }
-    event.preventDefault();
-    setIsDragging(true);
-    const atStart = indexRef.current === 0;
-    const atEnd = indexRef.current >= topicsRef.current.length - 1;
-    let nextOffset = dy;
-    if ((atStart && nextOffset > 0) || (atEnd && nextOffset < 0)) {
-      nextOffset *= 0.28;
-    }
-    dragOffsetRef.current = nextOffset;
-    setDragOffset(nextOffset);
+    prefetchNearEdge();
   }
-
-  function handlePointerUp() {
-    if (gestureAxis.current === "y") {
-      const height = viewportHeight || viewportRef.current?.clientHeight || 1;
-      const threshold = Math.max(48, height * 0.18);
-      const offset = dragOffsetRef.current;
-      if (offset < -threshold) {
-        goToIndex(indexRef.current + 1);
-      } else if (offset > threshold) {
-        goToIndex(indexRef.current - 1);
-      }
-    }
-    resetDrag();
-  }
-
-  useEffect(() => {
-    const root = viewportRef.current;
-    if (!root) {
-      return;
-    }
-    const onWheel = (event: WheelEvent) => {
-      event.preventDefault();
-      if (wheelLock.current || Math.abs(event.deltaY) < 20) {
-        return;
-      }
-      wheelLock.current = true;
-      window.setTimeout(() => {
-        wheelLock.current = false;
-      }, 420);
-      if (event.deltaY > 0) {
-        goToIndex(indexRef.current + 1);
-      } else {
-        goToIndex(indexRef.current - 1);
-      }
-    };
-    const onTouchMove = (event: TouchEvent) => {
-      if (gestureAxis.current === "y") {
-        event.preventDefault();
-      }
-    };
-    root.addEventListener("wheel", onWheel, { passive: false });
-    root.addEventListener("touchmove", onTouchMove, { passive: false });
-    return () => {
-      root.removeEventListener("wheel", onWheel);
-      root.removeEventListener("touchmove", onTouchMove);
-    };
-  }, [current, goToIndex]);
 
   if (!current) {
     return (
@@ -304,40 +237,34 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
     );
   }
 
-  const dateLabel = current.startDate.replaceAll("-", ".");
-  const videoCount = videosByTopic[current.id]?.length ?? current.videoCount;
-  const slideHeight = viewportHeight;
+  const loadedVideos = videosByTopic[current.id];
+  const videoCount = loadedVideos && loadedVideos.length > 0 ? loadedVideos.length : current.videoCount;
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       <ScreenHeader
         leading={<HeaderBackLink href={backHref} />}
         title={current.title || "제목 없음"}
-        subtitle={`${dateLabel} · ${videoCount}개 영상`}
+        subtitle={`${current.startDate.replaceAll("-", ".")} · ${videoCount}개 영상`}
       />
       <div
-        ref={viewportRef}
-        className="relative min-h-0 flex-1 touch-none overflow-hidden"
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={resetDrag}
+        ref={scrollerRef}
+        onScroll={handleScroll}
+        className="min-h-0 flex-1 snap-y snap-mandatory overflow-x-hidden overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {topics.map((topic, topicIndex) => (
           <div
             key={topic.id}
-            className="absolute inset-x-0 top-0 flex flex-col"
-            style={{
-              height: slideHeight > 0 ? slideHeight : "100%",
-              transform: `translate3d(0, calc(${(topicIndex - index) * 100}% + ${dragOffset}px), 0)`,
-              transition: isDragging ? "none" : "transform 240ms ease-out",
-            }}
+            className="flex h-full min-h-0 w-full shrink-0 snap-start snap-always flex-col"
+            style={{ height: viewportHeight > 0 ? viewportHeight : "100%" }}
           >
-            <TopicGallerySection
-              videos={videosByTopic[topic.id] ?? []}
-              captureHref={ROUTES.agit.upload(agitId)}
-              onSelectVideo={(videoId) => router.push(ROUTES.viewer.clip(videoId))}
-            />
+            {Math.abs(topicIndex - index) <= 1 ? (
+              <TopicGallerySection
+                videos={videosByTopic[topic.id] ?? []}
+                captureHref={ROUTES.agit.upload(agitId)}
+                onSelectVideo={(videoId) => router.push(ROUTES.viewer.clip(videoId))}
+              />
+            ) : null}
           </div>
         ))}
       </div>
