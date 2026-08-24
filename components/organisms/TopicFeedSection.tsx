@@ -25,6 +25,59 @@ type TopicFeedSectionProps = {
   initialVideos: Record<string, UiTopicVideo[]>;
 };
 
+type TopicFeedEmptyCoverProps = {
+  isFullyEmpty: boolean;
+  onTopicCreate: () => void;
+  onScrollToFeed?: () => void;
+  style?: React.CSSProperties;
+};
+
+function TopicFeedEmptyCover({
+  isFullyEmpty,
+  onTopicCreate,
+  onScrollToFeed,
+  style,
+}: TopicFeedEmptyCoverProps) {
+  return (
+    <div
+      className="flex h-full min-h-0 w-full shrink-0 snap-start snap-always flex-col items-center justify-center p-6 text-center bg-[var(--dl-color-bg-surface-default)]"
+      style={style}
+    >
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--dl-color-bg-surface-subtle)]">
+        <DailyIcon name="messageBrand" size={28} />
+      </div>
+      <p className="m-0 text-base font-semibold text-[var(--dl-color-text-primary)]">
+        {isFullyEmpty ? "등록된 토픽이 없습니다." : "진행 중인 토픽이 없습니다."}
+      </p>
+      <p className="mt-1.5 mb-6 text-xs font-normal leading-relaxed text-[var(--dl-color-text-secondary)]">
+        {isFullyEmpty
+          ? "새로운 토픽을 생성하고 영상 기록을 시작해 보세요."
+          : "새로운 토픽을 생성하거나, 아래로 끌어 이전 기록을 확인하세요."}
+      </p>
+      <SubmitButton
+        type="button"
+        variant="brand"
+        className="flex items-center gap-1.5 w-auto px-6 py-3 font-semibold shadow-md"
+        onClick={onTopicCreate}
+      >
+        <DailyIcon name="plus" size={16} className="brightness-0 invert" />
+        <span>토픽 생성하기</span>
+      </SubmitButton>
+
+      {!isFullyEmpty && onScrollToFeed && (
+        <button
+          type="button"
+          onClick={onScrollToFeed}
+          className="mt-8 flex flex-col items-center gap-1.5 text-xs font-semibold text-[var(--dl-color-text-secondary)] animate-bounce cursor-pointer border-0 bg-transparent"
+        >
+          <span>이전 기록 피드 보기</span>
+          <DailyIcon name="chevronLeft" size={16} className="-rotate-90 brightness-0 opacity-60" />
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }: TopicFeedSectionProps) {
   const router = useRouter();
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -139,26 +192,10 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
             subtitle="아직 토픽이 없습니다"
             trailing={<HeaderMenuButton label="아지트 메뉴" onClick={() => setMenuOpen(true)} />}
           />
-          <div className="flex min-h-0 flex-1 flex-col items-center justify-center p-6 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--dl-color-bg-surface-subtle)] mb-4">
-              <DailyIcon name="messageBrand" size={28} />
-            </div>
-            <p className="m-0 text-base font-semibold text-[var(--dl-color-text-primary)]">
-              등록된 토픽이 없습니다.
-            </p>
-            <p className="mt-1.5 mb-6 text-xs font-normal leading-relaxed text-[var(--dl-color-text-secondary)]">
-              새로운 토픽을 생성하고 영상 기록을 시작해 보세요.
-            </p>
-            <SubmitButton
-              type="button"
-              variant="brand"
-              className="flex items-center gap-1.5 w-auto px-6 py-3 font-semibold shadow-md"
-              onClick={() => router.push(ROUTES.agit.topicCreate(agitId))}
-            >
-              <DailyIcon name="plus" size={16} className="brightness-0 invert" />
-              <span>토픽 생성하기</span>
-            </SubmitButton>
-          </div>
+          <TopicFeedEmptyCover
+            isFullyEmpty={true}
+            onTopicCreate={() => router.push(ROUTES.agit.topicCreate(agitId))}
+          />
         </div>
 
         {resolvedAgit && (
@@ -203,44 +240,17 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
         >
           {/* 커버 슬라이드 (진행 중인 토픽이 없을 때 슬라이드 0) */}
           {showCoverSlide && (
-            <div
-              className="flex h-full min-h-0 w-full shrink-0 snap-start snap-always flex-col items-center justify-center p-6 text-center bg-[var(--dl-color-bg-surface-default)]"
+            <TopicFeedEmptyCover
+              isFullyEmpty={false}
+              onTopicCreate={() => router.push(ROUTES.agit.topicCreate(agitId))}
+              onScrollToFeed={() => {
+                scrollerRef.current?.scrollTo({
+                  top: viewportHeight > 0 ? viewportHeight : 500,
+                  behavior: "smooth",
+                });
+              }}
               style={{ height: viewportHeight > 0 ? viewportHeight : "100%" }}
-            >
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--dl-color-bg-surface-subtle)] mb-4">
-                <DailyIcon name="messageBrand" size={28} />
-              </div>
-              <p className="m-0 text-base font-semibold text-[var(--dl-color-text-primary)]">
-                진행 중인 토픽이 없습니다.
-              </p>
-              <p className="mt-1.5 mb-6 text-xs font-normal leading-relaxed text-[var(--dl-color-text-secondary)]">
-                새로운 토픽을 생성하거나, 아래로 끌어 이전 기록을 확인하세요.
-              </p>
-              <SubmitButton
-                type="button"
-                variant="brand"
-                className="flex items-center gap-1.5 w-auto px-6 py-3 font-semibold shadow-md"
-                onClick={() => router.push(ROUTES.agit.topicCreate(agitId))}
-              >
-                <DailyIcon name="plus" size={16} className="brightness-0 invert" />
-                <span>토픽 생성하기</span>
-              </SubmitButton>
-
-              {/* 아래로 끌어서 피드 시작하도록 안내하는 바운스 화살표 힌트 */}
-              <button
-                type="button"
-                onClick={() => {
-                  scrollerRef.current?.scrollTo({
-                    top: viewportHeight > 0 ? viewportHeight : 500,
-                    behavior: "smooth",
-                  });
-                }}
-                className="mt-8 flex flex-col items-center gap-1.5 text-xs font-semibold text-[var(--dl-color-text-secondary)] animate-bounce cursor-pointer border-0 bg-transparent"
-              >
-                <span>이전 기록 피드 보기</span>
-                <DailyIcon name="chevronLeft" size={16} className="-rotate-90 brightness-0 opacity-60" />
-              </button>
-            </div>
+            />
           )}
 
           {/* 과거/진행 토픽 피드 슬라이드 목록 */}
