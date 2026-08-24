@@ -1,3 +1,8 @@
+"use client";
+
+import { FullpageVideoViewer } from "@/components/organisms/FullpageVideoViewer";
+import { FullpageViewerTemplate } from "@/components/templates/FullpageViewerTemplate";
+import { useVideoViewer } from "@/components/providers/VideoViewerProvider";
 import { BottomNavigation } from "@/components/molecules";
 import type { ReactNode } from "react";
 
@@ -8,6 +13,8 @@ type DiaryTemplateProps = {
 };
 
 export function DiaryTemplate({ children, fixedMain = false }: DiaryTemplateProps) {
+  const { isOpen, activeClipId, videoList, closeViewer } = useVideoViewer();
+
   return (
     <div className="relative mx-auto flex h-full min-h-0 w-full max-w-full flex-col overflow-hidden bg-[var(--dc-page-bg)] font-[family-name:var(--font-inter),var(--font-sans),system-ui,sans-serif] text-[var(--dc-fg-primary)]">
       <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden pb-[80px]">
@@ -22,6 +29,16 @@ export function DiaryTemplate({ children, fixedMain = false }: DiaryTemplateProp
         </main>
       </div>
       <BottomNavigation active="diary" variant="light" />
+
+      {isOpen && activeClipId && (
+        <FullpageViewerTemplate isOpen={isOpen} onClose={closeViewer}>
+          <FullpageVideoViewer
+            initialClipId={activeClipId}
+            videoList={videoList}
+            onClose={closeViewer}
+          />
+        </FullpageViewerTemplate>
+      )}
     </div>
   );
 }

@@ -3,6 +3,10 @@ import { headers } from "next/headers";
 import { getToken } from "next-auth/jwt";
 
 export async function getServerAuthJwt() {
+  if (typeof window !== "undefined") {
+    return null;
+  }
+
   const headerStore = await headers();
   const cookie = headerStore.get("cookie") ?? "";
 

@@ -4,6 +4,7 @@ export {
   AnimatedDropdown,
   AnimatedSideSheet,
   OverlayPortalProvider,
+  useOverlayPortalHost,
 } from "./AnimatedOverlays";
 export { AgitListRow } from "./AgitListRow";
 export { ManageListRow } from "./ManageListRow";
