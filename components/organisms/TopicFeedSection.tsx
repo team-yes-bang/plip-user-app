@@ -40,7 +40,7 @@ function TopicFeedEmptyCover({
 }: TopicFeedEmptyCoverProps) {
   return (
     <div
-      className="flex h-full min-h-0 w-full shrink-0 snap-start snap-always flex-col items-center justify-center p-6 text-center bg-[var(--dl-color-bg-surface-default)]"
+      className="flex h-full min-h-0 w-full shrink-0 snap-start snap-always flex-col items-center justify-center p-6 pt-16 text-center bg-[var(--dl-color-bg-surface-default)]"
       style={style}
     >
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--dl-color-bg-surface-subtle)]">
@@ -215,13 +215,15 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
   return (
     <>
       <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-        {/* 상단 헤더: 커버 슬라이드 일 때는 ScreenHeader, 피드 진입 시 TopicFeedPillHeader로 동적 전환 */}
+        {/* 상단 헤더: ScreenHeader와 TopicFeedPillHeader 모두 absolute 오버레이로 상단에 올려서 스크롤러 높이가 변하지 않도록 보장 */}
         {isAtCoverSlide ? (
-          <ScreenHeader
-            leading={<HeaderBackLink href={ROUTES.agit.root} />}
-            title={resolvedAgit?.name || "아지트"}
-            trailing={<HeaderMenuButton label="아지트 메뉴" onClick={() => setMenuOpen(true)} />}
-          />
+          <div className="pointer-events-none absolute top-0 inset-x-0 z-30">
+            <ScreenHeader
+              leading={<HeaderBackLink href={ROUTES.agit.root} />}
+              title={resolvedAgit?.name || "아지트"}
+              trailing={<HeaderMenuButton label="아지트 메뉴" onClick={() => setMenuOpen(true)} />}
+            />
+          </div>
         ) : (
           <TopicFeedPillHeader
             backHref={backHref}
@@ -234,21 +236,22 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
         <div
           ref={scrollerRef}
           onScroll={handleScroll}
-          className="min-h-0 flex-1 snap-y snap-mandatory overflow-x-hidden overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="h-full min-h-0 flex-1 snap-y snap-mandatory overflow-x-hidden overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {/* 커버 슬라이드 (진행 중인 토픽이 없을 때 슬라이드 0) */}
           {showCoverSlide && (
-            <TopicFeedEmptyCover
-              isFullyEmpty={false}
-              onTopicCreate={() => router.push(ROUTES.agit.topicCreate(agitId))}
-              onScrollToFeed={() => {
-                scrollerRef.current?.scrollTo({
-                  top: viewportHeight > 0 ? viewportHeight : 500,
-                  behavior: "smooth",
-                });
-              }}
-              style={{ height: viewportHeight > 0 ? viewportHeight : "100%" }}
-            />
+            <div className="h-full w-full shrink-0 snap-start snap-always">
+              <TopicFeedEmptyCover
+                isFullyEmpty={false}
+                onTopicCreate={() => router.push(ROUTES.agit.topicCreate(agitId))}
+                onScrollToFeed={() => {
+                  scrollerRef.current?.scrollTo({
+                    top: scrollerRef.current?.clientHeight || 500,
+                    behavior: "smooth",
+                  });
+                }}
+              />
+            </div>
           )}
 
           {/* 과거/진행 토픽 피드 슬라이드 목록 */}
@@ -256,7 +259,6 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
             <div
               key={topic.id}
               className="flex h-full min-h-0 w-full shrink-0 snap-start snap-always flex-col"
-              style={{ height: viewportHeight > 0 ? viewportHeight : "100%" }}
             >
               {Math.abs(topicIndex - effectiveIndex) <= 1 ? (
                 <TopicGallerySection
