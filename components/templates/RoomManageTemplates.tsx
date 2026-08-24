@@ -13,6 +13,7 @@ import { AgitFlowChrome, AppChromeTemplate } from "@/components/templates/AppChr
 import { DailyLoopAuthTemplate } from "@/components/templates/DailyLoopAuthTemplate";
 import { getAgitById } from "@/config/agit-mock";
 import { ROUTES } from "@/config/routes";
+import { shouldShowTopicCaptureSlot } from "@/lib/topic/selectAgitTopic";
 import type { ApiAgitDetailMember } from "@/types/agit/api";
 import type { UiAgit } from "@/types/agit/ui";
 import type { UiTopicDetail, UiTopicFeedWindow, UiTopicListSections, UiTopicVideo } from "@/types/topic/ui";
@@ -93,6 +94,7 @@ export function TopicViewerTemplate({
         title={topic.title || "제목 없음"}
         meta={`${dateLabel} · ${videos.length}개 영상`}
         videos={videos}
+        showCaptureSlot={shouldShowTopicCaptureSlot(topic)}
         backHref={ROUTES.agit.topics(agit.id)}
       />
     </AppChromeTemplate>
