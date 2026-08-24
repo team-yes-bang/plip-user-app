@@ -248,6 +248,7 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
         backHref={backHref}
         title={current.title || "제목 없음"}
         videoCount={videoCount}
+        dateLabel={current.startDate.replaceAll("-", ".")}
       />
       <div
         ref={scrollerRef}
