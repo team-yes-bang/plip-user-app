@@ -41,6 +41,18 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
   const [hasMoreBefore, setHasMoreBefore] = useState(initialWindow.hasMoreBefore);
   const [hasMoreAfter, setHasMoreAfter] = useState(initialWindow.hasMoreAfter);
 
+  const topicsRef = useRef(topics);
+  const indexRef = useRef(index);
+  const hasMoreBeforeRef = useRef(hasMoreBefore);
+  const hasMoreAfterRef = useRef(hasMoreAfter);
+
+  useEffect(() => {
+    topicsRef.current = topics;
+    indexRef.current = index;
+    hasMoreBeforeRef.current = hasMoreBefore;
+    hasMoreAfterRef.current = hasMoreAfter;
+  }, [topics, index, hasMoreBefore, hasMoreAfter]);
+
   const current = topics[index];
   const backHref = ROUTES.agit.topics(agitId);
 
@@ -67,6 +79,24 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
     [agitId],
   );
 
+  const extendWindowRef = useRef<(edge: "start" | "end", anchorId: string) => Promise<void>>(
+    async () => undefined,
+  );
+
+  const prefetchNearEdge = useCallback(() => {
+    const list = topicsRef.current;
+    const currentIndex = indexRef.current;
+    const startId = list[0]?.id;
+    const endId = list.at(-1)?.id;
+    if (currentIndex <= 1 && hasMoreBeforeRef.current && startId) {
+      void extendWindowRef.current("start", startId);
+      return;
+    }
+    if (currentIndex >= list.length - 2 && hasMoreAfterRef.current && endId) {
+      void extendWindowRef.current("end", endId);
+    }
+  }, []);
+
   const extendWindow = useCallback(
     async (edge: "start" | "end", anchorId: string) => {
       if (loadingEdge.current) {
@@ -85,17 +115,23 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
       const extra = sliceAroundAnchor(result.data.topics, anchorId, edge);
       if (extra.length === 0) {
         if (edge === "start") {
+          hasMoreBeforeRef.current = false;
           setHasMoreBefore(false);
         } else {
+          hasMoreAfterRef.current = false;
           setHasMoreAfter(false);
         }
+        prefetchNearEdge();
         return;
       }
       setTopics((currentTopics) => {
         const merged = mergeUniqueById(currentTopics, extra, (topic) => topic.id, edge);
         const added = merged.length - currentTopics.length;
+        topicsRef.current = merged;
         if (edge === "start" && added > 0) {
-          setIndex((currentIndex) => currentIndex + added);
+          const nextIndex = indexRef.current + added;
+          indexRef.current = nextIndex;
+          setIndex(nextIndex);
           requestAnimationFrame(() => {
             const root = scrollerRef.current;
             if (root) {
@@ -106,13 +142,20 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
         return merged;
       });
       if (edge === "start") {
+        hasMoreBeforeRef.current = result.data.hasMoreBefore;
         setHasMoreBefore(result.data.hasMoreBefore);
       } else {
+        hasMoreAfterRef.current = result.data.hasMoreAfter;
         setHasMoreAfter(result.data.hasMoreAfter);
       }
+      prefetchNearEdge();
     },
-    [agitId],
+    [agitId, prefetchNearEdge],
   );
+
+  useEffect(() => {
+    extendWindowRef.current = extendWindow;
+  }, [extendWindow]);
 
   useEffect(() => {
     const root = scrollerRef.current;
@@ -124,24 +167,17 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
   }, [index]);
 
   useEffect(() => {
+    const timer = window.setTimeout(() => prefetchNearEdge(), 0);
+    return () => window.clearTimeout(timer);
+  }, [prefetchNearEdge]);
+
+  useEffect(() => {
     if (!current) {
       return;
     }
     router.replace(ROUTES.agit.topicFeed(agitId, current.id), { scroll: false });
     void loadVideosAround(topics, index);
   }, [agitId, current, index, loadVideosAround, router, topics]);
-
-  useEffect(() => {
-    if (index <= 1 && hasMoreBefore && topics[0]) {
-      void extendWindow("start", topics[0].id);
-    }
-  }, [extendWindow, hasMoreBefore, index, topics]);
-
-  useEffect(() => {
-    if (index >= topics.length - 2 && hasMoreAfter && topics.at(-1)) {
-      void extendWindow("end", topics.at(-1)!.id);
-    }
-  }, [extendWindow, hasMoreAfter, index, topics]);
 
   function handleScroll() {
     const root = scrollerRef.current;
@@ -152,7 +188,9 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
       topics.length - 1,
       Math.max(0, Math.round(root.scrollTop / root.clientHeight)),
     );
+    indexRef.current = nextIndex;
     setIndex(nextIndex);
+    prefetchNearEdge();
   }
 
   if (!current) {
