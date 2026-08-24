@@ -24,6 +24,10 @@ export async function withAuthRetry<T>(request: () => Promise<T>): Promise<T> {
       throw error;
     }
 
+    if (typeof window !== "undefined") {
+      throw error;
+    }
+
     const jwt = await getServerAuthJwt();
     const refreshToken = jwt?.refreshToken;
     if (typeof refreshToken !== "string" || !refreshToken) {
