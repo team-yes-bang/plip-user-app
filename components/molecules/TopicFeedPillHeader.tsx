@@ -1,5 +1,4 @@
-import { DailyIcon, FeedPill, IconLink } from "@/components/atoms";
-import { cn } from "@/lib/utils";
+import { DailyIcon, FeedPill, feedPillIconButtonClass, IconLink } from "@/components/atoms";
 
 type TopicFeedPillHeaderProps = {
   backHref: string;
@@ -15,12 +14,7 @@ export function TopicFeedPillHeader({ backHref, title, videoCount, dateLabel }: 
         <IconLink
           href={backHref}
           label="뒤로"
-          className={cn(
-            "pointer-events-auto size-7 rounded-full bg-transparent text-white shadow-none backdrop-blur-none no-underline hover:no-underline",
-            "hover:bg-black/40 hover:shadow-[0_4px_16px_rgba(0,0,0,0.16)] hover:backdrop-blur-md",
-            "focus-visible:bg-black/40 focus-visible:shadow-[0_4px_16px_rgba(0,0,0,0.16)] focus-visible:backdrop-blur-md",
-            "active:bg-black/40 active:shadow-[0_4px_16px_rgba(0,0,0,0.16)] active:backdrop-blur-md",
-          )}
+          className={feedPillIconButtonClass}
         >
           <DailyIcon name="chevronLeft" size={16} className="brightness-0 invert" />
         </IconLink>
