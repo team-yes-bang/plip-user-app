@@ -11,6 +11,8 @@ export type VideoViewerItem = {
   thumbnailUrl?: string;
   rawPlaybackUrl?: string;
   agitName?: string;
+  topicName?: string;
+  themeName?: string;
 };
 
 type VideoViewerContextType = {

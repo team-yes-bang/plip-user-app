@@ -1,14 +1,32 @@
-/** created_at 기준 오버레이 — 시:분만 */
-export function formatOverlayClock(value: Date | string): string {
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "";
+export function extractDate(uploadedAt?: string): string {
+  if (!uploadedAt) return "2026.08.24";
+  const trimmed = uploadedAt.trim();
+
+  const spaceSplit = trimmed.split(/\s+/);
+  if (spaceSplit.length >= 1 && spaceSplit[0]) {
+    return spaceSplit[0].replaceAll("-", ".");
   }
 
-  return new Intl.DateTimeFormat("ko-KR", {
-    timeZone: "Asia/Seoul",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(date);
+  if (trimmed.includes("T")) {
+    return trimmed.split("T")[0].replaceAll("-", ".");
+  }
+
+  return trimmed;
+}
+
+export function extractTime(uploadedAt?: string): string {
+  if (!uploadedAt) return "14:30";
+  const trimmed = uploadedAt.trim();
+
+  const spaceSplit = trimmed.split(/\s+/);
+  if (spaceSplit.length >= 2 && spaceSplit[1]) {
+    return spaceSplit[1].slice(0, 5);
+  }
+
+  if (trimmed.includes("T")) {
+    const timePart = trimmed.split("T")[1];
+    return timePart ? timePart.slice(0, 5) : "14:30";
+  }
+
+  return "14:30";
 }

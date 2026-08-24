@@ -36,7 +36,7 @@ function DiaryClipThumb({
   );
 }
 
-function ThumbGrid({ clips, clipCount, date }: { clips?: UiDiaryClip[]; clipCount: number; date: string }) {
+function ThumbGrid({ clips, clipCount, date, themeName }: { clips?: UiDiaryClip[]; clipCount: number; date: string; themeName?: string }) {
   const { openViewer } = useVideoViewer();
   const slotCount = Math.max(clipCount, clips?.length ?? 0);
 
@@ -49,6 +49,7 @@ function ThumbGrid({ clips, clipCount, date }: { clips?: UiDiaryClip[]; clipCoun
       clipId: c.id,
       videoUuid: c.id,
       title: c.caption || "다이어리 영상",
+      themeName,
       uploadedAt: formatDiaryDate(date),
       thumbnailUrl: c.thumbnailSrc,
     }));
@@ -92,7 +93,7 @@ export function DiaryThemeClipGroup({
       ) : (
         <h3 className="m-0 text-[0.88rem] font-extrabold !text-[#111] !no-underline">{title}</h3>
       )}
-      <ThumbGrid clips={clips} clipCount={clipCount} date={date} />
+      <ThumbGrid clips={clips} clipCount={clipCount} date={date} themeName={themeName} />
     </section>
   );
 }

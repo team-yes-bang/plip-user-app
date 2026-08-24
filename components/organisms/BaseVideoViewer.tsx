@@ -147,6 +147,7 @@ export function BaseVideoViewer({
       {/* Header Overlay */}
       <ScreenHeader
         tone="overlay"
+        titleAlign="center"
         leading={
           <FeedPillIconButton label="닫기" onClick={() => onClose?.()}>
             <DailyIcon name="chevronLeft" size={16} className="brightness-0 invert" />
