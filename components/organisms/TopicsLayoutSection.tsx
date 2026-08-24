@@ -138,7 +138,7 @@ export function TopicsLayoutSection({
                       key={topic.id}
                       title={
                         <TextLink
-                          href={ROUTES.agit.topicDetail(agitId, topic.id)}
+                          href={ROUTES.agit.topicFeed(agitId, topic.id)}
                           className="flex min-w-0 flex-col gap-[2px] !text-inherit !no-underline"
                         >
                           <p className="m-0 text-sm font-semibold leading-5 text-[var(--dl-color-text-primary)]">
