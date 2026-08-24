@@ -32,8 +32,8 @@ export function DiaryVideoViewer({
           {themeName}
         </FeedPill>
       }
-      headerSubtitle={null}
-      headerTrailing={null}
+      headerSubtitle={undefined}
+      headerTrailing={undefined}
       overlayChildren={({ currentItem: item, currentDetail }: BaseVideoViewerOverlayProps) => (
         <>
           {/* 중앙 크게 시각 표시 (그룹뷰어 오버레이 스타일) */}

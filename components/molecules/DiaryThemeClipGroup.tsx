@@ -48,7 +48,7 @@ function ThumbGrid({ clips, clipCount, date, themeName }: { clips?: UiDiaryClip[
     const list = (clips ?? []).map((c) => ({
       clipId: c.id,
       videoUuid: c.id,
-      title: c.caption || "다이어리 영상",
+      title: themeName || "다이어리 영상",
       themeName,
       uploadedAt: formatDiaryDate(date),
       thumbnailUrl: c.thumbnailSrc,

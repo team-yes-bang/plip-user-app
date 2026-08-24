@@ -18,8 +18,8 @@ export type BaseVideoViewerProps = {
   initialClipId: string;
   videoList: VideoViewerItem[];
   onClose?: () => void;
-  headerTitle?: string;
-  headerSubtitle?: string;
+  headerTitle?: ReactNode;
+  headerSubtitle?: ReactNode;
   headerTrailing?: ReactNode;
   overlayChildren?: ReactNode | ((props: BaseVideoViewerOverlayProps) => ReactNode);
 };
