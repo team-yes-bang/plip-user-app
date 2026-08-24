@@ -1,38 +1,58 @@
-import { AgitDetailTemplate } from "@/components/templates";
-import { ApiError } from "@/lib/api/apiFetch";
+import { AgitTopicFeedTemplate } from "@/components/templates";
+import { ROUTES } from "@/config/routes";
+import { toKstDateString } from "@/lib/topic/selectAgitTopic";
 import { getAgitAndMembers } from "@/services/agitService";
-import { getTopicGallery } from "@/services/topicService";
+import { getTopicFeedWindow, getTopicVideos } from "@/services/topicService";
 import type { UiAgit } from "@/types/agit/ui";
-import type { UiTopicGallery } from "@/types/topic/ui";
+import type { UiTopicFeedWindow, UiTopicVideo } from "@/types/topic/ui";
+import { redirect } from "next/navigation";
 
 type AgitDetailPageProps = {
   params: Promise<{ agitId: string }>;
 };
 
-const EMPTY_GALLERY: UiTopicGallery = { topic: null, videos: [] };
-
 export default async function AgitDetailPage({ params }: AgitDetailPageProps) {
   const { agitId } = await params;
+
   let agit: UiAgit | null = null;
-  let gallery: UiTopicGallery = EMPTY_GALLERY;
-  let error: string | undefined;
-  let galleryError: string | undefined;
+  let initialWindow: UiTopicFeedWindow = {
+    topics: [],
+    currentId: null,
+    hasMoreBefore: false,
+    hasMoreAfter: false,
+  };
+  const initialVideos: Record<string, UiTopicVideo[]> = {};
 
   try {
     const detail = await getAgitAndMembers(agitId);
     agit = detail.agit;
-    try {
-      gallery = await getTopicGallery(agitId, detail.members);
-    } catch (caught) {
-      galleryError = caught instanceof Error ? caught.message : "토픽을 불러오지 못했습니다.";
-    }
-  } catch (caught) {
-    if (caught instanceof ApiError && (caught.status === 403 || caught.status === 404)) {
-      agit = null;
-    } else {
-      error = caught instanceof Error ? caught.message : "아지트를 불러오지 못했습니다.";
-    }
+    initialWindow = await getTopicFeedWindow({
+      agitUuid: agitId,
+      date: toKstDateString(new Date()),
+      before: 3,
+      after: 3,
+    });
+    const center = initialWindow.topics.findIndex((item) => item.id === initialWindow.currentId);
+    const loadIds = [
+      initialWindow.topics[center - 1]?.id,
+      initialWindow.topics[center]?.id,
+      initialWindow.topics[center + 1]?.id,
+    ].filter((id): id is string => Boolean(id));
+
+    await Promise.all(
+      loadIds.map(async (id) => {
+        initialVideos[id] = await getTopicVideos(id, detail.members);
+      })
+    );
+  } catch {
+    redirect(ROUTES.agit.root);
   }
 
-  return <AgitDetailTemplate agit={agit} gallery={gallery} error={error} galleryError={galleryError} />;
+  return (
+    <AgitTopicFeedTemplate
+      agit={agit}
+      initialWindow={initialWindow}
+      initialVideos={initialVideos}
+    />
+  );
 }

@@ -5,7 +5,6 @@ import { DailyIcon, IconLink, TextLink } from "@/components/atoms";
 import { AgitListRow, ScreenHeader } from "@/components/molecules";
 import { ROUTES } from "@/config/routes";
 import type { UiAgit } from "@/types/agit/ui";
-import { useMemo, useState } from "react";
 
 type AgitListSectionProps = {
   items: UiAgit[];
@@ -13,19 +12,7 @@ type AgitListSectionProps = {
 };
 
 export function AgitListSection({ items, error }: AgitListSectionProps) {
-  const [query, setQuery] = useState("");
-  const keyword = query.trim().toLowerCase();
-
-  const rooms = useMemo(
-    () =>
-      items.filter((room) => {
-        if (!keyword) return true;
-        const haystack = `${room.name} ${room.category ?? ""} ${room.topicSummary ?? ""}`.toLowerCase();
-        return haystack.includes(keyword);
-      }),
-    [items, keyword],
-  );
-
+  const rooms = items;
   const totalVideos = rooms.reduce((sum, room) => sum + (room.todayVideoCount ?? 0), 0);
 
   return (
@@ -40,16 +27,6 @@ export function AgitListSection({ items, error }: AgitListSectionProps) {
           </IconLink>
         }
       />
-
-      <label className="flex items-center gap-[10px] min-h-[48px] p-[0_14px] border border-[var(--dl-color-border-default)] rounded-[14px] bg-[var(--dl-color-bg-surface)]">
-        <DailyIcon name="search" size={18} />
-        <input
-          className="flex-1 border-0 bg-[transparent] text-[15px] text-[var(--dl-color-text-primary)] [outline:none] placeholder:text-[var(--dl-color-text-tertiary)]"
-          value={query}
-          placeholder="제목 또는 참여 닉네임으로 검색"
-          onChange={(event) => setQuery(event.target.value)}
-        />
-      </label>
 
       {error ? (
         <p className="m-0 text-[14px] text-[var(--dl-color-text-secondary)]" role="alert">
@@ -70,7 +47,7 @@ export function AgitListSection({ items, error }: AgitListSectionProps) {
           rooms.map((room) => <AgitListRow key={room.id} agit={room} />)
         ) : (
           <div className="col-span-2 flex flex-col items-center gap-[8px] p-[28px_16px] [border:1px_dashed_var(--dl-color-border-default)] rounded-[16px] text-center text-[var(--dl-color-text-secondary)]">
-            <p>{keyword ? "검색 결과가 없어요." : "참여 중인 아지트가 없어요."}</p>
+            <p>참여 중인 아지트가 없어요.</p>
             <TextLink href={ROUTES.agit.create} className="!text-[var(--dl-color-text-brand)] text-sm font-medium leading-5 !no-underline hover:!underline">
               새 아지트 만들기
             </TextLink>

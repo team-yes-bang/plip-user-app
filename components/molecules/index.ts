@@ -21,6 +21,8 @@ export { TopicEmptySlot } from "./TopicEmptySlot";
 export { TopicFeedPillHeader } from "./TopicFeedPillHeader";
 export { TopicVideoTile } from "./TopicVideoTile";
 export { VideoClipThumbnail } from "./VideoClipThumbnail";
+export { VideoCenterClock } from "./VideoCenterClock";
+export { VideoBottomInfo } from "./VideoBottomInfo";
 export { AgreementRow } from "./AgreementRow";
 export { AuthDivider } from "./AuthDivider";
 export { AuthField } from "./AuthField";

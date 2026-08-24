@@ -266,7 +266,6 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
                 videos={videosByTopic[topic.id] ?? EMPTY_TOPIC_VIDEOS}
                 captureHref={ROUTES.capture.videoWith({ agitUuid: agitId, topicUuid: topic.id })}
                 showCaptureSlot={shouldShowTopicCaptureSlot(topic)}
-                onSelectVideo={(videoId) => router.push(ROUTES.viewer.clip(videoId))}
               />
             ) : null}
           </div>
