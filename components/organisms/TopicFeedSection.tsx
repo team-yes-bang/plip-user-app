@@ -140,8 +140,8 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
             trailing={<HeaderMenuButton label="아지트 메뉴" onClick={() => setMenuOpen(true)} />}
           />
           <div className="flex min-h-0 flex-1 flex-col items-center justify-center p-6 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--dl-color-bg-surface-subtle)] mb-4 text-2xl">
-              💬
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--dl-color-bg-surface-subtle)] mb-4">
+              <DailyIcon name="messageBrand" size={28} />
             </div>
             <p className="m-0 text-base font-semibold text-[var(--dl-color-text-primary)]">
               등록된 토픽이 없습니다.
@@ -206,8 +206,8 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
               className="flex h-full min-h-0 w-full shrink-0 snap-start snap-always flex-col items-center justify-center p-6 text-center bg-[var(--dl-color-bg-surface-default)]"
               style={{ height: viewportHeight > 0 ? viewportHeight : "100%" }}
             >
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--dl-color-bg-surface-subtle)] mb-4 text-2xl">
-                💬
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--dl-color-bg-surface-subtle)] mb-4">
+                <DailyIcon name="messageBrand" size={28} />
               </div>
               <p className="m-0 text-base font-semibold text-[var(--dl-color-text-primary)]">
                 진행 중인 토픽이 없습니다.
@@ -221,7 +221,7 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
                 className="w-auto px-6 py-3 font-semibold shadow-md"
                 onClick={() => router.push(ROUTES.agit.topicCreate(agitId))}
               >
-                토픽 생성하기
+                ＋ 토픽 생성하기
               </SubmitButton>
 
               {/* 아래로 끌어서 피드 시작하도록 안내하는 바운스 화살표 힌트 */}
