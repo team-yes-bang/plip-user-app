@@ -7,6 +7,11 @@ import { createPortal } from "react-dom";
 
 const OverlayPortalContext = createContext<HTMLElement | null>(null);
 
+/** 기기 프레임 오버레이 호스트. 없으면 null (포탈 대신 로컬 absolute 폴백). */
+export function useOverlayPortalHost() {
+  return useContext(OverlayPortalContext);
+}
+
 /** 기기 프레임 안에서 사이드 시트가 하단 탭을 덮도록 포탈 호스트를 제공한다. */
 export function OverlayPortalProvider({ children }: { children: ReactNode }) {
   const [host, setHost] = useState<HTMLElement | null>(null);

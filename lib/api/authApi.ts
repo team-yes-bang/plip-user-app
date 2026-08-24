@@ -117,6 +117,7 @@ export async function postRestoreAccount(
     method: "POST",
     baseUrl: getApiUrl(),
     body,
+    auth: false,
     headers: buildAuthHeaders(options.bearerToken),
   });
 }

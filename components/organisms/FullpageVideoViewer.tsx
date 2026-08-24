@@ -1,10 +1,10 @@
 "use client";
 
-import { HeaderBackLink, HeaderMenuButton, ScreenHeader } from "@/components/molecules";
+import { getVideoAction } from "@/actions/videoActions";
+import { HeaderBackButton, HeaderMenuButton, ScreenHeader } from "@/components/molecules";
 import { MoveTopicSheet } from "@/components/organisms/MoveTopicSheet";
 import { ViewerActionsSheet } from "@/components/organisms/ViewerActionsSheet";
 import type { VideoViewerItem } from "@/components/providers/VideoViewerProvider";
-import { getVideoDetail } from "@/services/videoService";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -44,14 +44,15 @@ export function FullpageVideoViewer({
 
     const uuid = item.videoUuid || item.clipId;
     if (uuid && !videoDetails[uuid]) {
-      getVideoDetail(uuid)
-        .then((detail) => {
+      getVideoAction(uuid)
+        .then((result) => {
+          if (!result.ok) return;
           setVideoDetails((prev) => ({
             ...prev,
             [uuid]: {
-              playbackUrl: detail.rawPlaybackUrl,
-              thumbnailUrl: detail.thumbnailUrl,
-              caption: detail.caption,
+              playbackUrl: result.data.rawPlaybackUrl,
+              thumbnailUrl: result.data.thumbnailUrl ?? undefined,
+              caption: result.data.caption ?? undefined,
             },
           }));
         })
@@ -106,7 +107,7 @@ export function FullpageVideoViewer({
       className="relative flex h-full w-full flex-1 flex-col overflow-hidden bg-[#09080f] select-none"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      aria-label="개별 영상 풀페이지 뷰어"
+      aria-label="개별 영상 뷰어"
     >
       {/* Background Media / Video Player */}
       {playbackUrl ? (
@@ -139,12 +140,10 @@ export function FullpageVideoViewer({
       <ScreenHeader
         tone="overlay"
         leading={
-          <HeaderBackLink
-            href="#"
+          <HeaderBackButton
             label="닫기"
-            onClick={(e) => {
-              e.preventDefault();
-              if (onClose) onClose();
+            onClick={() => {
+              onClose?.();
             }}
           />
         }
