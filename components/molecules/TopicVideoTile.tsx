@@ -59,13 +59,20 @@ export function TopicVideoTile({ video, onSelect }: TopicVideoTileProps) {
 
   if (onSelect) {
     return (
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         className={`${className} cursor-pointer p-0 text-left`}
         onClick={() => onSelect(video.id)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onSelect(video.id);
+          }
+        }}
       >
         {body}
-      </button>
+      </div>
     );
   }
 
