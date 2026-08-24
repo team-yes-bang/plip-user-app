@@ -27,7 +27,7 @@ export function AgitVideoViewer({
     videoList.find((item) => item.clipId === initialClipId) ?? videoList[0];
 
   const topicName = currentItem?.topicName || currentItem?.title || "오늘의 토픽";
-  const agitName = currentItem?.agitName;
+  const agitName = currentItem?.agitName || "아지트";
 
   return (
     <>
@@ -58,7 +58,7 @@ export function AgitVideoViewer({
             {/* 우측 이모지 리액션 바 */}
             <VideoReactionBar />
 
-            {/* 하단 오버레이: 좌측 작성자 / 우측 날짜 */}
+            {/* 하단 오버레이: 좌측 작성자 / 우측 정규화된 날짜 */}
             <div className="relative z-10 mt-auto flex items-end justify-between px-6 pb-12 text-white pointer-events-none">
               <span className="text-base font-bold truncate max-w-[60%]">
                 {item.authorName || "작성자"}

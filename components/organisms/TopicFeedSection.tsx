@@ -7,6 +7,7 @@ import { ROUTES } from "@/config/routes";
 import { mergeUniqueById } from "@/lib/topic/mergeTopicFeed";
 import { shouldShowTopicCaptureSlot } from "@/lib/topic/selectAgitTopic";
 import type { UiTopicDetail, UiTopicFeedWindow, UiTopicVideo } from "@/types/topic/ui";
+import { extractDate } from "@/lib/video/formatOverlayClock";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -270,6 +271,11 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
             ) : null}
           </div>
         ))}
+      </div>
+      <div className="pointer-events-none absolute bottom-4 right-4 z-30 flex items-center">
+        <span className="text-xs font-medium text-white/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]">
+          {extractDate(current.startDate)}
+        </span>
       </div>
     </div>
   );

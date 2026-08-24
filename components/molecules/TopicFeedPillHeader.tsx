@@ -4,10 +4,10 @@ type TopicFeedPillHeaderProps = {
   backHref: string;
   title: string;
   videoCount: number;
-  dateLabel: string;
+  dateLabel?: string;
 };
 
-export function TopicFeedPillHeader({ backHref, title, videoCount, dateLabel }: TopicFeedPillHeaderProps) {
+export function TopicFeedPillHeader({ backHref, title, videoCount }: TopicFeedPillHeaderProps) {
   return (
     <>
       <div className="pointer-events-none absolute top-3 left-3 z-30">
@@ -32,9 +32,6 @@ export function TopicFeedPillHeader({ backHref, title, videoCount, dateLabel }: 
           </span>
         </div>
       </div>
-      <p className="pointer-events-none absolute top-3 right-3 z-30 m-0 flex h-7 items-center text-[11px] font-medium leading-none text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]">
-        {dateLabel}
-      </p>
     </>
   );
 }
