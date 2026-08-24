@@ -2,8 +2,10 @@ import * as agitApi from "@/lib/api/agitApi";
 import type {
   ApiAgitDetail,
   ApiAgitDetailMember,
+  ApiAgitLanding,
   ApiCreateAgitRequest,
   ApiCreateAgitResponse,
+  ApiJoinAgitResponse,
   ApiMyAgitItem,
   ApiUpdateAgitRequest,
   ApiUpdateMyMemberProfileRequest,
@@ -121,6 +123,37 @@ export async function updateMyMemberProfile(
   body: ApiUpdateMyMemberProfileRequest,
 ): Promise<ApiUpdateMyMemberProfileResponse> {
   return agitApi.updateMyMemberProfile(agitId, body);
+}
+
+function mapAgitLanding(item: ApiAgitLanding, inviteCode: string): UiAgit {
+  return {
+    id: inviteCode,
+    name: item.agitName,
+    memberCount: item.currentMemberCount,
+    description: item.description ?? "",
+    coverGradient: DEFAULT_COVER_GRADIENT,
+    topicCount: 0,
+    maxMembers: item.maximumCapacity,
+    ownerName: item.hostNickname,
+    thumbnailSrc: item.thumbnailPath ?? undefined,
+    inviteCode,
+    joined: false,
+  };
+}
+
+export async function getAgitLanding(code: string): Promise<UiAgit> {
+  const landing = await agitApi.getAgitLanding(code);
+  return mapAgitLanding(landing, code.trim().toUpperCase());
+}
+
+export async function joinAgitByCode(
+  code: string,
+  input: { nickname: string; profileImagePath?: string },
+): Promise<ApiJoinAgitResponse> {
+  return agitApi.joinAgit(code, {
+    nickname: input.nickname,
+    ...(input.profileImagePath ? { profileImagePath: input.profileImagePath } : {}),
+  });
 }
 
 export async function createAgit(input: UiCreateAgitInput): Promise<UiAgit> {

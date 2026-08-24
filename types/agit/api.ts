@@ -85,3 +85,25 @@ export type ApiUpdateMyMemberProfileResponse = {
 export type ApiReissueInviteCodeResponse = {
   code: string;
 };
+
+export type ApiAgitLanding = {
+  agitName: string;
+  description: string | null;
+  currentMemberCount: number;
+  maximumCapacity: number;
+  hostNickname: string;
+  thumbnailPath: string | null;
+};
+
+export type ApiJoinAgitRequest = {
+  nickname: string;
+  profileImagePath?: string;
+};
+
+export type ApiJoinAgitResponse = {
+  agitUuid: string;
+  ampId: number;
+  nickname: string;
+  profileImagePath: string | null;
+  role: ApiAgitMemberRole;
+};
