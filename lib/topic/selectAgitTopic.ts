@@ -10,7 +10,9 @@ export function toKstDateString(value: Date): string {
 }
 
 export function formatKstDotDate(iso: string): string {
-  const parsed = new Date(iso);
+  if (!iso) return "";
+  const normalized = iso.replaceAll(".", "-");
+  const parsed = new Date(normalized);
   if (Number.isNaN(parsed.getTime())) {
     return "";
   }
@@ -18,16 +20,21 @@ export function formatKstDotDate(iso: string): string {
 }
 
 export function isSameKstDate(iso: string, today = new Date()): boolean {
-  const parsed = new Date(iso);
+  if (!iso) return false;
+  const normalized = iso.trim().replaceAll(".", "-");
+  const datePart = normalized.split(/[T\s]+/)[0] ?? normalized;
+  
+  const parsed = new Date(datePart);
   if (Number.isNaN(parsed.getTime())) {
-    return false;
+    const todayStr = toKstDateString(today);
+    return datePart.slice(0, 10) === todayStr;
   }
   return toKstDateString(parsed) === toKstDateString(today);
 }
 
 /** startDate는 KST `YYYY-MM-DD`. 오늘이면 목록 상태 ONGOING과 같다. */
 export function isOngoingStartDate(startDate: string, today = new Date()): boolean {
-  return Boolean(startDate) && startDate === toKstDateString(today);
+  return Boolean(startDate) && isSameKstDate(startDate, today);
 }
 
 export function shouldShowTopicCaptureSlot(topic: {

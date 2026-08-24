@@ -37,13 +37,21 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [topics, setTopics] = useState(initialWindow.topics);
-  const [index, setIndex] = useState(() => {
-    const found = initialWindow.topics.findIndex((topic) => topic.id === initialWindow.currentId);
-    return found >= 0 ? found : 0;
-  });
   const [videosByTopic, setVideosByTopic] = useState<Record<string, UiTopicVideo[]>>(initialVideos);
   const [hasMoreBefore, setHasMoreBefore] = useState(initialWindow.hasMoreBefore);
   const [hasMoreAfter, setHasMoreAfter] = useState(initialWindow.hasMoreAfter);
+
+  // 오늘 진행 중인 토픽 존재 여부 확인
+  const hasActiveTopic = topics.some((t) => isSameKstDate(t.startDate, new Date()));
+  const showCoverSlide = !hasActiveTopic && topics.length > 0;
+
+  const [index, setIndex] = useState(() => {
+    if (showCoverSlide) {
+      return 0; // 진행 중인 토픽이 없을 때는 무조건 0 (커버 화면)에서 시작!
+    }
+    const found = initialWindow.topics.findIndex((topic) => topic.id === initialWindow.currentId);
+    return found >= 0 ? found : 0;
+  });
 
   const topicsRef = useRef(topics);
   const indexRef = useRef(index);
@@ -71,10 +79,6 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
 
   const resolvedAgit = agit ?? getAgitById(agitId) ?? null;
   const backHref = ROUTES.agit.topics(agitId);
-
-  // 오늘 진행 중인 토픽 존재 여부 확인
-  const hasActiveTopic = topics.some((t) => isSameKstDate(t.startDate, new Date()));
-  const showCoverSlide = !hasActiveTopic && topics.length > 0;
 
   const loadVideosAround = useCallback(
     async (list: UiTopicDetail[], center: number) => {
