@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Geist_Mono, Gothic_A1, Inter, Manrope, Montserrat, Poppins, Geist } from "next/font/google";
 import { auth } from "@/auth";
 import { AuthSessionProvider } from "@/components/providers/AuthSessionProvider";
+import { VideoViewerProvider } from "@/components/providers/VideoViewerProvider";
 import { AppRouteShell } from "@/components/templates/AppRouteShell";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -62,7 +63,9 @@ export default async function RootLayout({
     >
       <body className="flex h-dvh min-h-0 flex-col overflow-hidden overscroll-none">
         <AuthSessionProvider isLoggedIn={session?.isLoggedIn === true}>
-          <AppRouteShell>{children}</AppRouteShell>
+          <VideoViewerProvider>
+            <AppRouteShell>{children}</AppRouteShell>
+          </VideoViewerProvider>
         </AuthSessionProvider>
       </body>
     </html>
