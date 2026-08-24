@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 export type VideoViewerItem = {
   clipId: string;
@@ -19,7 +19,7 @@ type VideoViewerContextType = {
   videoList: VideoViewerItem[];
   sourceContext?: "agit" | "diary" | "direct";
   openViewer: (clipId: string, list?: VideoViewerItem[], source?: "agit" | "diary" | "direct") => void;
-  closeViewer: () => void;
+  closeViewer: (triggerHistoryBack?: boolean) => void;
 };
 
 const VideoViewerContext = createContext<VideoViewerContextType | null>(null);
@@ -29,22 +29,56 @@ export function VideoViewerProvider({ children }: { children: ReactNode }) {
   const [activeClipId, setActiveClipId] = useState<string | null>(null);
   const [videoList, setVideoList] = useState<VideoViewerItem[]>([]);
   const [sourceContext, setSourceContext] = useState<"agit" | "diary" | "direct">("direct");
+  const pushedHistoryRef = useRef(false);
 
-  const openViewer = (
-    clipId: string,
-    list: VideoViewerItem[] = [],
-    source: "agit" | "diary" | "direct" = "direct"
-  ) => {
-    setActiveClipId(clipId);
-    setVideoList(list.length > 0 ? list : [{ clipId }]);
-    setSourceContext(source);
-    setIsOpen(true);
-  };
-
-  const closeViewer = () => {
+  const closeViewer = useCallback((triggerHistoryBack = true) => {
     setIsOpen(false);
     setActiveClipId(null);
-  };
+
+    if (triggerHistoryBack && pushedHistoryRef.current) {
+      pushedHistoryRef.current = false;
+      if (typeof window !== "undefined") {
+        window.history.back();
+      }
+    }
+  }, []);
+
+  const openViewer = useCallback(
+    (
+      clipId: string,
+      list: VideoViewerItem[] = [],
+      source: "agit" | "diary" | "direct" = "direct"
+    ) => {
+      setActiveClipId(clipId);
+      setVideoList(list.length > 0 ? list : [{ clipId }]);
+      setSourceContext(source);
+      setIsOpen(true);
+
+      if (typeof window !== "undefined") {
+        window.history.pushState({ videoViewerOpen: true }, "");
+        pushedHistoryRef.current = true;
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (pushedHistoryRef.current) {
+        pushedHistoryRef.current = false;
+        closeViewer(false);
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("popstate", handlePopState);
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("popstate", handlePopState);
+      }
+    };
+  }, [closeViewer]);
 
   return (
     <VideoViewerContext.Provider
