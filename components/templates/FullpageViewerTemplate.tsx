@@ -1,6 +1,7 @@
 "use client";
 
 import { useOverlayPortalHost } from "@/components/molecules/AnimatedOverlays";
+import { cn } from "@/lib/utils";
 import { useEffect, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
@@ -12,8 +13,7 @@ type FullpageViewerTemplateProps = {
 };
 
 /**
- * 브라우저 전체 fixed가 아니라, 앱/데스크톱 프레임 안에서
- * 다른 UI(하단 탭 포함)를 덮는 오버레이.
+ * 앱/데스크톱 프레임 안에서 Slide-Up 애니메이션으로 다른 UI를 덮는 오버레이.
  */
 export function FullpageViewerTemplate({
   children,
@@ -48,7 +48,10 @@ export function FullpageViewerTemplate({
 
   const content = (
     <div
-      className="pointer-events-auto absolute inset-0 z-[50] flex flex-col bg-[#09080f] text-white font-[family-name:var(--font-inter),sans-serif]"
+      className={cn(
+        "pointer-events-auto absolute inset-0 z-[50] flex flex-col bg-[#09080f] text-white font-[family-name:var(--font-inter),sans-serif]",
+        "animate-in fade-in slide-in-from-bottom-full duration-300 ease-out"
+      )}
       role="dialog"
       aria-modal
       aria-label="영상 뷰어"
