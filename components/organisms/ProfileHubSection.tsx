@@ -91,40 +91,42 @@ export function ProfileHubSection({ profile }: ProfileHubSectionProps) {
           </span>
         </div>
 
-        <h2 className="m-0 text-base font-semibold leading-[23px] text-[var(--dl-color-text-primary)]">설정</h2>
-        <SettingsRow
-          href={ROUTES.mypage.password}
-          title="비밀번호 변경"
-          description="계정 비밀번호 수정"
-        />
-        <SettingsRow
-          href={ROUTES.mypage.notifications}
-          title="알림 설정"
-          description="아지트·다이어리 알림"
-        />
-        <SettingsRow
-          href={ROUTES.mypage.termsAgreements}
-          title="선택 약관 동의"
-          description="마케팅 등 선택 약관 관리"
-        />
+        <div className="mt-4 flex w-full flex-col gap-3.5">
+          <SettingsRow
+            href={ROUTES.mypage.password}
+            title="비밀번호 변경"
+            description="계정 비밀번호 수정"
+          />
+          <SettingsRow
+            href={ROUTES.mypage.notifications}
+            title="알림 설정"
+            description="아지트·다이어리 알림"
+          />
+          <SettingsRow
+            href={ROUTES.mypage.termsAgreements}
+            title="선택 약관 동의"
+            description="마케팅 등 선택 약관 관리"
+          />
+        </div>
 
-        <h2 className="m-0 text-base font-semibold leading-[23px] text-[var(--dl-color-text-primary)]">계정</h2>
-        <SubmitButton
-          type="button"
-          variant="outline"
-          className="w-full"
-          disabled={loggingOut}
-          onClick={handleLogout}
-        >
-          {loggingOut ? "로그아웃 중..." : "로그아웃"}
-        </SubmitButton>
-        <button
-          type="button"
-          className="cursor-pointer border-0 bg-[transparent] p-0 pb-2 text-center text-xs font-medium text-[var(--dl-color-text-danger)]"
-          onClick={() => setWithdrawOpen(true)}
-        >
-          회원 탈퇴
-        </button>
+        <div className="mt-4 flex w-full flex-col gap-3.5">
+          <SubmitButton
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled={loggingOut}
+            onClick={handleLogout}
+          >
+            {loggingOut ? "로그아웃 중..." : "로그아웃"}
+          </SubmitButton>
+          <button
+            type="button"
+            className="cursor-pointer border-0 bg-[transparent] p-0 pb-2 text-center text-xs font-medium text-[var(--dl-color-text-danger)]"
+            onClick={() => setWithdrawOpen(true)}
+          >
+            회원 탈퇴
+          </button>
+        </div>
       </section>
 
       <WithdrawAccountDialog

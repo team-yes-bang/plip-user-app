@@ -40,6 +40,20 @@ function mapTermsAgreement(item: Awaited<ReturnType<typeof userApi.getTermsAgree
     contentPath: item.contentPath,
     required: item.required,
     agreed: item.agreed,
+    agreedAt: item.agreedAt,
+    revokedAt: item.revokedAt,
+  };
+}
+
+function mapTermsAgreementPatchItem(
+  item: Awaited<ReturnType<typeof userApi.patchTermsAgreements>>["agreements"][number],
+  source: UiTermsAgreementItem,
+): UiTermsAgreementItem {
+  return {
+    ...source,
+    agreed: item.agreed,
+    agreedAt: item.agreedAt,
+    revokedAt: item.revokedAt,
   };
 }
 
@@ -89,10 +103,21 @@ export async function getOptionalTermsAgreements(): Promise<UiTermsAgreementItem
   return data.agreements.filter((item) => !item.required).map(mapTermsAgreement);
 }
 
-export async function patchTermsAgreement(termId: number, agreed: boolean): Promise<void> {
-  await userApi.patchTermsAgreements({
+export async function patchTermsAgreement(termId: number, agreed: boolean): Promise<UiTermsAgreementItem> {
+  const agreements = await getOptionalTermsAgreements();
+  const source = agreements.find((item) => item.termId === termId);
+  if (!source) {
+    throw new Error("약관을 찾을 수 없습니다.");
+  }
+
+  const data = await userApi.patchTermsAgreements({
     agreements: [{ termId, agreed }],
   });
+  const updated = data.agreements.find((item) => item.termId === termId);
+  if (!updated) {
+    throw new Error("약관 동의 결과를 찾을 수 없습니다.");
+  }
+  return mapTermsAgreementPatchItem(updated, source);
 }
 
 export async function withdrawAccount(): Promise<void> {

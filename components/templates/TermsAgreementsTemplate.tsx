@@ -11,7 +11,7 @@ type TermsAgreementsTemplateProps = {
 export function TermsAgreementsTemplate({ agreements }: TermsAgreementsTemplateProps) {
   return (
     <DailyLoopAuthTemplate>
-      <AuthTopBar title="선택 약관 동의" backHref={ROUTES.mypage.root} />
+      <AuthTopBar title="선택 약관" backHref={ROUTES.mypage.root} />
       <TermsAgreementsForm initialAgreements={agreements} />
     </DailyLoopAuthTemplate>
   );

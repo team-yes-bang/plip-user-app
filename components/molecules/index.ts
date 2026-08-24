@@ -48,6 +48,7 @@ export { CheckboxField } from "./CheckboxField";
 export { CursorShapePicker } from "./CursorShapePicker";
 export { DiaryDateScrollSection } from "./DiaryDateScrollSection";
 export { DiaryEntryCard } from "./DiaryEntryCard";
+export { DiaryNotifyTimePicker } from "./DiaryNotifyTimePicker";
 export { DiaryThemeClipGroup } from "./DiaryThemeClipGroup";
 export { EmailWithOtpAction } from "./EmailWithOtpAction";
 export { ExternalLink } from "./ExternalLink";

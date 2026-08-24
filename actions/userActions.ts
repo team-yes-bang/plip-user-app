@@ -42,6 +42,11 @@ export async function updateMyProfileAction(
   }
 
   try {
+    const current = await userService.getMyProfile();
+    if (current.nickname === parsed) {
+      return actionFailure("현재 사용 중인 닉네임과 동일합니다.");
+    }
+
     const profile = await userService.updateMyProfile({ nickname: parsed });
     return actionSuccess(profile);
   } catch (error) {
@@ -103,10 +108,10 @@ export async function getOptionalTermsAgreementsAction(): Promise<ActionResult<U
 export async function patchTermsAgreementAction(
   termId: number,
   agreed: boolean,
-): Promise<ActionResult<void>> {
+): Promise<ActionResult<UiTermsAgreementItem>> {
   try {
-    await userService.patchTermsAgreement(termId, agreed);
-    return actionSuccess(undefined);
+    const updated = await userService.patchTermsAgreement(termId, agreed);
+    return actionSuccess(updated);
   } catch (error) {
     return toUserActionError(error);
   }

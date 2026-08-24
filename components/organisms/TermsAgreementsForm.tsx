@@ -4,6 +4,7 @@ import { patchTermsAgreementAction } from "@/actions/userActions";
 import { DailyToggle, SettingsRow } from "@/components/molecules";
 import { toast } from "@/components/ui/toast";
 import { handleClientActionResult } from "@/lib/action/handleClientActionResult";
+import { formatAgreementDateTime } from "@/lib/user/formatAgreementDateTime";
 import type { UiTermsAgreementItem } from "@/types/user/ui";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -28,10 +29,26 @@ export function TermsAgreementsForm({ initialAgreements }: TermsAgreementsFormPr
       return;
     }
 
+    if (!result.ok) return;
+
     setAgreements((current) =>
-      current.map((item) => (item.termId === termId ? { ...item, agreed } : item)),
+      current.map((item) => (item.termId === termId ? result.data : item)),
     );
-    toast.add({ type: "success", title: "약관 설정을 저장했습니다" });
+
+    if (agreed) {
+      toast.add({
+        type: "success",
+        title: "약관에 동의했습니다",
+        description: formatAgreementDateTime(result.data.agreedAt),
+      });
+      return;
+    }
+
+    toast.add({
+      type: "success",
+      title: "약관 동의를 철회했습니다",
+      description: formatAgreementDateTime(result.data.revokedAt),
+    });
   }
 
   if (agreements.length === 0) {

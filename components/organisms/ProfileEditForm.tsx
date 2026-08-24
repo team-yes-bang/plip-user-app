@@ -1,8 +1,8 @@
 "use client";
 
 import { updateMyProfileAction } from "@/actions/userActions";
-import { DailyIcon, SubmitButton } from "@/components/atoms";
-import { AuthField } from "@/components/molecules";
+import { DailyIcon, Input, Label, SubmitButton } from "@/components/atoms";
+import { ui } from "@/components/atoms/styles";
 import { toast } from "@/components/ui/toast";
 import { handleClientActionResult } from "@/lib/action/handleClientActionResult";
 import { ROUTES } from "@/config/routes";
@@ -13,7 +13,7 @@ import {
 } from "@/types/user/ui";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 
 type ProfileEditFormProps = {
   profile: UiUserProfile;
@@ -21,14 +21,16 @@ type ProfileEditFormProps = {
 
 export function ProfileEditForm({ profile }: ProfileEditFormProps) {
   const router = useRouter();
+  const [nickname, setNickname] = useState(profile.nickname);
   const [pending, setPending] = useState(false);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     if (pending) return;
 
     setPending(true);
 
-    const result = await updateMyProfileAction(formData.get("nickname"));
+    const result = await updateMyProfileAction(nickname);
     setPending(false);
 
     if (!(await handleClientActionResult(result, router, { errorTitle: "프로필 저장 실패" }))) {
@@ -41,7 +43,7 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
   }
 
   return (
-    <form className="flex w-full flex-col gap-3.5" action={handleSubmit}>
+    <form className="flex w-full flex-col gap-3.5" onSubmit={handleSubmit}>
       <div className="flex min-h-[84px] w-full items-center gap-[12px] rounded-[14px] border border-[var(--dl-color-border-default)] bg-[var(--dl-color-bg-surface)] p-[14px]">
         <div className="h-[56px] w-[56px] shrink-0 overflow-hidden rounded-[999px]">
           <Image
@@ -69,15 +71,22 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
         </button>
       </div>
 
-      <AuthField
-        id="profile-nickname"
-        name="nickname"
-        label="닉네임"
-        hint={`${USER_NICKNAME_MIN_LENGTH}~${USER_NICKNAME_MAX_LENGTH}자`}
-        defaultValue={profile.nickname}
-        maxLength={USER_NICKNAME_MAX_LENGTH}
-        required
-      />
+      <div className={ui.field}>
+        <Label htmlFor="profile-nickname" className={ui.fieldLabel}>
+          닉네임
+        </Label>
+        <Input
+          id="profile-nickname"
+          name="nickname"
+          type="text"
+          value={nickname}
+          onChange={(event) => setNickname(event.target.value)}
+          maxLength={USER_NICKNAME_MAX_LENGTH}
+          required
+          variant="daily"
+        />
+        <p className={ui.hint}>{`${USER_NICKNAME_MIN_LENGTH}~${USER_NICKNAME_MAX_LENGTH}자`}</p>
+      </div>
 
       <div className="w-full rounded-[var(--dl-radius-lg)] bg-[var(--dl-color-bg-elevated)] p-[16px_14px]">
         <p className="m-0 text-[13px] font-semibold leading-[19px] text-[var(--dl-color-text-primary)]">

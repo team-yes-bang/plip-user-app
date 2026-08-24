@@ -18,6 +18,8 @@ export type UiTermsAgreementItem = {
   contentPath: string;
   required: boolean;
   agreed: boolean;
+  agreedAt: string | null;
+  revokedAt: string | null;
 };
 
 export const USER_NICKNAME_MIN_LENGTH = 2;

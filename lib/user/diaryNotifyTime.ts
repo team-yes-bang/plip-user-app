@@ -1,5 +1,17 @@
 const MINUTES_STEP = 10;
 
+export type DiaryNotifyPeriod = "AM" | "PM";
+
+export type DiaryNotifyTimeParts = {
+  period: DiaryNotifyPeriod;
+  hour12: number;
+  minute: number;
+};
+
+export const DIARY_NOTIFY_MINUTES = [0, 10, 20, 30, 40, 50] as const;
+
+export const DIARY_NOTIFY_HOURS_12 = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as const;
+
 export function normalizeDiaryNotifyTime(value: string): string {
   const match = /^(\d{2}):(\d{2})/.exec(value);
   if (!match) {
@@ -15,6 +27,39 @@ export function normalizeDiaryNotifyTime(value: string): string {
   return `${String(normalizedHours).padStart(2, "0")}:${String(normalizedMinutes).padStart(2, "0")}`;
 }
 
+export function parseDiaryNotifyTime(value: string): DiaryNotifyTimeParts {
+  const normalized = normalizeDiaryNotifyTime(value);
+  const [hourText, minuteText] = normalized.split(":");
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+
+  if (hour < 12) {
+    return {
+      period: "AM",
+      hour12: hour === 0 ? 12 : hour,
+      minute,
+    };
+  }
+
+  return {
+    period: "PM",
+    hour12: hour === 12 ? 12 : hour - 12,
+    minute,
+  };
+}
+
+export function composeDiaryNotifyTime(parts: DiaryNotifyTimeParts): string {
+  let hour24: number;
+
+  if (parts.period === "AM") {
+    hour24 = parts.hour12 === 12 ? 0 : parts.hour12;
+  } else {
+    hour24 = parts.hour12 === 12 ? 12 : parts.hour12 + 12;
+  }
+
+  return `${String(hour24).padStart(2, "0")}:${String(parts.minute).padStart(2, "0")}`;
+}
+
 export function buildDiaryNotifyTimeOptions(): string[] {
   const options: string[] = [];
 
@@ -28,13 +73,10 @@ export function buildDiaryNotifyTimeOptions(): string[] {
 }
 
 export function formatDiaryNotifyTimeLabel(value: string): string {
-  const normalized = normalizeDiaryNotifyTime(value);
-  const [hourText, minuteText] = normalized.split(":");
-  const hour = Number(hourText);
-  const period = hour < 12 ? "오전" : "오후";
-  const hour12 = hour % 12 || 12;
+  const parts = parseDiaryNotifyTime(value);
+  const periodLabel = parts.period === "AM" ? "오전" : "오후";
 
-  return `${period} ${String(hour12).padStart(2, "0")}:${minuteText}`;
+  return `${periodLabel} ${String(parts.hour12).padStart(2, "0")}:${String(parts.minute).padStart(2, "0")}`;
 }
 
 export const DIARY_NOTIFY_TIME_OPTIONS = buildDiaryNotifyTimeOptions();
