@@ -165,13 +165,31 @@ export async function getTopicFeedWindow(params: {
 }): Promise<UiTopicFeedWindow> {
   const before = params.before ?? FEED_NEIGHBOR_LIMIT;
   const after = params.after ?? FEED_NEIGHBOR_LIMIT;
-  const feed = await topicApi.getTopicFeed({
+  let feed = await topicApi.getTopicFeed({
     agitUuid: params.agitUuid,
     topicUuid: params.topicUuid,
     date: params.date,
     before,
     after,
   });
+
+  if (!feed.current) {
+    try {
+      const allTopics = await topicApi.listTopics(params.agitUuid);
+      const selected = selectAgitTopic(allTopics);
+      if (selected) {
+        feed = await topicApi.getTopicFeed({
+          agitUuid: params.agitUuid,
+          topicUuid: selected.topicUuid,
+          before,
+          after,
+        });
+      }
+    } catch {
+      // ignore fallback error
+    }
+  }
+
   if (!feed.current) {
     return { topics: [], currentId: null, hasMoreBefore: false, hasMoreAfter: false };
   }

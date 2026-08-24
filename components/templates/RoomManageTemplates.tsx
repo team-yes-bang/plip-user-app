@@ -116,6 +116,7 @@ export function TopicFeedTemplate({
     <AppChromeTemplate activeTab="agit" variant="light" mainOverflow="hidden">
       <TopicFeedSection
         agitId={agit.id}
+        agit={agit}
         initialWindow={initialWindow}
         initialVideos={initialVideos}
       />

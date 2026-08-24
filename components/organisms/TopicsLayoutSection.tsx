@@ -134,43 +134,42 @@ export function TopicsLayoutSection({
                       (Boolean(currentUserUuid) && topic.creatorUuid === currentUserUuid);
 
                     return (
-                    <ManageListRow
-                      key={topic.id}
-                      title={
-                        <TextLink
-                          href={ROUTES.agit.topicFeed(agitId, topic.id)}
-                          className="flex min-w-0 flex-col gap-[2px] !text-inherit !no-underline"
-                        >
-                          <p className="m-0 text-sm font-semibold leading-5 text-[var(--dl-color-text-primary)]">
-                            {topic.title || "제목 없음"}
-                          </p>
-                          <p className="m-0 text-xs font-normal leading-[17px] text-[var(--dl-color-text-secondary)]">
-                            {topic.startAtLabel}
-                          </p>
-                        </TextLink>
-                      }
-                      trailing={
-                        <div className="flex flex-col items-end gap-1.5">
-                          <span
-                            className={`inline-flex h-[28px] items-center justify-center rounded-[14px] p-[0_12px] text-xs font-semibold leading-none ${
-                              topic.videoCount === 0
-                                ? "m-dlBadgeSuccess bg-[var(--dl-color-bg-success)] text-[var(--dl-color-text-success)]"
-                                : "bg-[var(--dl-color-bg-brand-subtle)] text-[var(--dl-color-text-brand)]"
-                            }`}
+                      <ManageListRow
+                        key={topic.id}
+                        title={
+                          <TextLink
+                            href={ROUTES.agit.topicFeed(agitId, topic.id)}
+                            className="flex min-w-0 flex-col gap-[2px] !text-inherit !no-underline"
                           >
-                            {topic.videoCount}개 영상
-                          </span>
-                          {canEdit ? (
-                            <TextLink
-                              href={ROUTES.agit.topicEdit(agitId, topic.id)}
-                              className="text-[12px] font-semibold !text-[var(--dl-color-text-brand)] !no-underline"
+                            <p className="m-0 text-sm font-semibold leading-5 text-[var(--dl-color-text-primary)]">
+                              {topic.title || "제목 없음"}
+                            </p>
+                            <p className="m-0 text-xs font-normal leading-[17px] text-[var(--dl-color-text-secondary)]">
+                              {topic.startAtLabel}
+                            </p>
+                          </TextLink>
+                        }
+                        trailing={
+                          <div className="flex flex-col items-end gap-1.5">
+                            <span
+                              className={`inline-flex h-[28px] items-center justify-center rounded-[14px] p-[0_12px] text-xs font-semibold leading-none ${topic.videoCount === 0
+                                  ? "m-dlBadgeSuccess bg-[var(--dl-color-bg-success)] text-[var(--dl-color-text-success)]"
+                                  : "bg-[var(--dl-color-bg-brand-subtle)] text-[var(--dl-color-text-brand)]"
+                                }`}
                             >
-                              편집
-                            </TextLink>
-                          ) : null}
-                        </div>
-                      }
-                    />
+                              {topic.videoCount}개 영상
+                            </span>
+                            {canEdit ? (
+                              <TextLink
+                                href={ROUTES.agit.topicEdit(agitId, topic.id)}
+                                className="text-[12px] font-semibold !text-[var(--dl-color-text-brand)] !no-underline"
+                              >
+                                편집
+                              </TextLink>
+                            ) : null}
+                          </div>
+                        }
+                      />
                     );
                   })
                 )}
