@@ -8,6 +8,7 @@ import { pollDownloadUrl } from "@/lib/video/downloadUrlPoll";
 import { resolvePlaybackSource, type PlaybackSource } from "@/lib/video/playback";
 import { putPresignedUpload } from "@/lib/video/putPresigned";
 import { resolveUploadContentType } from "@/lib/video/recorderMime";
+import { assertUploadSize } from "@/lib/video/uploadLimits";
 import type {
   VideoCompleteActionData,
   VideoDetailActionData,
@@ -31,6 +32,8 @@ export async function uploadRecordedVideo(
   blob: Blob,
   options?: { caption?: string; recorderMimeType?: string },
 ): Promise<VideoUploadPipelineResult> {
+  assertUploadSize(blob);
+
   const contentType = resolveUploadContentType(options?.recorderMimeType ?? blob.type);
 
   const uploadUrlResult = await issueUploadUrlAction(contentType);

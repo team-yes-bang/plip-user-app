@@ -1,20 +1,27 @@
-import { DEFAULT_UPLOAD_CONTENT_TYPE } from "@/lib/video/constants";
+import {
+  CAPTURE_FRAME_RATE,
+  CAPTURE_HEIGHT,
+  CAPTURE_WIDTH,
+  DEFAULT_UPLOAD_CONTENT_TYPE,
+} from "@/lib/video/constants";
+import { formatByteSize } from "@/lib/video/uploadLimits";
 
 export async function requestCameraStream(
   facingMode: "user" | "environment" = "user",
 ): Promise<MediaStream> {
   const portraitVideo: MediaTrackConstraints = {
     facingMode,
-    width: { ideal: 1080 },
-    height: { ideal: 1920 },
+    width: { ideal: CAPTURE_WIDTH },
+    height: { ideal: CAPTURE_HEIGHT },
     aspectRatio: { ideal: 9 / 16 },
+    frameRate: { ideal: CAPTURE_FRAME_RATE },
   };
 
   const attempts: MediaStreamConstraints[] = [
-    { video: portraitVideo, audio: true },
-    { video: { facingMode, aspectRatio: { ideal: 9 / 16 } }, audio: true },
-    { video: { facingMode }, audio: true },
-    { video: true, audio: true },
+    { video: portraitVideo, audio: false },
+    { video: { facingMode, aspectRatio: { ideal: 9 / 16 } }, audio: false },
+    { video: { facingMode }, audio: false },
+    { video: true, audio: false },
   ];
 
   let lastError: unknown;
@@ -29,11 +36,11 @@ export async function requestCameraStream(
 
   if (lastError instanceof DOMException) {
     if (lastError.name === "NotAllowedError") {
-      throw new Error("카메라·마이크 권한이 거부되었습니다. 브라우저 설정에서 허용해 주세요.");
+      throw new Error("카메라 권한이 거부되었습니다. 브라우저 설정에서 허용해 주세요.");
     }
 
     if (lastError.name === "NotFoundError") {
-      throw new Error("카메라 또는 마이크를 찾을 수 없습니다.");
+      throw new Error("카메라를 찾을 수 없습니다.");
     }
 
     throw new Error(lastError.message);
@@ -66,6 +73,5 @@ export function resolveUploadContentType(recorderMimeType?: string): string {
 }
 
 export function formatBlobSummary(blob: Blob): string {
-  const sizeKb = Math.round(blob.size / 1024);
-  return `${blob.type || "application/octet-stream"} · ${sizeKb} KB`;
+  return `${blob.type || "application/octet-stream"} · ${formatByteSize(blob.size)}`;
 }

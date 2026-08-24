@@ -9,9 +9,12 @@ import {
 } from "@/actions/videoActions";
 import {
   extractActionError,
+  extractUploadUrlFromActionResult,
   extractVideoUuidFromActionResult,
 } from "@/lib/video/actionPayload";
-import { useState } from "react";
+import { DEFAULT_UPLOAD_CONTENT_TYPE } from "@/lib/video/constants";
+import { putPresignedUpload } from "@/lib/video/putPresigned";
+import { useRef, useState } from "react";
 
 type LogEntry = {
   id: number;
@@ -27,8 +30,11 @@ type StatusMessage = {
 export function VideoApiLabSection() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [videoUuid, setVideoUuid] = useState("");
+  const [uploadUrl, setUploadUrl] = useState("");
+  const [putDone, setPutDone] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<StatusMessage | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function appendLog(label: string, payload: unknown) {
     setLogs((prev) => [{ id: Date.now(), label, payload }, ...prev].slice(0, 10));
@@ -42,6 +48,12 @@ export function VideoApiLabSection() {
       setVideoUuid(nextVideoUuid);
     }
 
+    const nextUploadUrl = extractUploadUrlFromActionResult(payload);
+    if (nextUploadUrl) {
+      setUploadUrl(nextUploadUrl);
+      setPutDone(false);
+    }
+
     const error = extractActionError(payload);
     if (error) {
       setStatus({ kind: "error", text: error });
@@ -49,7 +61,10 @@ export function VideoApiLabSection() {
     }
 
     if (nextVideoUuid && label === "issueUploadUrlAction") {
-      setStatus({ kind: "success", text: `videoUuid 입력됨: ${nextVideoUuid}` });
+      setStatus({
+        kind: "success",
+        text: `videoUuid·uploadUrl 준비됨. 2. mp4 선택 후 PUT 실행`,
+      });
       return;
     }
 
@@ -77,11 +92,58 @@ export function VideoApiLabSection() {
     await run("issueUploadUrlAction", () => issueUploadUrlAction("video/mp4"));
   }
 
+  async function handlePutToS3() {
+    if (!uploadUrl.trim()) {
+      applyActionResult("putPresignedUpload", {
+        ok: false,
+        error: "uploadUrl이 비어 있습니다. 1. upload-url을 먼저 실행하세요.",
+      });
+      return;
+    }
+
+    const file = fileInputRef.current?.files?.[0];
+    if (!file) {
+      applyActionResult("putPresignedUpload", {
+        ok: false,
+        error: "mp4/mov 파일을 선택하세요.",
+      });
+      return;
+    }
+
+    setBusy(true);
+    setStatus(null);
+
+    try {
+      const result = await putPresignedUpload(
+        uploadUrl.trim(),
+        file,
+        DEFAULT_UPLOAD_CONTENT_TYPE,
+      );
+      appendLog("putPresignedUpload", { ok: true, data: { result } });
+      setPutDone(true);
+      setStatus({ kind: "success", text: `S3 PUT 성공 (${result})` });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      appendLog("putPresignedUpload", { ok: false, error: message });
+      setStatus({ kind: "error", text: message });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function handleComplete() {
     if (!videoUuid.trim()) {
       applyActionResult("completeVideoAction", {
         ok: false,
         error: "videoUuid가 비어 있습니다. 1. upload-url을 먼저 실행하세요.",
+      });
+      return;
+    }
+
+    if (!putDone) {
+      applyActionResult("completeVideoAction", {
+        ok: false,
+        error: "2. PUT을 먼저 실행하세요. complete는 S3에 파일이 있어야 합니다.",
       });
       return;
     }
@@ -115,18 +177,22 @@ export function VideoApiLabSection() {
     await run("getDownloadUrlAction", () => getDownloadUrlAction(videoUuid.trim()));
   }
 
+  const putDisabled = busy || uploadUrl.trim().length === 0;
+  const completeDisabled = busy || !putDone;
+
   return (
     <section className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-6 font-mono text-sm">
       <header>
-        <h1 className="text-lg font-semibold">Video API Lab (Step 1–3)</h1>
+        <h1 className="text-lg font-semibold">Video API Lab (Day 1)</h1>
         <p className="text-black/60">
-          Server Actions → videoService → videoApi → plip-video (:8085)
+          로그인 필수. Server Actions는 세션 JWT의 userUuid만 사용합니다.
         </p>
         <p className="text-xs text-black/50">
-          촬영 Phase 0-F (Step 4 PR):{" "}
+          순서: upload-url → S3 PUT → complete → GET detail → GET download-url. 촬영 UI는{" "}
           <a href={ROUTES.capture.video} className="underline">
             {ROUTES.capture.video}
           </a>
+          .
         </p>
       </header>
 
@@ -151,6 +217,17 @@ export function VideoApiLabSection() {
         />
       </label>
 
+      <label className="flex flex-col gap-1">
+        <span>2. PUT용 mp4/mov</span>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="video/mp4,video/quicktime,.mp4,.mov"
+          className="text-xs"
+          disabled={putDisabled}
+        />
+      </label>
+
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
@@ -163,10 +240,18 @@ export function VideoApiLabSection() {
         <button
           type="button"
           className="rounded border px-3 py-2 disabled:opacity-50"
-          disabled={busy}
+          disabled={putDisabled}
+          onClick={handlePutToS3}
+        >
+          2. PUT S3
+        </button>
+        <button
+          type="button"
+          className="rounded border px-3 py-2 disabled:opacity-50"
+          disabled={completeDisabled}
           onClick={handleComplete}
         >
-          2. complete (NoOp PUT 생략)
+          3. complete
         </button>
         <button
           type="button"
@@ -174,7 +259,7 @@ export function VideoApiLabSection() {
           disabled={busy}
           onClick={handleGetVideo}
         >
-          3. GET detail
+          4. GET detail
         </button>
         <button
           type="button"
@@ -182,12 +267,13 @@ export function VideoApiLabSection() {
           disabled={busy}
           onClick={handleGetDownloadUrl}
         >
-          4. GET download-url
+          5. GET download-url
         </button>
       </div>
 
       <p className="text-xs text-black/50">
-        순서: 1 → 2 → 3 → 4. 2번(complete) 전에 3·4번을 누르면 404/202만 나올 수 있습니다.
+        download-url은 가공 전이면 202 PROCESSING이 정상입니다. PUT stub(AWS_ENABLED=false)이면
+        skipped-stub 후 complete 가능합니다.
       </p>
 
       <ol className="list-decimal space-y-2 pl-5 text-black/70">

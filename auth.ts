@@ -62,7 +62,17 @@ const NaverProvider: Provider = {
 };
 
 const GUEST_ONLY_PREFIXES = ["/login", "/signup", "/forgot-password", "/reset-password"];
-const PROTECTED_PREFIXES = ["/home", "/diary", "/agit", "/mypage", "/shop", "/create", "/viewer"];
+const PROTECTED_PREFIXES = [
+  "/home",
+  "/diary",
+  "/agit",
+  "/mypage",
+  "/shop",
+  "/create",
+  "/viewer",
+  "/video",
+  "/video-api",
+];
 
 function matchesPrefix(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));

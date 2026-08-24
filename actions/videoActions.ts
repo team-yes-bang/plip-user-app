@@ -7,8 +7,10 @@ import type {
   VideoDownloadUrlActionData,
   VideoUploadUrlActionData,
 } from "@/types/video/action";
-import { getDevUserUuid, getVideoApiBaseUrl } from "@/lib/api/env";
+import { getVideoApiBaseUrl } from "@/lib/api/env";
 import { ApiError } from "@/lib/api/apiFetch";
+import { getServerUserUuid } from "@/lib/auth/server-token";
+import { VIDEO_LOGIN_REQUIRED, VIDEO_SESSION_INVALID } from "@/lib/video/actionErrors";
 import {
   toCompleteActionData,
   toDetailActionData,
@@ -22,9 +24,19 @@ const UUID_PATTERN =
 
 const ALLOWED_CONTENT_TYPES = new Set(["video/mp4", "video/quicktime"]);
 
-function resolveUserUuid(userUuid?: string): string | null {
-  const resolved = userUuid?.trim() || getDevUserUuid();
-  return UUID_PATTERN.test(resolved) ? resolved : null;
+async function requireSessionUserUuid(): Promise<
+  { ok: true; userUuid: string } | { ok: false; error: string }
+> {
+  const userUuid = await getServerUserUuid();
+  if (!userUuid) {
+    return { ok: false, error: VIDEO_LOGIN_REQUIRED };
+  }
+
+  if (!UUID_PATTERN.test(userUuid)) {
+    return { ok: false, error: VIDEO_SESSION_INVALID };
+  }
+
+  return { ok: true, userUuid };
 }
 
 function resolveVideoUuid(videoUuid: string): string | null {
@@ -62,11 +74,10 @@ function toActionError(error: unknown): ActionResult<never> {
 
 export async function issueUploadUrlAction(
   contentType?: string,
-  userUuid?: string,
 ): Promise<ActionResult<VideoUploadUrlActionData>> {
-  const resolvedUserUuid = resolveUserUuid(userUuid);
-  if (!resolvedUserUuid) {
-    return actionFailure("Invalid userUuid");
+  const session = await requireSessionUserUuid();
+  if (!session.ok) {
+    return actionFailure(session.error);
   }
 
   const resolvedContentType = resolveContentType(contentType);
@@ -75,7 +86,7 @@ export async function issueUploadUrlAction(
   }
 
   try {
-    const data = await videoService.issueUploadUrl(resolvedUserUuid, resolvedContentType);
+    const data = await videoService.issueUploadUrl(session.userUuid, resolvedContentType);
     return actionSuccess(toUploadUrlActionData(data));
   } catch (error) {
     return toActionError(error);
@@ -85,16 +96,15 @@ export async function issueUploadUrlAction(
 export async function completeVideoAction(
   videoUuid: string,
   caption?: string,
-  userUuid?: string,
 ): Promise<ActionResult<VideoCompleteActionData>> {
   const resolvedVideoUuid = resolveVideoUuid(videoUuid);
   if (!resolvedVideoUuid) {
     return actionFailure("Invalid videoUuid");
   }
 
-  const resolvedUserUuid = resolveUserUuid(userUuid);
-  if (!resolvedUserUuid) {
-    return actionFailure("Invalid userUuid");
+  const session = await requireSessionUserUuid();
+  if (!session.ok) {
+    return actionFailure(session.error);
   }
 
   const normalizedCaption = caption?.trim() || undefined;
@@ -102,7 +112,7 @@ export async function completeVideoAction(
   try {
     const data = await videoService.completeVideo(
       resolvedVideoUuid,
-      resolvedUserUuid,
+      session.userUuid,
       normalizedCaption,
     );
     return actionSuccess(toCompleteActionData(data));
@@ -114,6 +124,11 @@ export async function completeVideoAction(
 export async function getVideoAction(
   videoUuid: string,
 ): Promise<ActionResult<VideoDetailActionData>> {
+  const session = await requireSessionUserUuid();
+  if (!session.ok) {
+    return actionFailure(session.error);
+  }
+
   const resolvedVideoUuid = resolveVideoUuid(videoUuid);
   if (!resolvedVideoUuid) {
     return actionFailure("Invalid videoUuid");
@@ -130,6 +145,11 @@ export async function getVideoAction(
 export async function getDownloadUrlAction(
   videoUuid: string,
 ): Promise<ActionResult<VideoDownloadUrlActionData>> {
+  const session = await requireSessionUserUuid();
+  if (!session.ok) {
+    return actionFailure(session.error);
+  }
+
   const resolvedVideoUuid = resolveVideoUuid(videoUuid);
   if (!resolvedVideoUuid) {
     return actionFailure("Invalid videoUuid");
