@@ -85,7 +85,7 @@ export function TopicViewerTemplate({
   const dateLabel = topic.startDate.replaceAll("-", ".");
 
   return (
-    <AppChromeTemplate activeTab="agit" variant="light">
+    <AppChromeTemplate activeTab="agit" variant="light" mainOverflow="hidden">
       <TopicViewerSection
         agitId={agit.id}
         title={topic.title || "제목 없음"}

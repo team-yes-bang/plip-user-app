@@ -22,7 +22,7 @@ export function TopicClipPage({
   }
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col gap-2">
+    <div className="flex h-full min-h-0 w-full flex-col">
       {videos.map((video) => (
         <TopicVideoTile key={video.id} video={video} onSelect={onSelectVideo} />
       ))}

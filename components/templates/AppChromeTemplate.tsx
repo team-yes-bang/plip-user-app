@@ -9,6 +9,7 @@ type AppChromeTemplateProps = {
   showNav?: boolean;
   variant?: "feed" | "light" | "diary";
   className?: string;
+  mainOverflow?: "auto" | "hidden";
 };
 
 export function AppChromeTemplate({
@@ -18,6 +19,7 @@ export function AppChromeTemplate({
   showNav = true,
   variant = "feed",
   className = "",
+  mainOverflow = "auto",
 }: AppChromeTemplateProps) {
   const shellClass =
     variant === "light" || variant === "diary"
@@ -28,7 +30,11 @@ export function AppChromeTemplate({
     <div className={`${shellClass} ${className}`.trim()}>
       <div className={`flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden ${showNav ? "pb-[80px]" : ""}`}>
         {header}
-        <main className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto">{children}</main>
+        <main
+          className={`flex min-h-0 w-full flex-1 flex-col ${mainOverflow === "hidden" ? "overflow-hidden" : "overflow-y-auto"}`}
+        >
+          {children}
+        </main>
       </div>
       {showNav ? <BottomNavigation active={activeTab} variant={variant} /> : null}
     </div>

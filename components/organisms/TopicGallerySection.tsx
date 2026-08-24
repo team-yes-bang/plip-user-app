@@ -48,7 +48,11 @@ export function TopicGallerySection({
         {pages.map((pageVideos, index) => (
           <div
             key={`topic-page-${index}`}
-            className="flex min-h-0 w-full min-w-full shrink-0 snap-start snap-always flex-col self-stretch p-2"
+            className={
+              videos.length === 0
+                ? "flex min-h-0 w-full min-w-full shrink-0 snap-start snap-always flex-col self-stretch px-[23px] pb-6"
+                : "flex min-h-0 w-full min-w-full shrink-0 snap-start snap-always flex-col self-stretch"
+            }
           >
             <TopicClipPage
               videos={pageVideos}

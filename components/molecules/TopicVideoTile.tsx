@@ -55,7 +55,7 @@ export function TopicVideoTile({ video, onSelect }: TopicVideoTileProps) {
   );
 
   const className =
-    "relative flex min-h-0 flex-1 overflow-hidden rounded-[18px] border border-[var(--dl-color-border-default)] bg-[var(--dl-color-bg-surface)] shadow-[0_8px_24px_rgba(23,23,28,0.04)]";
+    "relative flex min-h-0 flex-1 overflow-hidden rounded-none border-0 bg-[var(--dl-color-bg-surface)] p-0 shadow-none";
 
   if (onSelect) {
     return (
