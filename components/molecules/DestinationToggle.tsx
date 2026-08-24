@@ -18,6 +18,7 @@ export function DestinationToggle({ value, onChange }: DestinationToggleProps) {
       {OPTIONS.map((option) => (
         <TopicChip
           key={option.id}
+          tone="brand"
           selected={value === option.id}
           onClick={() => onChange(option.id)}
         >

@@ -1,22 +1,29 @@
 "use client";
 
-import { listMyAgitsAction } from "@/actions/agitActions";
-import { listDiaryThemesAction } from "@/actions/diaryActions";
-import { listAgitTopicsAction } from "@/actions/topicActions";
+import {
+  createCaptureThemeAction,
+  createCaptureTopicAction,
+  listCaptureAgitsAction,
+  listCaptureThemesAction,
+  listCaptureTopicsAction,
+} from "@/actions/captureDestinationActions";
 import { publishVideoDestinationAction } from "@/actions/videoActions";
 import { CaptureClipOverlays } from "@/components/molecules/CaptureClipOverlays";
 import type { DestinationId } from "@/components/molecules/DestinationToggle";
 import { CaptureCameraStage } from "@/components/organisms/CaptureCameraStage";
 import { CapturePreviewStage } from "@/components/organisms/CapturePreviewStage";
 import { CaptureUploadSettingsStage } from "@/components/organisms/CaptureUploadSettingsStage";
+import { toast } from "@/components/ui/toast";
 import { ROUTES } from "@/config/routes";
 import { usePreviewFrameMetrics } from "@/hooks/usePreviewFrameMetrics";
 import { useVideoCaptureFlow } from "@/hooks/useVideoCaptureFlow";
 import { extractActionError } from "@/lib/video/actionPayload";
+import { VIDEO_DESTINATION_NOT_WIRED } from "@/lib/video/actionErrors";
 import { OVERLAY_DURATION_PX } from "@/lib/video/constants";
 import { formatRecordCountdown } from "@/lib/video/formatRecordTimer";
 import { playShutterSound } from "@/lib/video/playShutterSound";
 import { shouldMirrorVideo } from "@/lib/video/shouldMirrorVideo";
+import { toKstDateString } from "@/lib/topic/selectAgitTopic";
 import type { UiAgit } from "@/types/agit/ui";
 import type { UiDiaryTheme } from "@/types/diary/ui";
 import type { UiTopicListItem } from "@/types/topic/ui";
@@ -74,6 +81,11 @@ export function CaptureFlowSection({
   const [selectedThemeId, setSelectedThemeId] = useState(initialThemeId);
   const [destinationError, setDestinationError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [inlineCreateError, setInlineCreateError] = useState<string | null>(null);
+  const [destinationsLoading, setDestinationsLoading] = useState(true);
+  const [creatingInline, setCreatingInline] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [pendingPublishVideoUuid, setPendingPublishVideoUuid] = useState<string | null>(null);
   const [originalView, setOriginalView] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   const slotRef = useRef<HTMLDivElement>(null);
@@ -93,7 +105,7 @@ export function CaptureFlowSection({
       return;
     }
 
-    const result = await listAgitTopicsAction(agitUuid);
+    const result = await listCaptureTopicsAction(agitUuid);
     if (!result.ok) {
       setTopics([]);
       setDestinationError(result.error);
@@ -104,42 +116,44 @@ export function CaptureFlowSection({
     setSelectedTopicUuid(pickId(result.data, preferredTopicId));
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadDestinations = useCallback(async () => {
+    setDestinationsLoading(true);
+    setDestinationError(null);
 
-    void (async () => {
-      const [agitResult, themeResult] = await Promise.all([listMyAgitsAction(), listDiaryThemesAction()]);
-      if (cancelled) {
-        return;
-      }
+    const [agitResult, themeResult] = await Promise.all([
+      listCaptureAgitsAction(),
+      listCaptureThemesAction(),
+    ]);
 
-      if (agitResult.ok) {
-        setAgits(agitResult.data);
-        const nextAgitUuid = pickId(agitResult.data, initialAgitUuid);
-        setSelectedAgitUuid(nextAgitUuid);
-        if (nextAgitUuid) {
-          await loadTopics(nextAgitUuid, initialTopicUuid);
-        }
+    if (agitResult.ok) {
+      setAgits(agitResult.data);
+      const nextAgitUuid = pickId(agitResult.data, initialAgitUuid);
+      setSelectedAgitUuid(nextAgitUuid);
+      if (nextAgitUuid) {
+        await loadTopics(nextAgitUuid, initialTopicUuid);
       } else {
-        setDestinationError(agitResult.error);
+        setTopics([]);
+        setSelectedTopicUuid("");
       }
+    } else {
+      setDestinationError(agitResult.error);
+    }
 
-      if (cancelled) {
-        return;
-      }
+    if (themeResult.ok) {
+      setThemes(themeResult.data);
+      setSelectedThemeId(pickId(themeResult.data, initialThemeId));
+    } else if (!agitResult.ok) {
+      setDestinationError(themeResult.error);
+    }
 
-      if (themeResult.ok) {
-        setThemes(themeResult.data);
-        setSelectedThemeId(pickId(themeResult.data, initialThemeId));
-      } else if (!agitResult.ok) {
-        setDestinationError(themeResult.error);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    setDestinationsLoading(false);
   }, [initialAgitUuid, initialThemeId, initialTopicUuid, loadTopics]);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      void loadDestinations();
+    });
+  }, [loadDestinations]);
 
   const handleStartRecording = useCallback(() => {
     playShutterSound();
@@ -149,10 +163,62 @@ export function CaptureFlowSection({
   const handleRetake = useCallback(() => {
     setCaption("");
     setSaveError(null);
+    setInlineCreateError(null);
+    setPendingPublishVideoUuid(null);
     setOriginalView(false);
     setPreviewStep("confirm");
     void retake();
   }, [retake]);
+
+  const navigateAfterPublish = useCallback(
+    (destination: VideoDestination) => {
+      toast.add({
+        type: "success",
+        title: "업로드 완료",
+        description: "목록에 반영까지 잠시 걸릴 수 있어요.",
+      });
+
+      if (destination.kind === "topic") {
+        router.push(ROUTES.agit.topicDetail(destination.agitUuid, destination.topicUuid));
+      } else {
+        router.push(ROUTES.diary.themes.detail(destination.themeId));
+      }
+      router.refresh();
+    },
+    [router],
+  );
+
+  const publishDestination = useCallback(
+    async (videoUuid: string, destination: VideoDestination) => {
+      setPublishing(true);
+      setSaveError(null);
+
+      const published = await publishVideoDestinationAction(
+        videoUuid,
+        destination,
+        caption.trim() || undefined,
+      );
+      setPublishing(false);
+
+      const publishError = extractActionError(published);
+      if (publishError) {
+        setPendingPublishVideoUuid(videoUuid);
+        setSaveError(`영상은 저장됐습니다. 목록 연결에 실패했어요. ${publishError}`);
+        return false;
+      }
+
+      if (published.ok && published.data.status === "not_wired") {
+        setPendingPublishVideoUuid(videoUuid);
+        setSaveError(VIDEO_DESTINATION_NOT_WIRED);
+        return false;
+      }
+
+      setPendingPublishVideoUuid(null);
+      navigateAfterPublish(destination);
+      return true;
+    },
+    [caption, navigateAfterPublish],
+  );
 
   const resolveDestination = useCallback((): VideoDestination | null => {
     if (destinationKind === "diary") {
@@ -188,24 +254,70 @@ export function CaptureFlowSection({
       return;
     }
 
-    const published = await publishVideoDestinationAction(
-      uploaded.videoUuid,
-      destination,
-      caption.trim() || undefined,
-    );
-    const publishError = extractActionError(published);
-    if (publishError) {
-      setSaveError(publishError);
+    await publishDestination(uploaded.videoUuid, destination);
+  }, [caption, publishDestination, resolveDestination, uploadCapture]);
+
+  const handleRetryPublish = useCallback(async () => {
+    if (!pendingPublishVideoUuid) {
       return;
     }
 
-    if (destination.kind === "topic") {
-      router.push(ROUTES.agit.topicDetail(destination.agitUuid, destination.topicUuid));
+    const destination = resolveDestination();
+    if (!destination) {
+      setSaveError("저장 대상을 선택해 주세요.");
       return;
     }
 
-    router.push(ROUTES.diary.themes.detail(destination.themeId));
-  }, [caption, resolveDestination, router, uploadCapture]);
+    await publishDestination(pendingPublishVideoUuid, destination);
+  }, [pendingPublishVideoUuid, publishDestination, resolveDestination]);
+
+  const handleCreateTheme = useCallback(async (name: string) => {
+    setInlineCreateError(null);
+    setCreatingInline(true);
+
+    const result = await createCaptureThemeAction(name);
+    if (!result.ok) {
+      setCreatingInline(false);
+      setInlineCreateError(result.error);
+      return;
+    }
+
+    const themesResult = await listCaptureThemesAction();
+    setCreatingInline(false);
+    if (!themesResult.ok) {
+      setInlineCreateError(themesResult.error);
+      return;
+    }
+
+    setThemes(themesResult.data);
+    setSelectedThemeId(result.data.id);
+  }, []);
+
+  const handleCreateTopic = useCallback(
+    async (title: string) => {
+      if (!selectedAgitUuid) {
+        return;
+      }
+
+      setInlineCreateError(null);
+      setCreatingInline(true);
+
+      const result = await createCaptureTopicAction(
+        selectedAgitUuid,
+        title,
+        toKstDateString(new Date()),
+      );
+      if (!result.ok) {
+        setCreatingInline(false);
+        setInlineCreateError(result.error);
+        return;
+      }
+
+      await loadTopics(selectedAgitUuid, result.data.id);
+      setCreatingInline(false);
+    },
+    [loadTopics, selectedAgitUuid],
+  );
 
   const videoSlot = (
     <div
@@ -310,19 +422,31 @@ export function CaptureFlowSection({
           selectedAgitUuid={selectedAgitUuid}
           selectedTopicUuid={selectedTopicUuid}
           selectedThemeId={selectedThemeId}
+          destinationsLoading={destinationsLoading}
           destinationError={destinationError}
-          uploading={uploading}
-          saveError={saveError ?? flowError}
-          onDestinationKindChange={setDestinationKind}
+          inlineCreateError={inlineCreateError}
+          creatingInline={creatingInline}
+          uploading={uploading || publishing}
+          saveError={saveError ?? (flowError && !pendingPublishVideoUuid ? flowError : null)}
+          pendingPublishVideoUuid={pendingPublishVideoUuid}
+          onDestinationKindChange={(kind) => {
+            setInlineCreateError(null);
+            setDestinationKind(kind);
+          }}
           onAgitChange={(agitUuid) => {
+            setInlineCreateError(null);
             setSelectedAgitUuid(agitUuid);
             setSelectedTopicUuid("");
             void loadTopics(agitUuid);
           }}
           onTopicChange={setSelectedTopicUuid}
           onThemeChange={setSelectedThemeId}
+          onCreateTopic={handleCreateTopic}
+          onCreateTheme={handleCreateTheme}
+          onReloadDestinations={() => void loadDestinations()}
           onBack={() => setPreviewStep("confirm")}
           onSave={() => void handleSave()}
+          onRetryPublish={() => void handleRetryPublish()}
         />
       ) : null}
 

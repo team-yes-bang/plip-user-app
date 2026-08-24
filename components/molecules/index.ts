@@ -19,6 +19,7 @@ export { TopicClipPage } from "./TopicClipPage";
 export { TopicEmptySlot } from "./TopicEmptySlot";
 export { TopicFeedPillHeader } from "./TopicFeedPillHeader";
 export { TopicVideoTile } from "./TopicVideoTile";
+export { VideoClipThumbnail } from "./VideoClipThumbnail";
 export { AgreementRow } from "./AgreementRow";
 export { AuthDivider } from "./AuthDivider";
 export { AuthField } from "./AuthField";

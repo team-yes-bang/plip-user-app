@@ -1,4 +1,5 @@
 import { UserAvatar } from "@/components/atoms";
+import { VideoClipThumbnail } from "@/components/molecules/VideoClipThumbnail";
 import type { UiTopicVideo } from "@/types/topic/ui";
 
 type TopicVideoTileProps = {
@@ -21,9 +22,8 @@ export function TopicVideoTile({ video, onSelect }: TopicVideoTileProps) {
 
   const body = (
     <>
-      <img
+      <VideoClipThumbnail
         src={video.thumbnailSrc}
-        alt=""
         className="absolute inset-0 size-full object-cover"
       />
       <span

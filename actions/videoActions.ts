@@ -10,7 +10,7 @@ import type {
 } from "@/types/video/action";
 import type { VideoDestinationRequest } from "@/types/video/api";
 import type { VideoDestination } from "@/types/video/destination";
-import { getVideoApiBaseUrl } from "@/lib/api/env";
+import { getVideoApiBaseUrl, isVideoDestinationNotWiredFallbackEnabled } from "@/lib/api/env";
 import { ApiError } from "@/lib/api/apiFetch";
 import { getServerUserUuid } from "@/lib/auth/server-token";
 import {
@@ -198,10 +198,14 @@ export async function publishVideoDestinationAction(
       ...payload,
       caption: caption?.trim() || undefined,
     });
-    return actionSuccess(data);
+    return actionSuccess({ ...data, status: "accepted" });
   } catch (error) {
-    if (error instanceof ApiError && (error.status === 404 || error.status === 501)) {
-      // Kafka/destination API는 토픽 확정 후 연결. 업로드 complete는 이미 끝난 상태.
+    if (
+      isVideoDestinationNotWiredFallbackEnabled() &&
+      error instanceof ApiError &&
+      (error.status === 404 || error.status === 501)
+    ) {
+      // Kafka/destination API 미연동 환경. 업로드 complete는 이미 끝난 상태.
       return actionSuccess({ ...data, status: "not_wired" });
     }
 

@@ -1,10 +1,8 @@
-"use client";
-
 import { TextLink } from "@/components/atoms";
+import { VideoClipThumbnail } from "@/components/molecules/VideoClipThumbnail";
 import { formatDiaryDate } from "@/config/diary-mock";
 import { ROUTES } from "@/config/routes";
 import type { UiDiaryClip } from "@/types/diary/ui";
-import { useState } from "react";
 
 type DiaryThemeClipGroupProps = {
   themeName: string;
@@ -16,49 +14,15 @@ type DiaryThemeClipGroupProps = {
 
 const THUMB_GRID_CLASS = "grid w-full grid-cols-[repeat(3,_minmax(0,_1fr))] gap-[1px] bg-[#fff]";
 
-const THUMB_PLACEHOLDER_CLASS =
-  "aspect-[1_/_1] w-full rounded-[0] bg-[linear-gradient(160deg,_rgba(37,_244,_238,_0.12),_transparent_50%),_linear-gradient(145deg,_#5a5a5a,_#1f1f1f)] [&:nth-child(3n+2)]:bg-[linear-gradient(160deg,_rgba(254,_44,_85,_0.16),_transparent_55%),_linear-gradient(145deg,_#4a4a4a,_#181818)] [&:nth-child(3n)]:bg-[linear-gradient(145deg,_#6a6a6a,_#242424)]";
+const THUMB_SLOT_CLASS =
+  "aspect-[1_/_1] w-full overflow-hidden rounded-[0] bg-[#f3f3f3]";
 
 const THUMB_IMAGE_CLASS = "aspect-[1_/_1] h-full w-full rounded-[0] object-cover";
 
-function isRenderableThumbnail(src?: string): boolean {
-  const trimmed = src?.trim();
-  if (!trimmed) {
-    return false;
-  }
-
-  if (trimmed.startsWith("/")) {
-    return true;
-  }
-
-  try {
-    const url = new URL(trimmed);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
 function DiaryClipThumb({ thumbnailSrc }: { thumbnailSrc?: string }) {
-  const [failed, setFailed] = useState(!isRenderableThumbnail(thumbnailSrc));
-
-  if (failed) {
-    return <div className={THUMB_PLACEHOLDER_CLASS} aria-hidden />;
-  }
-
   return (
-    <div className={`${THUMB_PLACEHOLDER_CLASS} overflow-hidden`}>
-      <img
-        src={thumbnailSrc}
-        alt=""
-        className={THUMB_IMAGE_CLASS}
-        onError={() => setFailed(true)}
-        onLoad={(event) => {
-          if (event.currentTarget.naturalWidth === 0) {
-            setFailed(true);
-          }
-        }}
-      />
+    <div className={THUMB_SLOT_CLASS}>
+      <VideoClipThumbnail src={thumbnailSrc} className={THUMB_IMAGE_CLASS} />
     </div>
   );
 }

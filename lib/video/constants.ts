@@ -37,8 +37,10 @@ export const OVERLAY_CAPTION_PX = 20;
 export const OVERLAY_CAPTION_GAP_PX = 8;
 export const OVERLAY_DURATION_PX = 13;
 
-/** Drop the file at public/plip/video/sample.mp3. Missing file falls back to a click. */
+/** Drop sample.mp3 at public/plip/video/sample.mp3. Missing file falls back to a click. */
 export const SHUTTER_SOUND_SRC = "/plip/video/sample.mp3";
+
+export { VIDEO_THUMBNAIL_NOT_LOADED } from "@/lib/video/thumbnail";
 
 /**
  * download-url 202 probe count.

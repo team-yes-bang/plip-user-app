@@ -3,10 +3,10 @@ import type { ApiCreateTopicRequest, ApiTopic, ApiTopicListStatus, ApiTopicVideo
 import type { UiTopicDetail, UiTopicFeedWindow, UiTopicGallery, UiTopicListItem, UiTopicVideo } from "@/types/topic/ui";
 import * as topicApi from "@/lib/api/topicApi";
 import { toFeedOrder } from "@/lib/topic/mergeTopicFeed";
+import { resolveVideoThumbnail } from "@/lib/video/thumbnail";
 import { formatKstDotDate, isSameKstDate, selectAgitTopic, toKstDateString } from "@/lib/topic/selectAgitTopic";
 import * as videoService from "@/services/videoService";
 
-const FALLBACK_THUMBNAIL = "/plip/v13/topic-video-1.png";
 const FALLBACK_AVATAR = "/plip/v13/profile-avatar.svg";
 const FALLBACK_NICKNAME = "멤버";
 
@@ -45,7 +45,7 @@ async function mapTopicVideo(
     const profile = profileOf(detail.userUuid || item.userUuid, members);
     return {
       id: item.videoUuid,
-      thumbnailSrc: detail.thumbnailUrl?.trim() || FALLBACK_THUMBNAIL,
+      thumbnailSrc: resolveVideoThumbnail(detail.thumbnailUrl),
       profileImageSrc: profile.profileImageSrc,
       profileNickname: profile.nickname,
       uploadedAt: detail.createdAt.toISOString(),
@@ -54,7 +54,7 @@ async function mapTopicVideo(
   } catch {
     return {
       id: item.videoUuid,
-      thumbnailSrc: FALLBACK_THUMBNAIL,
+      thumbnailSrc: resolveVideoThumbnail(null),
       profileImageSrc: attached.profileImageSrc,
       profileNickname: attached.nickname,
       uploadedAt: item.createdAt,

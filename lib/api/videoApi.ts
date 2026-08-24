@@ -53,13 +53,14 @@ export async function getVideoDetail(videoUuid: string): Promise<VideoDetailResp
 export async function postDestination(
   videoUuid: string,
   request: VideoDestinationRequest,
-): Promise<VideoDestinationResponse> {
-  return withAuthRetry(() =>
-    apiFetch<VideoDestinationResponse>(API_ENDPOINTS.video.destination(videoUuid), {
+): Promise<{ status: number; body: VideoDestinationResponse }> {
+  const { status, data } = await withAuthRetry(() =>
+    apiFetchWithStatus<VideoDestinationResponse>(API_ENDPOINTS.video.destination(videoUuid), {
       method: "POST",
       body: request,
     }),
   );
+  return { status, body: data };
 }
 
 export async function getDownloadUrl(videoUuid: string): Promise<VideoDownloadUrlResult> {

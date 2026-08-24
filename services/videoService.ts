@@ -2,6 +2,7 @@ import * as videoApi from "@/lib/api/videoApi";
 import type {
   VideoCompleteResponse,
   VideoDestinationRequest,
+  VideoDestinationResponse,
   VideoDetailResponse,
   VideoDownloadUrlResult,
   VideoUploadUrlResponse,
@@ -91,6 +92,7 @@ export async function getDownloadUrl(videoUuid: string): Promise<VideoDownloadUr
 export async function publishDestination(
   videoUuid: string,
   request: VideoDestinationRequest,
-): Promise<void> {
-  await videoApi.postDestination(videoUuid, request);
+): Promise<VideoDestinationResponse> {
+  const { body } = await videoApi.postDestination(videoUuid, request);
+  return body;
 }
