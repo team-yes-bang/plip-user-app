@@ -3,7 +3,7 @@
 import { TopicClipPage } from "@/components/molecules/TopicClipPage";
 import { paginateTopicVideos } from "@/lib/topic/paginateTopicVideos";
 import type { UiTopicVideo } from "@/types/topic/ui";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 const CAPTURE_SLOT_ID = "__capture-slot__";
 
@@ -40,9 +40,11 @@ export function TopicGallerySection({
   const skipClick = useRef(false);
   const safeIndex = Math.min(pageIndex, Math.max(pageCount - 1, 0));
 
-  useEffect(() => {
+  const [prevKey, setPrevKey] = useState({ showCaptureSlot, len: videos.length });
+  if (prevKey.showCaptureSlot !== showCaptureSlot || prevKey.len !== videos.length) {
+    setPrevKey({ showCaptureSlot, len: videos.length });
     setPageIndex(0);
-  }, [showCaptureSlot, videos.length]);
+  }
 
   function goToPage(nextIndex: number) {
     setPageIndex(Math.min(Math.max(nextIndex, 0), pageCount - 1));
