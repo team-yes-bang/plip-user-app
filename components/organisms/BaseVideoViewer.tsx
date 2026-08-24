@@ -1,8 +1,10 @@
 "use client";
 
 import { getVideoAction } from "@/actions/videoActions";
-import { HeaderBackButton, ScreenHeader } from "@/components/molecules";
+import { DailyIcon } from "@/components/atoms";
+import { ScreenHeader } from "@/components/molecules";
 import type { VideoViewerItem } from "@/components/providers/VideoViewerProvider";
+import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
@@ -147,12 +149,21 @@ export function BaseVideoViewer({
       <ScreenHeader
         tone="overlay"
         leading={
-          <HeaderBackButton
-            label="닫기"
+          <button
+            type="button"
+            aria-label="닫기"
             onClick={() => {
               onClose?.();
             }}
-          />
+            className={cn(
+              "pointer-events-auto flex size-7 items-center justify-center rounded-full bg-transparent text-white shadow-none backdrop-blur-none transition-colors no-underline",
+              "hover:bg-black/40 hover:shadow-[0_4px_16px_rgba(0,0,0,0.16)] hover:backdrop-blur-md",
+              "focus-visible:bg-black/40 focus-visible:shadow-[0_4px_16px_rgba(0,0,0,0.16)] focus-visible:backdrop-blur-md",
+              "active:bg-black/40 active:shadow-[0_4px_16px_rgba(0,0,0,0.16)] active:backdrop-blur-md"
+            )}
+          >
+            <DailyIcon name="chevronLeft" size={16} className="brightness-0 invert" />
+          </button>
         }
         title={headerTitle ?? currentItem.agitName ?? "오늘의 영상"}
         subtitle={headerSubtitle ?? currentItem.uploadedAt ?? "PLIP Clip"}
