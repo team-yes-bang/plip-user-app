@@ -1,13 +1,16 @@
 "use client";
 
 import { getTopicVideosAction } from "@/actions/topicActions";
-import { TopicFeedPillHeader } from "@/components/molecules";
+import { HeaderBackLink, HeaderMenuButton, ScreenHeader, TopicFeedPillHeader } from "@/components/molecules";
+import { AgitMenuDrawer } from "@/components/organisms/AgitMenuDrawer";
 import { MoveTopicSheet } from "@/components/organisms/MoveTopicSheet";
 import { TopicGallerySection } from "@/components/organisms/TopicGallerySection";
 import { ViewerActionsSheet } from "@/components/organisms/ViewerActionsSheet";
+import { getAgitById } from "@/config/agit-mock";
 import { ROUTES } from "@/config/routes";
 import { shouldShowTopicCaptureSlot } from "@/lib/topic/selectAgitTopic";
 import { extractDate } from "@/lib/video/formatOverlayClock";
+import type { UiAgit } from "@/types/agit/ui";
 import type { UiTopicDetail, UiTopicFeedWindow, UiTopicVideo } from "@/types/topic/ui";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -16,11 +19,12 @@ const EMPTY_TOPIC_VIDEOS: UiTopicVideo[] = [];
 
 type TopicFeedSectionProps = {
   agitId: string;
+  agit?: UiAgit | null;
   initialWindow: UiTopicFeedWindow;
   initialVideos: Record<string, UiTopicVideo[]>;
 };
 
-export function TopicFeedSection({ agitId, initialWindow, initialVideos }: TopicFeedSectionProps) {
+export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }: TopicFeedSectionProps) {
   const router = useRouter();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const loadingVideoIds = useRef(new Set<string>());
@@ -29,6 +33,7 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
 
   const [actionsOpen, setActionsOpen] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const [topics, setTopics] = useState(initialWindow.topics);
   const [index, setIndex] = useState(() => {
@@ -65,6 +70,7 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
 
   const current = topics[index];
   const backHref = ROUTES.agit.topics(agitId);
+  const resolvedAgit = agit ?? getAgitById(agitId) ?? null;
 
   const loadVideosAround = useCallback(
     async (list: UiTopicDetail[], center: number) => {
@@ -118,11 +124,11 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
     return (
       <>
         <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[var(--dl-color-bg-surface-default)]">
-          <TopicFeedPillHeader
-            backHref={backHref}
-            title="토픽 피드"
-            videoCount={0}
-            onMenuClick={() => setActionsOpen(true)}
+          <ScreenHeader
+            leading={<HeaderBackLink href={ROUTES.agit.root} />}
+            title={resolvedAgit?.name || "아지트"}
+            subtitle="아직 토픽이 없습니다"
+            trailing={<HeaderMenuButton label="아지트 메뉴" onClick={() => setMenuOpen(true)} />}
           />
           <div className="flex min-h-0 flex-1 flex-col items-center justify-center p-6 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--dl-color-bg-surface-subtle)] mb-4 text-2xl">
@@ -144,12 +150,9 @@ export function TopicFeedSection({ agitId, initialWindow, initialVideos }: Topic
           </div>
         </div>
 
-        <ViewerActionsSheet
-          open={actionsOpen}
-          onClose={() => setActionsOpen(false)}
-          onMoveTopic={() => setMoveOpen(true)}
-        />
-        <MoveTopicSheet open={moveOpen} onClose={() => setMoveOpen(false)} />
+        {resolvedAgit && (
+          <AgitMenuDrawer agit={resolvedAgit} open={menuOpen} onClose={() => setMenuOpen(false)} />
+        )}
       </>
     );
   }
