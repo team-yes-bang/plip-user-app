@@ -1,13 +1,13 @@
-import { DailyIcon, FeedPill, feedPillIconButtonClass, IconLink } from "@/components/atoms";
+import { DailyIcon, FeedPill, feedPillIconButtonClass, FeedPillIconButton, IconLink } from "@/components/atoms";
 
 type TopicFeedPillHeaderProps = {
   backHref: string;
   title: string;
   videoCount: number;
-  dateLabel: string;
+  onMenuClick?: () => void;
 };
 
-export function TopicFeedPillHeader({ backHref, title, videoCount, dateLabel }: TopicFeedPillHeaderProps) {
+export function TopicFeedPillHeader({ backHref, title, videoCount, onMenuClick }: TopicFeedPillHeaderProps) {
   return (
     <>
       <div className="pointer-events-none absolute top-3 left-3 z-30">
@@ -19,6 +19,7 @@ export function TopicFeedPillHeader({ backHref, title, videoCount, dateLabel }: 
           <DailyIcon name="chevronLeft" size={16} className="brightness-0 invert" />
         </IconLink>
       </div>
+
       <div className="pointer-events-none absolute inset-x-0 top-3 z-30 flex justify-center px-14">
         <div className="pointer-events-auto relative max-w-full">
           <FeedPill>
@@ -32,9 +33,14 @@ export function TopicFeedPillHeader({ backHref, title, videoCount, dateLabel }: 
           </span>
         </div>
       </div>
-      <p className="pointer-events-none absolute top-3 right-3 z-30 m-0 flex h-7 items-center text-[11px] font-medium leading-none text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]">
-        {dateLabel}
-      </p>
+
+      {onMenuClick && (
+        <div className="pointer-events-none absolute top-3 right-3 z-30">
+          <FeedPillIconButton label="메뉴" onClick={onMenuClick}>
+            <DailyIcon name="ellipsis" size={16} className="brightness-0 invert" />
+          </FeedPillIconButton>
+        </div>
+      )}
     </>
   );
 }

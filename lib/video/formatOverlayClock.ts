@@ -5,19 +5,34 @@ export function formatOverlayClock(date: Date = new Date()): string {
 }
 
 export function extractDate(uploadedAt?: string): string {
-  if (!uploadedAt) return "2026.08.24";
+  if (!uploadedAt) {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = (now.getMonth() + 1).toString().padStart(2, "0");
+    const d = now.getDate().toString().padStart(2, "0");
+    return `${y}.${m}.${d}`;
+  }
+
+  const parsedDate = new Date(uploadedAt);
+  if (!Number.isNaN(parsedDate.getTime())) {
+    const y = parsedDate.getFullYear();
+    const m = (parsedDate.getMonth() + 1).toString().padStart(2, "0");
+    const d = parsedDate.getDate().toString().padStart(2, "0");
+    return `${y}.${m}.${d}`;
+  }
+
   const trimmed = uploadedAt.trim();
+  const datePart = trimmed.split(/[T\s]+/)[0] ?? trimmed;
+  const parts = datePart.replace(/[년월일]/g, ".").split(/[-./]/).filter(Boolean);
 
-  const spaceSplit = trimmed.split(/\s+/);
-  if (spaceSplit.length >= 1 && spaceSplit[0]) {
-    return spaceSplit[0].replaceAll("-", ".");
+  if (parts.length >= 3) {
+    const y = parts[0];
+    const m = parts[1]?.padStart(2, "0");
+    const d = parts[2]?.padStart(2, "0");
+    return `${y}.${m}.${d}`;
   }
 
-  if (trimmed.includes("T")) {
-    return trimmed.split("T")[0].replaceAll("-", ".");
-  }
-
-  return trimmed;
+  return datePart.replaceAll("-", ".");
 }
 
 export function extractTime(uploadedAt?: string): string {
@@ -35,4 +50,13 @@ export function extractTime(uploadedAt?: string): string {
   }
 
   return "14:30";
+}
+
+export function parseUploadedAtToDate(uploadedAt?: string): Date {
+  if (!uploadedAt) return new Date();
+  const parsed = new Date(uploadedAt);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed;
+  }
+  return new Date();
 }

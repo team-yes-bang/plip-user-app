@@ -4,6 +4,7 @@ import { getVideoAction } from "@/actions/videoActions";
 import { DailyIcon, FeedPillIconButton } from "@/components/atoms";
 import { ScreenHeader } from "@/components/molecules";
 import type { VideoViewerItem } from "@/components/providers/VideoViewerProvider";
+import { extractDate } from "@/lib/video/formatOverlayClock";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
@@ -153,8 +154,8 @@ export function BaseVideoViewer({
             <DailyIcon name="chevronLeft" size={16} className="brightness-0 invert" />
           </FeedPillIconButton>
         }
-        title={headerTitle ?? currentItem.agitName ?? "오늘의 영상"}
-        subtitle={headerSubtitle ?? currentItem.uploadedAt ?? "PLIP Clip"}
+        title={headerTitle ?? currentItem.topicName ?? currentItem.title ?? "오늘의 영상"}
+        subtitle={headerSubtitle ?? extractDate(currentItem.uploadedAt)}
         trailing={headerTrailing}
       />
 
@@ -170,7 +171,7 @@ export function BaseVideoViewer({
         </div>
       )}
 
-      {/* Custom Overlay (Side reactions, Bottom caption info etc.) */}
+      {/* Custom Overlay (Side reactions, Bottom info, Center clock & caption overlay etc.) */}
       {typeof overlayChildren === "function"
         ? overlayChildren({ currentItem, currentDetail, currentIndex, totalCount: list.length })
         : overlayChildren}
