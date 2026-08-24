@@ -62,7 +62,7 @@ export default async function RootLayout({
       className={cn("h-dvh overflow-hidden overscroll-none", "antialiased", poppins.variable, gothicA1.variable, montserrat.variable, manrope.variable, geistMono.variable, inter.variable, "font-sans", geist.variable)}
     >
       <body className="flex h-dvh min-h-0 flex-col overflow-hidden overscroll-none">
-        <AuthSessionProvider isLoggedIn={session?.isLoggedIn === true}>
+        <AuthSessionProvider isLoggedIn={session?.isLoggedIn === true} session={session}>
           <VideoViewerProvider>
             <AppRouteShell>{children}</AppRouteShell>
           </VideoViewerProvider>

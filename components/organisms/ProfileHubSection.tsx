@@ -1,110 +1,139 @@
 "use client";
 
 import { logoutAction } from "@/actions/authActions";
-import { SubmitButton, TextLink } from "@/components/atoms";
-import { NotificationIconToggle } from "@/components/molecules/NotificationIconToggle";
+import { SubmitButton, TextLink, UserAvatar } from "@/components/atoms";
 import { SettingsRow } from "@/components/molecules/SettingsRow";
+import { WithdrawAccountDialog } from "@/components/organisms/WithdrawAccountDialog";
 import { toast } from "@/components/ui/toast";
 import { ROUTES } from "@/config/routes";
-import Image from "next/image";
+import { DEFAULT_PROFILE_AVATAR, type UiUserProfile } from "@/types/user/ui";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function ProfileHubSection() {
+type ProfileHubSectionProps = {
+  profile: UiUserProfile | null;
+};
+
+export function ProfileHubSection({ profile }: ProfileHubSectionProps) {
   const router = useRouter();
-  const [notify, setNotify] = useState(true);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  const displayProfile: UiUserProfile = profile ?? {
+    userUuid: "",
+    nickname: "사용자",
+    profileImageUrl: DEFAULT_PROFILE_AVATAR,
+    email: "",
+  };
+
+  const nickname = displayProfile.nickname.trim() || "사용자";
 
   async function handleLogout() {
     if (loggingOut) return;
     setLoggingOut(true);
+
     const result = await logoutAction();
+    setLoggingOut(false);
+
     if (!result.ok) {
       toast.add({
         type: "error",
         title: "로그아웃에 실패했습니다",
         description: result.error,
       });
-      setLoggingOut(false);
       return;
     }
+
     router.push(ROUTES.login);
     router.refresh();
   }
 
   return (
-    <section className="flex w-full flex-col gap-3.5" aria-label="설정">
-      <h1 className="text-[26px] font-bold text-[var(--dl-color-text-primary)] m-0">
-        설정
-      </h1>
+    <>
+      <section className="flex w-full flex-col gap-3.5 pb-6" aria-label="마이페이지">
+        <h1 className="m-0 text-[26px] font-bold text-[var(--dl-color-text-primary)]">마이페이지</h1>
 
-      <TextLink
-        href={ROUTES.mypage.profile}
-        className="flex items-center gap-[12px] min-h-[100px] p-[14px] rounded-[18px] bg-[var(--dl-color-bg-brand-subtle)] text-[var(--dl-color-text-primary)] no-underline"
-      >
-        <div className="w-[64px] h-[64px] overflow-hidden rounded-[999px] shrink-0">
-          <Image
-            src="/plip/v13/profile-avatar.svg"
-            alt=""
-            width={64}
-            height={64}
+        <div className="flex w-full items-center gap-[12px] rounded-[18px] bg-[var(--dl-color-bg-brand-subtle)] p-[14px]">
+          <UserAvatar src={displayProfile.profileImageUrl} size={64} />
+          <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
+            <p className="m-0 truncate text-[17px] font-semibold leading-[1.35] text-[var(--dl-color-text-primary)]">
+              {nickname}
+            </p>
+            {displayProfile.email ? (
+              <p className="m-0 truncate text-xs text-[var(--dl-color-text-secondary)]">
+                {displayProfile.email}
+              </p>
+            ) : null}
+          </div>
+          <TextLink
+            href={ROUTES.mypage.profile}
+            className="inline-flex h-[36px] shrink-0 items-center justify-center rounded-[var(--dl-radius-md)] bg-[var(--dl-color-bg-surface)] px-3 text-sm font-medium leading-5 !text-[var(--dl-color-text-brand)] !no-underline"
+          >
+            수정
+          </TextLink>
+        </div>
+
+        <div className="flex w-full items-center justify-between rounded-[var(--dl-radius-lg)] bg-[var(--dl-color-bg-elevated)] p-[14px]">
+          <p className="m-0 text-sm font-semibold text-[var(--dl-color-text-primary)]">보유 포인트</p>
+          <p className="m-0 text-[20px] font-bold text-[var(--dl-color-text-brand)]">2,900 P</p>
+        </div>
+
+        <div
+          className="relative flex w-full items-center gap-[12px] rounded-[var(--dl-radius-lg)] bg-[var(--dl-color-bg-elevated)] p-[14px] opacity-50"
+          aria-disabled
+        >
+          <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
+            <p className="m-0 text-sm font-semibold text-[var(--dl-color-text-primary)]">상점</p>
+            <p className="m-0 text-xs text-[var(--dl-color-text-secondary)]">방 꾸미기·아이템</p>
+          </div>
+          <span className="inline-flex h-[28px] shrink-0 items-center justify-center rounded-[14px] bg-[var(--dl-color-bg-brand-subtle)] px-3 text-xs font-semibold text-[var(--dl-color-text-brand)]">
+            업데이트 예정
+          </span>
+        </div>
+
+        <div className="mt-4 flex w-full flex-col gap-3.5">
+          <SettingsRow
+            href={ROUTES.mypage.password}
+            title="비밀번호 변경"
+            description="계정 비밀번호 수정"
+          />
+          <SettingsRow
+            href={ROUTES.mypage.notifications}
+            title="알림 설정"
+            description="아지트·다이어리 알림"
+          />
+          <SettingsRow
+            href={ROUTES.mypage.termsAgreements}
+            title="선택 약관 동의"
+            description="마케팅 등 선택 약관 관리"
           />
         </div>
-        <p className="m-0 text-[15px] font-semibold leading-[1.35]">
-          안지민
-          <br />
-          기본 프로필 관리
-        </p>
-      </TextLink>
 
-      <SettingsRow
-        title="알림 설정"
-        description="채팅과 업로드 알림을 따로 관리"
-        trailing={
-          <NotificationIconToggle
-            checked={notify}
-            label="알림"
-            onChange={setNotify}
-          />
-        }
-        showChevron={false}
-      />
-      <SettingsRow
-        href={ROUTES.shop.points}
-        title="포인트"
-        description="보유 1,240 P"
-      />
-      <SettingsRow
-        href={ROUTES.shop.root}
-        title="상점"
-        description="방 인원 확장·꾸미기 아이템"
-      />
-      <SettingsRow
-        href={ROUTES.shop.myItems}
-        title="내 다운로드"
-        description="저장한 내 영상 관리"
-      />
-      <SettingsRow
-        href={ROUTES.mypage.settings}
-        title="도움말·약관"
-        description="신고·개인정보·서비스 정책"
-      />
+        <div className="mt-4 flex w-full flex-col gap-3.5">
+          <SubmitButton
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled={loggingOut}
+            onClick={handleLogout}
+          >
+            {loggingOut ? "로그아웃 중..." : "로그아웃"}
+          </SubmitButton>
+          <button
+            type="button"
+            className="cursor-pointer border-0 bg-[transparent] p-0 pb-2 text-center text-xs font-medium text-[var(--dl-color-text-danger)]"
+            onClick={() => setWithdrawOpen(true)}
+          >
+            회원 탈퇴
+          </button>
+        </div>
+      </section>
 
-      <SubmitButton
-        type="button"
-        variant="outline"
-        className="w-full"
-        disabled={loggingOut}
-        onClick={handleLogout}
-      >
-        로그아웃
-      </SubmitButton>
-      <TextLink
-        href={ROUTES.mypage.settings}
-        className="block text-center text-xs font-medium !text-[var(--dl-color-text-danger)] !no-underline"
-      >
-        계정 삭제
-      </TextLink>
-    </section>
+      <WithdrawAccountDialog
+        open={withdrawOpen}
+        onOpenChange={setWithdrawOpen}
+        email={displayProfile.email}
+      />
+    </>
   );
 }

@@ -1,105 +1,120 @@
 "use client";
 
-import { NotificationIconToggle } from "@/components/molecules/NotificationIconToggle";
-import { SettingsRow } from "@/components/molecules/SettingsRow";
+import { patchNotificationSettingsAction } from "@/actions/userActions";
+import { SubmitButton } from "@/components/atoms";
+import { DailyToggle, DiaryNotifyTimePicker, SettingsRow } from "@/components/molecules";
+import { toast } from "@/components/ui/toast";
+import { handleClientActionResult } from "@/lib/action/handleClientActionResult";
+import { normalizeDiaryNotifyTime } from "@/lib/user/diaryNotifyTime";
+import type { UiNotificationSettings } from "@/types/user/ui";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-type ToggleKey = "all" | "chat" | "reaction" | "invite" | "roomRun" | "roomWalk";
-
-const INITIAL: Record<ToggleKey, boolean> = {
-  all: true,
-  chat: true,
-  reaction: false,
-  invite: true,
-  roomRun: true,
-  roomWalk: false,
+type NotificationSettingsFormProps = {
+  initialSettings: UiNotificationSettings;
 };
 
-export function NotificationSettingsForm() {
-  const [toggles, setToggles] = useState(INITIAL);
+export function NotificationSettingsForm({ initialSettings }: NotificationSettingsFormProps) {
+  const router = useRouter();
+  const normalizedInitialTime = normalizeDiaryNotifyTime(initialSettings.diaryNotifyTime);
+  const [settings, setSettings] = useState({
+    ...initialSettings,
+    diaryNotifyTime: normalizedInitialTime,
+  });
+  const [draftDiaryNotifyTime, setDraftDiaryNotifyTime] = useState(normalizedInitialTime);
+  const [pendingKey, setPendingKey] = useState<string | null>(null);
 
-  function setToggle(key: ToggleKey, value: boolean) {
-    setToggles((current) => ({ ...current, [key]: value }));
+  const hasDraftTimeChanges = draftDiaryNotifyTime !== settings.diaryNotifyTime;
+
+  async function patchPartial(
+    payload: Partial<UiNotificationSettings>,
+    pendingLabel: string,
+  ) {
+    if (pendingKey) return;
+
+    setPendingKey(pendingLabel);
+    const result = await patchNotificationSettingsAction(payload);
+    setPendingKey(null);
+
+    if (!(await handleClientActionResult(result, router, { errorTitle: "알림 설정 저장 실패" }))) {
+      return;
+    }
+
+    if (!result.ok) return;
+
+    setSettings(result.data);
+    setDraftDiaryNotifyTime(result.data.diaryNotifyTime);
+    toast.add({ type: "success", title: "알림 설정을 저장했습니다" });
+  }
+
+  async function handleAgitToggle(checked: boolean) {
+    await patchPartial({ agitNotifyEnabled: checked }, "agit");
+  }
+
+  async function handleDiaryToggle(checked: boolean) {
+    await patchPartial({ diaryNotifyEnabled: checked }, "diary");
+  }
+
+  function handleDraftTimeChange(value: string) {
+    setDraftDiaryNotifyTime(normalizeDiaryNotifyTime(value));
+  }
+
+  async function handleTimeSave() {
+    if (!settings.diaryNotifyEnabled || !hasDraftTimeChanges) return;
+    await patchPartial({ diaryNotifyTime: draftDiaryNotifyTime }, "time");
   }
 
   return (
     <section className="flex w-full flex-col gap-3.5">
       <SettingsRow
-        icon="bell"
-        title="전체 알림"
-        description="모든 푸시 알림 허용"
+        title="아지트 알림"
+        description="아지트 활동 알림"
         trailing={
-          <NotificationIconToggle
-            checked={toggles.all}
-            label="전체 알림"
-            onChange={(value) => setToggle("all", value)}
+          <DailyToggle
+            checked={settings.agitNotifyEnabled}
+            label="아지트 알림"
+            onChange={handleAgitToggle}
           />
         }
+        showChevron={false}
       />
 
-      <h2 className="m-0 text-base font-semibold leading-[23px] text-[var(--dl-color-text-primary)]">기능별 알림</h2>
       <SettingsRow
-        icon="bell"
-        title="채팅 알림"
-        description="새 메시지와 답장"
+        title="다이어리 알림"
+        description={settings.diaryNotifyEnabled ? "알림 켜짐" : "알림 꺼짐"}
         trailing={
-          <NotificationIconToggle
-            checked={toggles.chat}
-            label="채팅 알림"
-            onChange={(value) => setToggle("chat", value)}
+          <DailyToggle
+            checked={settings.diaryNotifyEnabled}
+            label="다이어리 알림"
+            onChange={handleDiaryToggle}
           />
         }
-      />
-      <SettingsRow
-        icon="bell"
-        title="영상 반응"
-        description="내 영상의 이모지 반응"
-        trailing={
-          <NotificationIconToggle
-            checked={toggles.reaction}
-            label="영상 반응"
-            onChange={(value) => setToggle("reaction", value)}
-          />
-        }
-      />
-      <SettingsRow
-        icon="bell"
-        title="방 초대 및 관리"
-        description="초대 링크·추방·방장 위임"
-        trailing={
-          <NotificationIconToggle
-            checked={toggles.invite}
-            label="방 초대 및 관리"
-            onChange={(value) => setToggle("invite", value)}
-          />
-        }
+        showChevron={false}
       />
 
-      <h2 className="m-0 text-base font-semibold leading-[23px] text-[var(--dl-color-text-primary)]">방별 채팅 알림</h2>
-      <SettingsRow
-        icon="users"
-        title="러닝 메이트의 30일"
-        description={toggles.roomRun ? "채팅 알림 켜짐" : "채팅 알림 꺼짐"}
-        trailing={
-          <NotificationIconToggle
-            checked={toggles.roomRun}
-            label="러닝 메이트의 30일 채팅 알림"
-            onChange={(value) => setToggle("roomRun", value)}
+      <div className="flex w-full flex-col gap-2 rounded-[var(--dl-radius-lg)] bg-[var(--dl-color-bg-elevated)] p-[14px]">
+        <p className="m-0 text-sm font-semibold text-[var(--dl-color-text-primary)]">다이어리 알림 시간</p>
+        <div className="flex w-full flex-col gap-[14px]">
+          <DiaryNotifyTimePicker
+            className="w-full"
+            value={draftDiaryNotifyTime}
+            disabled={!settings.diaryNotifyEnabled || pendingKey === "time"}
+            onChange={handleDraftTimeChange}
           />
-        }
-      />
-      <SettingsRow
-        icon="users"
-        title="주말 한강 산책 모임"
-        description={toggles.roomWalk ? "채팅 알림 켜짐" : "채팅 알림 꺼짐"}
-        trailing={
-          <NotificationIconToggle
-            checked={toggles.roomWalk}
-            label="주말 한강 산책 모임 채팅 알림"
-            onChange={(value) => setToggle("roomWalk", value)}
-          />
-        }
-      />
+          <SubmitButton
+            type="button"
+            variant="brand"
+            disabled={
+              !settings.diaryNotifyEnabled ||
+              pendingKey === "time" ||
+              !hasDraftTimeChanges
+            }
+            onClick={handleTimeSave}
+          >
+            {pendingKey === "time" ? "저장 중..." : "설정"}
+          </SubmitButton>
+        </div>
+      </div>
     </section>
   );
 }

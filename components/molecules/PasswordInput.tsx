@@ -1,6 +1,7 @@
 "use client";
 
 import { Input } from "@/components/atoms";
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 type PasswordInputProps = {
@@ -29,15 +30,16 @@ export function PasswordInput({
         placeholder={placeholder}
         autoComplete={autoComplete}
         required={required}
-        className="pr-10"
+        variant="daily"
+        className="pr-11"
       />
       <button
         type="button"
         aria-label={visible ? "비밀번호 숨기기" : "비밀번호 보기"}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-500"
+        className="absolute right-3 top-1/2 grid size-6 -translate-y-1/2 place-items-center border-0 bg-[transparent] text-[var(--dl-color-text-secondary)]"
         onClick={() => setVisible((prev) => !prev)}
       >
-        {visible ? "숨김" : "표시"}
+        {visible ? <EyeOff size={18} aria-hidden /> : <Eye size={18} aria-hidden />}
       </button>
     </div>
   );

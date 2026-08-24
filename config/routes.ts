@@ -69,6 +69,7 @@ export const ROUTES = {
     profile: "/mypage/profile",
     password: "/mypage/profile/password",
     notifications: "/mypage/notifications",
+    termsAgreements: "/mypage/terms-agreements",
     settings: "/mypage/settings",
   },
   /** 제품 촬영은 /video. /create·/video-api는 목업·랩 */

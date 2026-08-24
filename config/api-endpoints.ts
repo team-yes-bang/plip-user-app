@@ -22,6 +22,7 @@ export const API_ENDPOINTS = {
     profile: gatewayPath("user", "/api/v1/users/me/profile"),
     password: gatewayPath("user", "/api/v1/users/me/password"),
     notificationSettings: gatewayPath("user", "/api/v1/users/me/notification-settings"),
+    termsAgreements: gatewayPath("user", "/api/v1/users/me/terms-agreements"),
     restore: gatewayPath("user", "/api/v1/users/me/restore"),
   },
   agit: {
