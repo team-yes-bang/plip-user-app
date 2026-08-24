@@ -66,5 +66,7 @@ export const API_ENDPOINTS = {
     complete: (videoUuid: string) => `/api/videos/${videoUuid}/complete` as const,
     detail: (videoUuid: string) => `/api/videos/${videoUuid}` as const,
     downloadUrl: (videoUuid: string) => `/api/videos/${videoUuid}/download-url` as const,
+    /** Kafka produce는 video-service. 토픽명은 백엔드 env로 나중에 채움 */
+    destination: (videoUuid: string) => `/api/videos/${videoUuid}/destination` as const,
   },
 } as const;

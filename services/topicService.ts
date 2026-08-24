@@ -72,6 +72,11 @@ export function toUiTopicListItem(topic: ApiTopic): UiTopicListItem {
   };
 }
 
+export async function listTopics(agitUuid: string): Promise<UiTopicListItem[]> {
+  const topics = await topicApi.listTopics(agitUuid);
+  return topics.map(toUiTopicListItem);
+}
+
 export async function listTopicsByStatus(
   agitUuid: string,
   status: ApiTopicListStatus,

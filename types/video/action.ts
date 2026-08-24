@@ -25,6 +25,14 @@ export type VideoDetailActionData = {
   downloadReady: boolean;
 };
 
+export type VideoDestinationActionData = {
+  status: "accepted" | "not_wired";
+  videoUuid: string;
+} & (
+  | { kind: "TOPIC"; topicUuid: string; agitUuid: string }
+  | { kind: "DIARY"; themeUuid: string }
+);
+
 export type VideoDownloadUrlActionData =
   | { status: "ready"; videoUuid: string; downloadUrl: string }
   | {

@@ -27,7 +27,18 @@ export const CAPTURE_FRAME_RATE = 30;
 /** MediaRecorder target. 2.5 Mbps × 5s ≈ 1.6MB so typical captures stay under 8MB. */
 export const RECORD_VIDEO_BITS_PER_SECOND = 2_500_000;
 
-export const DEFAULT_CAPTURE_CAPTION = "Phase 0-F capture";
+export const DEFAULT_CAPTURE_CAPTION = "";
+
+export const CAPTION_MAX_LENGTH = 80;
+
+/** Overlay sizes at capture/fullscreen scale. Preview shrinks these by frame/viewport. */
+export const OVERLAY_TIME_PX = 32;
+export const OVERLAY_CAPTION_PX = 20;
+export const OVERLAY_CAPTION_GAP_PX = 8;
+export const OVERLAY_DURATION_PX = 13;
+
+/** Drop the file at public/plip/video/sample.mp3. Missing file falls back to a click. */
+export const SHUTTER_SOUND_SRC = "/plip/video/sample.mp3";
 
 /**
  * download-url 202 probe count.

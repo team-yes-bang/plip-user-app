@@ -1,5 +1,6 @@
 export type UiDiaryTheme = {
   id: string;
+  themeUuid: string;
   name: string;
 };
 

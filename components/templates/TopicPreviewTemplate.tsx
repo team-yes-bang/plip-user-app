@@ -39,7 +39,7 @@ export function TopicPreviewTemplate({ videoCount }: TopicPreviewTemplateProps) 
         <TopicGallerySection
           key={videoCount}
           videos={videos}
-          captureHref={ROUTES.create}
+          captureHref={ROUTES.capture.video}
         />
       </div>
     </AppChromeTemplate>

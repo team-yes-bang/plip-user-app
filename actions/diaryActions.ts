@@ -16,6 +16,15 @@ function toActionError(error: unknown): ActionResult<never> {
   return actionFailure("Unknown error");
 }
 
+export async function listDiaryThemesAction(): Promise<ActionResult<UiDiaryTheme[]>> {
+  try {
+    const themes = await diaryService.listDiaryThemes();
+    return actionSuccess(themes);
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
 export async function createThemeAction(themeName: unknown): Promise<ActionResult<UiDiaryTheme>> {
   const parsed = parseThemeName(themeName);
   if (!parsed.ok) {

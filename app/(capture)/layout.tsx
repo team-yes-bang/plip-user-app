@@ -1,3 +1,3 @@
 export default function CaptureLayout({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-dvh bg-white text-black">{children}</div>;
+  return <div className="flex h-full min-h-0 flex-col">{children}</div>;
 }

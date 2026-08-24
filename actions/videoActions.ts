@@ -3,14 +3,21 @@
 import { actionFailure, actionSuccess, type ActionResult } from "@/types/action-result";
 import type {
   VideoCompleteActionData,
+  VideoDestinationActionData,
   VideoDetailActionData,
   VideoDownloadUrlActionData,
   VideoUploadUrlActionData,
 } from "@/types/video/action";
+import type { VideoDestinationRequest } from "@/types/video/api";
+import type { VideoDestination } from "@/types/video/destination";
 import { getVideoApiBaseUrl } from "@/lib/api/env";
 import { ApiError } from "@/lib/api/apiFetch";
 import { getServerUserUuid } from "@/lib/auth/server-token";
-import { VIDEO_LOGIN_REQUIRED, VIDEO_SESSION_INVALID } from "@/lib/video/actionErrors";
+import {
+  VIDEO_DESTINATION_INVALID,
+  VIDEO_LOGIN_REQUIRED,
+  VIDEO_SESSION_INVALID,
+} from "@/lib/video/actionErrors";
 import {
   toCompleteActionData,
   toDetailActionData,
@@ -138,6 +145,66 @@ export async function getVideoAction(
     const data = await videoService.getVideoDetail(resolvedVideoUuid);
     return actionSuccess(toDetailActionData(data));
   } catch (error) {
+    return toActionError(error);
+  }
+}
+
+function toDestinationPayload(destination: VideoDestination): VideoDestinationRequest | null {
+  if (destination.kind === "topic") {
+    const agitUuid = destination.agitUuid.trim();
+    const topicUuid = destination.topicUuid.trim();
+    if (!UUID_PATTERN.test(agitUuid) || !UUID_PATTERN.test(topicUuid)) {
+      return null;
+    }
+    return { kind: "TOPIC", topicUuid, agitUuid };
+  }
+
+  const themeUuid = destination.themeUuid.trim();
+  if (!UUID_PATTERN.test(themeUuid)) {
+    return null;
+  }
+
+  return { kind: "DIARY", themeUuid };
+}
+
+export async function publishVideoDestinationAction(
+  videoUuid: string,
+  destination: VideoDestination,
+  caption?: string,
+): Promise<ActionResult<VideoDestinationActionData>> {
+  const resolvedVideoUuid = resolveVideoUuid(videoUuid);
+  if (!resolvedVideoUuid) {
+    return actionFailure("Invalid videoUuid");
+  }
+
+  const session = await requireSessionUserUuid();
+  if (!session.ok) {
+    return actionFailure(session.error);
+  }
+
+  const payload = toDestinationPayload(destination);
+  if (!payload) {
+    return actionFailure(VIDEO_DESTINATION_INVALID);
+  }
+
+  const data: VideoDestinationActionData = {
+    status: "accepted",
+    videoUuid: resolvedVideoUuid,
+    ...payload,
+  };
+
+  try {
+    await videoService.publishDestination(resolvedVideoUuid, {
+      ...payload,
+      caption: caption?.trim() || undefined,
+    });
+    return actionSuccess(data);
+  } catch (error) {
+    if (error instanceof ApiError && (error.status === 404 || error.status === 501)) {
+      // Kafka/destination API는 토픽 확정 후 연결. 업로드 complete는 이미 끝난 상태.
+      return actionSuccess({ ...data, status: "not_wired" });
+    }
+
     return toActionError(error);
   }
 }

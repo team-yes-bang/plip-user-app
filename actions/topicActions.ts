@@ -27,6 +27,22 @@ async function requireLogin(): Promise<string | null> {
   return userUuid ? null : TOPIC_LOGIN_REQUIRED;
 }
 
+export async function listAgitTopicsAction(
+  agitId: string,
+): Promise<ActionResult<UiTopicListItem[]>> {
+  const loginError = await requireLogin();
+  if (loginError) {
+    return actionFailure(loginError);
+  }
+
+  try {
+    const items = await topicService.listTopics(agitId);
+    return actionSuccess(items);
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
 export async function listTopicsByStatusAction(
   agitId: string,
   status: ApiTopicListStatus,

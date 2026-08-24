@@ -1,5 +1,21 @@
-import { VideoCaptureSection } from "@/components/organisms/VideoCaptureSection";
+import { CaptureFlowSection } from "@/components/organisms/CaptureFlowSection";
 
-export function CaptureVideoTemplate() {
-  return <VideoCaptureSection />;
+type CaptureVideoTemplateProps = {
+  initialAgitUuid?: string;
+  initialTopicUuid?: string;
+  initialThemeId?: string;
+};
+
+export function CaptureVideoTemplate({
+  initialAgitUuid,
+  initialTopicUuid,
+  initialThemeId,
+}: CaptureVideoTemplateProps) {
+  return (
+    <CaptureFlowSection
+      initialAgitUuid={initialAgitUuid}
+      initialTopicUuid={initialTopicUuid}
+      initialThemeId={initialThemeId}
+    />
+  );
 }
