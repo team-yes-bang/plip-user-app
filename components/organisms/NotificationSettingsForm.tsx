@@ -77,21 +77,20 @@ export function NotificationSettingsForm({ initialSettings }: NotificationSettin
         showChevron={false}
       />
 
-      {settings.diaryNotifyEnabled ? (
-        <div className="flex w-full flex-col gap-2 rounded-[var(--dl-radius-lg)] bg-[var(--dl-color-bg-elevated)] p-[14px]">
-          <label htmlFor="diary-notify-time" className="text-sm font-semibold text-[var(--dl-color-text-primary)]">
-            알림 시간
-          </label>
-          <Input
-            id="diary-notify-time"
-            type="time"
-            variant="daily"
-            value={settings.diaryNotifyTime}
-            disabled={pendingKey === "time"}
-            onChange={(event) => handleTimeChange(event.target.value)}
-          />
-        </div>
-      ) : null}
+      <div className="flex w-full flex-col gap-2 rounded-[var(--dl-radius-lg)] bg-[var(--dl-color-bg-elevated)] p-[14px]">
+        <label htmlFor="diary-notify-time" className="text-sm font-semibold text-[var(--dl-color-text-primary)]">
+          다이어리 알림 시간
+        </label>
+        <Input
+          id="diary-notify-time"
+          type="time"
+          variant="daily"
+          step={600}
+          value={settings.diaryNotifyTime}
+          disabled={!settings.diaryNotifyEnabled || pendingKey === "time"}
+          onChange={(event) => handleTimeChange(event.target.value)}
+        />
+      </div>
     </section>
   );
 }

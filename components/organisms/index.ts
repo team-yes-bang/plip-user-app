@@ -21,8 +21,6 @@ export { MembersPermissionsSection } from "./MembersPermissionsSection";
 export { InvitesSafetySection } from "./InvitesSafetySection";
 export { AccountSecuritySection } from "./AccountSecuritySection";
 export { ProfileHubSection } from "./ProfileHubSection";
-export { ProfileEditSheet } from "./ProfileEditSheet";
-export { LogoutConfirmDialog } from "./LogoutConfirmDialog";
 export { WithdrawAccountDialog } from "./WithdrawAccountDialog";
 export { TermsAgreementsForm } from "./TermsAgreementsForm";
 export { CreateRoomAccessForm } from "./CreateRoomAccessForm";

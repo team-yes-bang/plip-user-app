@@ -17,7 +17,7 @@ export function MyPageTemplate({
 }: MyPageTemplateProps) {
   return (
     <div className="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
-      <div className={`min-h-0 flex-1 overflow-y-auto ${showBottomNav ? "pb-[80px]" : ""}`}>
+      <div className={`min-h-0 flex-1 overflow-y-auto ${showBottomNav ? "pb-[120px]" : ""}`}>
         <DailyLoopAuthTemplate>
           {children ?? <ProfileHubSection profile={profile} />}
         </DailyLoopAuthTemplate>

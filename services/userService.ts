@@ -47,7 +47,12 @@ export function normalizeDiaryNotifyTime(value: string): string {
   if (!match) {
     return "21:00";
   }
-  return `${match[1]}:${match[2]}`;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const roundedMinutes = Math.round(minutes / 10) * 10;
+  const normalizedMinutes = roundedMinutes >= 60 ? 0 : roundedMinutes;
+  const normalizedHours = roundedMinutes >= 60 ? (hours + 1) % 24 : hours;
+  return `${String(normalizedHours).padStart(2, "0")}:${String(normalizedMinutes).padStart(2, "0")}`;
 }
 
 export function toApiDiaryNotifyTime(value: string): string {

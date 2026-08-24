@@ -2,7 +2,7 @@
 
 import { changePasswordAction } from "@/actions/userActions";
 import { SubmitButton } from "@/components/atoms";
-import { FormField, PasswordInput } from "@/components/molecules";
+import { PasswordInput } from "@/components/molecules";
 import { toast } from "@/components/ui/toast";
 import { ROUTES } from "@/config/routes";
 import { signIn } from "next-auth/react";
@@ -62,39 +62,53 @@ export function ChangePasswordForm({ email }: ChangePasswordFormProps) {
   }
 
   return (
-    <form className="flex w-full flex-col gap-6" onSubmit={handleSubmit}>
-      <FormField label="현재 비밀번호" htmlFor="current-password">
+    <form className="flex w-full flex-col gap-3.5" onSubmit={handleSubmit}>
+      <div className="flex w-full flex-col gap-1.5">
+        <label htmlFor="current-password" className="m-0 text-[13px] font-medium leading-5 text-[var(--dl-color-text-primary)]">
+          현재 비밀번호
+        </label>
         <PasswordInput
           id="current-password"
           name="currentPassword"
           autoComplete="current-password"
           required
         />
-      </FormField>
+      </div>
 
-      <FormField label="새 비밀번호" htmlFor="new-password">
+      <div className="flex w-full flex-col gap-1.5">
+        <label htmlFor="new-password" className="m-0 text-[13px] font-medium leading-5 text-[var(--dl-color-text-primary)]">
+          새 비밀번호
+        </label>
         <PasswordInput
           id="new-password"
           name="newPassword"
           autoComplete="new-password"
           required
         />
-      </FormField>
+      </div>
 
-      <FormField label="새 비밀번호 확인" htmlFor="new-password-confirm">
+      <div className="flex w-full flex-col gap-1.5">
+        <label
+          htmlFor="new-password-confirm"
+          className="m-0 text-[13px] font-medium leading-5 text-[var(--dl-color-text-primary)]"
+        >
+          새 비밀번호 확인
+        </label>
         <PasswordInput
           id="new-password-confirm"
           name="newPasswordConfirm"
           autoComplete="new-password"
           required
         />
-      </FormField>
+      </div>
 
       {error ? <p className="m-0 text-[12px] text-red-600">{error}</p> : null}
 
-      <SubmitButton variant="brand" disabled={pending}>
-        {pending ? "저장 중..." : "변경 적용"}
-      </SubmitButton>
+      <div className="mt-auto flex w-full flex-col gap-[14px]">
+        <SubmitButton variant="brand" disabled={pending}>
+          {pending ? "저장 중..." : "변경 적용"}
+        </SubmitButton>
+      </div>
     </form>
   );
 }
