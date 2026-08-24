@@ -152,10 +152,11 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
             <SubmitButton
               type="button"
               variant="brand"
-              className="w-auto px-6 py-3 font-semibold shadow-md"
+              className="flex items-center gap-1.5 w-auto px-6 py-3 font-semibold shadow-md"
               onClick={() => router.push(ROUTES.agit.topicCreate(agitId))}
             >
-              ＋ 토픽 생성하기
+              <DailyIcon name="plus" size={16} className="brightness-0 invert" />
+              <span>토픽 생성하기</span>
             </SubmitButton>
           </div>
         </div>
@@ -218,10 +219,11 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
               <SubmitButton
                 type="button"
                 variant="brand"
-                className="w-auto px-6 py-3 font-semibold shadow-md"
+                className="flex items-center gap-1.5 w-auto px-6 py-3 font-semibold shadow-md"
                 onClick={() => router.push(ROUTES.agit.topicCreate(agitId))}
               >
-                ＋ 토픽 생성하기
+                <DailyIcon name="plus" size={16} className="brightness-0 invert" />
+                <span>토픽 생성하기</span>
               </SubmitButton>
 
               {/* 아래로 끌어서 피드 시작하도록 안내하는 바운스 화살표 힌트 */}
