@@ -23,7 +23,7 @@ type AgitMenuDrawerProps = {
 const MENU = [
   {
     id: "topics" as const,
-    label: "토픽관리",
+    label: "토픽",
     href: (id: string) => ROUTES.agit.topics(id),
     hostOnly: false,
   },

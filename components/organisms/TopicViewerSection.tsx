@@ -28,7 +28,7 @@ export function TopicViewerSection({
   const router = useRouter();
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden" aria-label={title}>
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden" aria-label={title}>
       <ScreenHeader
         leading={<HeaderBackLink href={backHref} />}
         title={title}

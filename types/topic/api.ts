@@ -27,3 +27,9 @@ export type ApiTopicVideo = {
   userUuid: string;
   createdAt: string;
 };
+
+export type ApiTopicFeed = {
+  current: ApiTopic | null;
+  before: ApiTopic[];
+  after: ApiTopic[];
+};

@@ -53,6 +53,7 @@ export {
   RoomProfileEditTemplate as AgitProfileEditTemplate,
   TopicCreateTemplate as AgitTopicCreateTemplate,
   TopicEditTemplate as AgitTopicEditTemplate,
+  TopicFeedTemplate as AgitTopicFeedTemplate,
   TopicViewerTemplate as AgitTopicViewerTemplate,
   TopicsLayoutTemplate as AgitTopicsTemplate,
 } from "./RoomManageTemplates";

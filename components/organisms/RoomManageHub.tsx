@@ -18,7 +18,7 @@ const TILES = [
   },
   {
     href: "topics",
-    title: "토픽 관리",
+    title: "토픽",
     description: "진행 날짜·등록 규칙",
     icon: "list" as const,
     tone: "brand" as const,

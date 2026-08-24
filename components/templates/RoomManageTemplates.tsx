@@ -6,6 +6,7 @@ import { InvitesSafetySection } from "@/components/organisms/InvitesSafetySectio
 import { MembersPermissionsSection } from "@/components/organisms/MembersPermissionsSection";
 import { TopicCreateForm } from "@/components/organisms/TopicCreateForm";
 import { TopicEditForm } from "@/components/organisms/TopicEditForm";
+import { TopicFeedSection } from "@/components/organisms/TopicFeedSection";
 import { TopicViewerSection } from "@/components/organisms/TopicViewerSection";
 import { TopicsLayoutSection } from "@/components/organisms/TopicsLayoutSection";
 import { AgitFlowChrome, AppChromeTemplate } from "@/components/templates/AppChromeTemplate";
@@ -14,7 +15,7 @@ import { getAgitById } from "@/config/agit-mock";
 import { ROUTES } from "@/config/routes";
 import type { ApiAgitDetailMember } from "@/types/agit/api";
 import type { UiAgit } from "@/types/agit/ui";
-import type { UiTopicDetail, UiTopicListSections, UiTopicVideo } from "@/types/topic/ui";
+import type { UiTopicDetail, UiTopicFeedWindow, UiTopicListSections, UiTopicVideo } from "@/types/topic/ui";
 
 type AgitIdProps = { agitId: string };
 
@@ -56,7 +57,7 @@ export function TopicsLayoutTemplate({
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <ScreenHeader
           leading={<HeaderBackLink href={ROUTES.agit.detail(agit.id)} />}
-          title="토픽관리"
+          title="토픽"
         />
         <div className="min-h-0 flex-1 overflow-y-auto px-[23px] pb-6">
           <TopicsLayoutSection
@@ -85,7 +86,7 @@ export function TopicViewerTemplate({
   const dateLabel = topic.startDate.replaceAll("-", ".");
 
   return (
-    <AppChromeTemplate activeTab="agit" variant="light">
+    <AppChromeTemplate activeTab="agit" variant="light" mainOverflow="hidden">
       <TopicViewerSection
         agitId={agit.id}
         topicId={topic.id}
@@ -93,6 +94,28 @@ export function TopicViewerTemplate({
         meta={`${dateLabel} · ${videos.length}개 영상`}
         videos={videos}
         backHref={ROUTES.agit.topics(agit.id)}
+      />
+    </AppChromeTemplate>
+  );
+}
+
+export function TopicFeedTemplate({
+  agit,
+  initialWindow,
+  initialVideos,
+}: {
+  agit: UiAgit | null;
+  initialWindow: UiTopicFeedWindow;
+  initialVideos: Record<string, UiTopicVideo[]>;
+}) {
+  if (!agit) return <RoomMissing />;
+
+  return (
+    <AppChromeTemplate activeTab="agit" variant="light" mainOverflow="hidden">
+      <TopicFeedSection
+        agitId={agit.id}
+        initialWindow={initialWindow}
+        initialVideos={initialVideos}
       />
     </AppChromeTemplate>
   );

@@ -1,7 +1,8 @@
 import type { ApiAgitDetailMember } from "@/types/agit/api";
 import type { ApiCreateTopicRequest, ApiTopic, ApiTopicListStatus, ApiTopicVideo, ApiUpdateTopicRequest } from "@/types/topic/api";
-import type { UiTopicDetail, UiTopicGallery, UiTopicListItem, UiTopicVideo } from "@/types/topic/ui";
+import type { UiTopicDetail, UiTopicFeedWindow, UiTopicGallery, UiTopicListItem, UiTopicVideo } from "@/types/topic/ui";
 import * as topicApi from "@/lib/api/topicApi";
+import { toFeedOrder } from "@/lib/topic/mergeTopicFeed";
 import { formatKstDotDate, isSameKstDate, selectAgitTopic, toKstDateString } from "@/lib/topic/selectAgitTopic";
 import * as videoService from "@/services/videoService";
 
@@ -150,4 +151,42 @@ export async function getTopicGallery(
   const profiles = memberMap(members);
   const videos = await Promise.all(topicVideos.map((item) => mapTopicVideo(item, profiles)));
   return { topic: mapSummary(selected), videos };
+}
+
+const FEED_NEIGHBOR_LIMIT = 3;
+
+export async function getTopicFeedWindow(params: {
+  agitUuid: string;
+  topicUuid?: string;
+  date?: string;
+  before?: number;
+  after?: number;
+}): Promise<UiTopicFeedWindow> {
+  const before = params.before ?? FEED_NEIGHBOR_LIMIT;
+  const after = params.after ?? FEED_NEIGHBOR_LIMIT;
+  const feed = await topicApi.getTopicFeed({
+    agitUuid: params.agitUuid,
+    topicUuid: params.topicUuid,
+    date: params.date,
+    before,
+    after,
+  });
+  if (!feed.current) {
+    return { topics: [], currentId: null, hasMoreBefore: false, hasMoreAfter: false };
+  }
+  const ordered = toFeedOrder(feed.before ?? [], feed.current, feed.after ?? []);
+  return {
+    topics: ordered.map(toUiTopicDetail),
+    currentId: feed.current.topicUuid,
+    hasMoreBefore: (feed.before?.length ?? 0) >= before,
+    hasMoreAfter: (feed.after?.length ?? 0) >= after,
+  };
+}
+
+export async function getTopicVideos(
+  topicUuid: string,
+  members: ApiAgitDetailMember[],
+): Promise<UiTopicVideo[]> {
+  const viewer = await getTopicViewer(topicUuid, members);
+  return viewer.videos;
 }

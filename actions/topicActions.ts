@@ -7,7 +7,8 @@ import * as topicService from "@/services/topicService";
 import { actionFailure, actionSuccess, type ActionResult } from "@/types/action-result";
 import type { ApiTopicListStatus } from "@/types/topic/api";
 import { parseCreateTopicInput, parseUpdateTopicInput } from "@/types/topic/schema";
-import type { UiTopicListItem } from "@/types/topic/ui";
+import type { UiTopicFeedWindow, UiTopicListItem, UiTopicVideo } from "@/types/topic/ui";
+import { getAgitAndMembers } from "@/services/agitService";
 
 function toActionError(error: unknown): ActionResult<never> {
   if (error instanceof ApiError) {
@@ -120,6 +121,37 @@ export async function deleteTopicAction(topicId: string): Promise<ActionResult<v
     if (error instanceof ApiError && error.status === 409) {
       return actionFailure("영상이 있는 토픽은 삭제할 수 없어요.");
     }
+    return toActionError(error);
+  }
+}
+
+export async function getTopicFeedWindowAction(
+  agitId: string,
+  input: { topicUuid?: string; date?: string; before?: number; after?: number },
+): Promise<ActionResult<UiTopicFeedWindow>> {
+  try {
+    const window = await topicService.getTopicFeedWindow({
+      agitUuid: agitId,
+      topicUuid: input.topicUuid,
+      date: input.date,
+      before: input.before,
+      after: input.after,
+    });
+    return actionSuccess(window);
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
+export async function getTopicVideosAction(
+  agitId: string,
+  topicUuid: string,
+): Promise<ActionResult<UiTopicVideo[]>> {
+  try {
+    const detail = await getAgitAndMembers(agitId);
+    const videos = await topicService.getTopicVideos(topicUuid, detail.members);
+    return actionSuccess(videos);
+  } catch (error) {
     return toActionError(error);
   }
 }
