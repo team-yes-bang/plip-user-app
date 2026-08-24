@@ -46,7 +46,7 @@ function TopicFeedEmptyCover({
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--dl-color-bg-surface-subtle)]">
         <DailyIcon name="messageBrand" size={28} />
       </div>
-      <p className="m-0 text-base font-semibold text-[var(--dl-color-text-primary)]">
+      <p className="m-0 mt-4 text-base font-semibold text-[var(--dl-color-text-primary)]">
         {isFullyEmpty ? "등록된 토픽이 없습니다." : "진행 중인 토픽이 없습니다."}
       </p>
       <p className="mt-1.5 mb-6 text-xs font-normal leading-relaxed text-[var(--dl-color-text-secondary)]">
@@ -189,7 +189,6 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
           <ScreenHeader
             leading={<HeaderBackLink href={ROUTES.agit.root} />}
             title={resolvedAgit?.name || "아지트"}
-            subtitle="아직 토픽이 없습니다"
             trailing={<HeaderMenuButton label="아지트 메뉴" onClick={() => setMenuOpen(true)} />}
           />
           <TopicFeedEmptyCover
@@ -221,7 +220,6 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
           <ScreenHeader
             leading={<HeaderBackLink href={ROUTES.agit.root} />}
             title={resolvedAgit?.name || "아지트"}
-            subtitle="오늘 진행 중인 토픽 없음"
             trailing={<HeaderMenuButton label="아지트 메뉴" onClick={() => setMenuOpen(true)} />}
           />
         ) : (

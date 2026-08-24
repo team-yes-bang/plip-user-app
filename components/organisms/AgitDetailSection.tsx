@@ -19,17 +19,17 @@ type AgitDetailSectionProps = {
 function formatTopicMeta(gallery: UiTopicGallery): string {
   const topic = gallery.topic;
   if (!topic) {
-    return "아직 토픽이 없습니다";
+    return "아직 토픽이 없어요";
   }
 
   const parsed = new Date(topic.startAt);
   const date = Number.isNaN(parsed.getTime())
     ? ""
     : new Intl.DateTimeFormat("ko-KR", {
-        timeZone: "Asia/Seoul",
-        month: "long",
-        day: "numeric",
-      }).format(parsed);
+      timeZone: "Asia/Seoul",
+      month: "long",
+      day: "numeric",
+    }).format(parsed);
   const title = topic.title ? `#${topic.title}` : "";
   const count = `${gallery.videos.length}개 영상`;
   return [date, title, count].filter(Boolean).join(" · ");
