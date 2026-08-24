@@ -5,6 +5,7 @@ export { ChatMoreSheet } from "./ChatMoreSheet";
 export { MoveTopicSheet } from "./MoveTopicSheet";
 export { TopicCreateForm } from "./TopicCreateForm";
 export { TopicEditForm } from "./TopicEditForm";
+export { TopicFeedSection } from "./TopicFeedSection";
 export { TopicGallerySection } from "./TopicGallerySection";
 export { TopicViewerSection } from "./TopicViewerSection";
 export { ViewerActionsSheet } from "./ViewerActionsSheet";

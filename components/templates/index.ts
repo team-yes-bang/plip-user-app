@@ -15,6 +15,7 @@ export {
   AgitSafetyTemplate,
   AgitTopicCreateTemplate,
   AgitTopicEditTemplate,
+  AgitTopicFeedTemplate,
   AgitTopicViewerTemplate,
 } from "./AgitTemplates";
 export { ChangePasswordTemplate } from "./ChangePasswordTemplate";
