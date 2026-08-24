@@ -136,6 +136,9 @@ export async function withdrawAccountAction(payload: {
     await signOut({ redirect: false });
     return actionSuccess(undefined);
   } catch (error) {
+    if (error instanceof ApiError && payload.password) {
+      return actionFailure("비밀번호가 올바르지 않습니다.");
+    }
     return toActionError(error);
   }
 }
