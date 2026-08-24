@@ -9,6 +9,7 @@ import type { RefCallback } from "react";
 type CaptureCameraStageProps = {
   videoRef: RefCallback<HTMLVideoElement>;
   status: RecorderStatus;
+  facingMode?: "user" | "environment";
   error: string | null;
   elapsedMs: number;
   maxDurationMs: number;
@@ -20,6 +21,7 @@ type CaptureCameraStageProps = {
 export function CaptureCameraStage({
   videoRef,
   status,
+  facingMode = "user",
   error,
   elapsedMs,
   maxDurationMs,
@@ -30,12 +32,13 @@ export function CaptureCameraStage({
   const isRecording = status === "recording";
   const isBusy = status === "requesting" || isRecording;
   const showTimer = isRecording;
+  const mirrorFrontCamera = facingMode === "user";
 
   return (
     <section className="relative min-h-[calc(100dvh_-_80px)] overflow-hidden bg-[#111] -mx-5 -mt-6" aria-label="카메라">
       <video
         ref={videoRef}
-        className="absolute inset-0 h-full w-full object-contain"
+        className={`absolute inset-0 h-full w-full object-contain ${mirrorFrontCamera ? "-scale-x-100" : ""}`}
         autoPlay
         playsInline
         muted

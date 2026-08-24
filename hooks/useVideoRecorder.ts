@@ -1,6 +1,11 @@
 "use client";
 
-import { MAX_RECORD_MS, RECORD_STOP_MS, RECORD_TIMESLICE_MS } from "@/lib/video/constants";
+import {
+  MAX_RECORD_MS,
+  RECORD_STOP_MS,
+  RECORD_TIMESLICE_MS,
+  RECORD_VIDEO_BITS_PER_SECOND,
+} from "@/lib/video/constants";
 import { pickRecorderMimeType, requestCameraStream } from "@/lib/video/recorderMime";
 import { isIgnorablePlayError, safeVideoPlay } from "@/lib/video/safeVideoPlay";
 import { useCallback, useEffect, useRef, useState, type RefCallback } from "react";
@@ -188,7 +193,10 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     resetPreview();
     chunksRef.current = [];
 
-    const recorder = new MediaRecorder(stream, { mimeType: selectedMimeType });
+    const recorder = new MediaRecorder(stream, {
+      mimeType: selectedMimeType,
+      videoBitsPerSecond: RECORD_VIDEO_BITS_PER_SECOND,
+    });
     recorderRef.current = recorder;
     setMimeType(selectedMimeType);
 

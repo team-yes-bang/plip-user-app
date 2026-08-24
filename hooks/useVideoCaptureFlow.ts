@@ -2,6 +2,7 @@
 
 import { useVideoRecorder } from "@/hooks/useVideoRecorder";
 import { DEFAULT_CAPTURE_CAPTION } from "@/lib/video/constants";
+import { createOversizeUploadBlob } from "@/lib/video/uploadLimits";
 import { runPhase0FUpload, type Phase0FUploadResult } from "@/lib/video/uploadPipeline";
 import type { CaptureFlowPhase } from "@/types/video/ui";
 import { useCallback, useMemo, useState } from "react";
@@ -70,22 +71,20 @@ export function useVideoCaptureFlow() {
     await recorder.discardRecording();
   }, [recorder, resetFlow]);
 
-  const uploadCapture = useCallback(
-    async (caption = DEFAULT_CAPTURE_CAPTION) => {
-      if (!recorder.blob) {
-        setFlowError("Recorded blob is missing");
-        return null;
-      }
-
+  const uploadBlob = useCallback(
+    async (
+      blob: Blob,
+      options?: { caption?: string; recorderMimeType?: string; localPreviewUrl?: string | null },
+    ) => {
       setUploading(true);
       setFlowError(null);
       setUploadResult(null);
 
       try {
-        const result = await runPhase0FUpload(recorder.blob, {
-          caption,
-          recorderMimeType: recorder.mimeType,
-          localPreviewUrl: recorder.previewUrl,
+        const result = await runPhase0FUpload(blob, {
+          caption: options?.caption ?? DEFAULT_CAPTURE_CAPTION,
+          recorderMimeType: options?.recorderMimeType ?? blob.type,
+          localPreviewUrl: options?.localPreviewUrl,
         });
 
         setUploadResult(result);
@@ -98,8 +97,42 @@ export function useVideoCaptureFlow() {
         setUploading(false);
       }
     },
-    [recorder.blob, recorder.mimeType, recorder.previewUrl],
+    [],
   );
+
+  const uploadCapture = useCallback(
+    async (caption = DEFAULT_CAPTURE_CAPTION) => {
+      if (!recorder.blob) {
+        setFlowError("Recorded blob is missing");
+        return null;
+      }
+
+      return uploadBlob(recorder.blob, {
+        caption,
+        recorderMimeType: recorder.mimeType,
+        localPreviewUrl: recorder.previewUrl,
+      });
+    },
+    [recorder.blob, recorder.mimeType, recorder.previewUrl, uploadBlob],
+  );
+
+  const uploadFile = useCallback(
+    async (file: File, caption = DEFAULT_CAPTURE_CAPTION) => {
+      return uploadBlob(file, {
+        caption,
+        recorderMimeType: file.type,
+        localPreviewUrl: URL.createObjectURL(file),
+      });
+    },
+    [uploadBlob],
+  );
+
+  const uploadOversizeTest = useCallback(async () => {
+    return uploadBlob(createOversizeUploadBlob(), {
+      caption: "oversize-limit-test",
+      recorderMimeType: "video/mp4",
+    });
+  }, [uploadBlob]);
 
   return {
     ...recorder,
@@ -109,6 +142,8 @@ export function useVideoCaptureFlow() {
     uploading,
     retake,
     uploadCapture,
+    uploadFile,
+    uploadOversizeTest,
     resetFlow,
   };
 }

@@ -59,6 +59,28 @@ export function toDownloadUrlActionData(data: VideoDownloadUrlUi): VideoDownload
   };
 }
 
+export function extractUploadUrlFromActionResult(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  if (!("ok" in payload) || payload.ok !== true) {
+    return null;
+  }
+
+  if (!("data" in payload) || !payload.data || typeof payload.data !== "object") {
+    return null;
+  }
+
+  const data = payload.data as Record<string, unknown>;
+  if (typeof data.uploadUrl !== "string") {
+    return null;
+  }
+
+  const trimmed = data.uploadUrl.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 export function extractVideoUuidFromActionResult(payload: unknown): string | null {
   if (!payload || typeof payload !== "object") {
     return null;

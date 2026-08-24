@@ -15,6 +15,18 @@ export const RECORDER_MIME_CANDIDATES = [
 /** Presigned PUT Content-Type must match upload-url query param */
 export const DEFAULT_UPLOAD_CONTENT_TYPE = "video/mp4";
 
+/** Server/client reject line. 5s 720p H.264 ~2.5 Mbps is ~1.6–2MB; iOS mp4/hevc can be larger. */
+export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+
+export const MAX_UPLOAD_MB = MAX_UPLOAD_BYTES / (1024 * 1024);
+
+export const CAPTURE_WIDTH = 720;
+export const CAPTURE_HEIGHT = 1280;
+export const CAPTURE_FRAME_RATE = 30;
+
+/** MediaRecorder target. 2.5 Mbps × 5s ≈ 1.6MB so typical captures stay under 8MB. */
+export const RECORD_VIDEO_BITS_PER_SECOND = 2_500_000;
+
 export const DEFAULT_CAPTURE_CAPTION = "Phase 0-F capture";
 
 /**
