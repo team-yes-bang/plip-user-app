@@ -5,7 +5,6 @@ import {
   getRequestAccessTokenOverride,
   setRequestAccessTokenOverride,
 } from "@/lib/auth/request-token-cache";
-import { getServerAuthJwt } from "@/lib/auth/server-token";
 import * as authService from "@/services/authService";
 
 export async function withAuthRetry<T>(request: () => Promise<T>): Promise<T> {
@@ -28,6 +27,7 @@ export async function withAuthRetry<T>(request: () => Promise<T>): Promise<T> {
       throw error;
     }
 
+    const { getServerAuthJwt } = await import("@/lib/auth/server-token");
     const jwt = await getServerAuthJwt();
     const refreshToken = jwt?.refreshToken;
     if (typeof refreshToken !== "string" || !refreshToken) {
