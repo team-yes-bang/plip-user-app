@@ -6,6 +6,7 @@ import { withAuthRetry } from "@/lib/api/withAuthRetry";
 import type {
   ApiCreateTopicRequest,
   ApiTopic,
+  ApiTopicFeed,
   ApiTopicListStatus,
   ApiTopicVideo,
   ApiUpdateTopicRequest,
@@ -75,5 +76,24 @@ export async function deleteTopic(topicUuid: string): Promise<void> {
 export async function listTopicVideos(topicUuid: string): Promise<ApiTopicVideo[]> {
   return topicFetch<ApiTopicVideo[]>(API_ENDPOINTS.topic.videos(topicUuid), {
     method: "GET",
+  });
+}
+
+export async function getTopicFeed(params: {
+  agitUuid: string;
+  topicUuid?: string;
+  date?: string;
+  before?: number;
+  after?: number;
+}): Promise<ApiTopicFeed> {
+  return topicFetch<ApiTopicFeed>(API_ENDPOINTS.topic.feed, {
+    method: "GET",
+    searchParams: {
+      agitUuid: params.agitUuid,
+      topicUuid: params.topicUuid,
+      date: params.date,
+      before: params.before !== undefined ? String(params.before) : undefined,
+      after: params.after !== undefined ? String(params.after) : undefined,
+    },
   });
 }

@@ -48,3 +48,10 @@ export type UiTopicGallery = {
   topic: UiTopicSummary | null;
   videos: UiTopicVideo[];
 };
+
+export type UiTopicFeedWindow = {
+  topics: UiTopicDetail[];
+  currentId: string | null;
+  hasMoreBefore: boolean;
+  hasMoreAfter: boolean;
+};
