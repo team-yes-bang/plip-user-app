@@ -1,7 +1,7 @@
 "use client";
 
 import { getTopicVideosAction } from "@/actions/topicActions";
-import { DailyIcon } from "@/components/atoms";
+import { DailyIcon, SubmitButton } from "@/components/atoms";
 import { HeaderBackLink, HeaderMenuButton, ScreenHeader, TopicFeedPillHeader } from "@/components/molecules";
 import { AgitMenuDrawer } from "@/components/organisms/AgitMenuDrawer";
 import { MoveTopicSheet } from "@/components/organisms/MoveTopicSheet";
@@ -149,13 +149,14 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
             <p className="mt-1.5 mb-6 text-xs font-normal leading-relaxed text-[var(--dl-color-text-secondary)]">
               새로운 토픽을 생성하고 영상 기록을 시작해 보세요.
             </p>
-            <button
+            <SubmitButton
               type="button"
+              variant="brand"
+              className="w-auto px-6 py-3 font-semibold shadow-md"
               onClick={() => router.push(ROUTES.agit.topicCreate(agitId))}
-              className="flex items-center justify-center rounded-xl bg-[#09080f] px-5 py-3 text-sm font-semibold text-white transition-opacity active:opacity-80 shadow-md"
             >
               ＋ 토픽 생성하기
-            </button>
+            </SubmitButton>
           </div>
         </div>
 
@@ -209,18 +210,19 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
                 💬
               </div>
               <p className="m-0 text-base font-semibold text-[var(--dl-color-text-primary)]">
-                오늘 진행 중인 토픽이 없습니다.
+                진행 중인 토픽이 없습니다.
               </p>
               <p className="mt-1.5 mb-6 text-xs font-normal leading-relaxed text-[var(--dl-color-text-secondary)]">
                 새로운 토픽을 생성하거나, 아래로 끌어 이전 기록을 확인하세요.
               </p>
-              <button
+              <SubmitButton
                 type="button"
+                variant="brand"
+                className="w-auto px-6 py-3 font-semibold shadow-md"
                 onClick={() => router.push(ROUTES.agit.topicCreate(agitId))}
-                className="flex items-center justify-center rounded-xl bg-[#09080f] px-5 py-3 text-sm font-semibold text-white transition-opacity active:opacity-80 shadow-md"
               >
-                ＋ 토픽 생성하기
-              </button>
+                토픽 생성하기
+              </SubmitButton>
 
               {/* 아래로 끌어서 피드 시작하도록 안내하는 바운스 화살표 힌트 */}
               <button
