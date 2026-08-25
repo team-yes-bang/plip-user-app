@@ -13,7 +13,7 @@ import { isSameKstDate, shouldShowTopicCaptureSlot } from "@/lib/topic/selectAgi
 import { extractDate } from "@/lib/video/formatOverlayClock";
 import type { UiAgit } from "@/types/agit/ui";
 import type { UiTopicDetail, UiTopicFeedWindow, UiTopicVideo } from "@/types/topic/ui";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const EMPTY_TOPIC_VIDEOS: UiTopicVideo[] = [];
@@ -80,19 +80,20 @@ function TopicFeedEmptyCover({
 
 export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }: TopicFeedSectionProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const loadingVideoIds = useRef(new Set<string>());
   const videosRef = useRef(initialVideos);
-  const [viewportHeight, setViewportHeight] = useState(0);
+  const [, setViewportHeight] = useState(0);
 
   const [actionsOpen, setActionsOpen] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const [topics, setTopics] = useState(initialWindow.topics);
+  const [topics] = useState(initialWindow.topics);
   const [videosByTopic, setVideosByTopic] = useState<Record<string, UiTopicVideo[]>>(initialVideos);
-  const [hasMoreBefore, setHasMoreBefore] = useState(initialWindow.hasMoreBefore);
-  const [hasMoreAfter, setHasMoreAfter] = useState(initialWindow.hasMoreAfter);
+  const [hasMoreBefore] = useState(initialWindow.hasMoreBefore);
+  const [hasMoreAfter] = useState(initialWindow.hasMoreAfter);
 
   // 오늘 진행 중인 토픽 존재 여부 확인
   const hasActiveTopic = topics.some((t) => isSameKstDate(t.startDate, new Date()));
@@ -131,7 +132,22 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
   }, []);
 
   const resolvedAgit = agit ?? getAgitById(agitId) ?? null;
-  const backHref = ROUTES.agit.topics(agitId);
+
+  // 동적 뒤로가기 핸들러
+  const handleBack = useCallback(() => {
+    const fromParam = searchParams.get("from");
+    const hasHistory = typeof window !== "undefined" && window.history.length > 1 && document.referrer;
+
+    if (fromParam === "topics") {
+      router.push(ROUTES.agit.topics(agitId));
+    } else if (fromParam === "agit") {
+      router.push(ROUTES.agit.detail(agitId));
+    } else if (hasHistory) {
+      router.back();
+    } else {
+      router.push(ROUTES.agit.topics(agitId));
+    }
+  }, [agitId, router, searchParams]);
 
   const loadVideosAround = useCallback(
     async (list: UiTopicDetail[], center: number) => {
@@ -219,14 +235,14 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
         {isAtCoverSlide ? (
           <div className="pointer-events-none absolute top-0 inset-x-0 z-30">
             <ScreenHeader
-              leading={<HeaderBackLink href={ROUTES.agit.root} />}
+              leading={<HeaderBackLink onClick={handleBack} />}
               title={resolvedAgit?.name || "아지트"}
               trailing={<HeaderMenuButton label="아지트 메뉴" onClick={() => setMenuOpen(true)} />}
             />
           </div>
         ) : (
           <TopicFeedPillHeader
-            backHref={backHref}
+            onBack={handleBack}
             title={currentTopic.title || "제목 없음"}
             videoCount={videoCount}
             onMenuClick={() => setMenuOpen(true)}

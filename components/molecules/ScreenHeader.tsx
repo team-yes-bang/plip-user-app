@@ -50,9 +50,16 @@ function asSubtitle(subtitle: ReactNode, tone: ScreenHeaderTone): ReactNode {
   return subtitle;
 }
 
-export function HeaderBackLink({ href, label = "뒤로" }: { href: string; label?: string }) {
+export function HeaderBackLink({ href, label = "뒤로", onClick }: { href?: string; label?: string; onClick?: () => void }) {
+  if (onClick) {
+    return (
+      <IconButton variant="surface" label={label} onClick={onClick}>
+        <DailyIcon name="chevronLeft" size={20} />
+      </IconButton>
+    );
+  }
   return (
-    <IconLink href={href} label={label}>
+    <IconLink href={href || "#"} label={label}>
       <DailyIcon name="chevronLeft" size={20} />
     </IconLink>
   );
