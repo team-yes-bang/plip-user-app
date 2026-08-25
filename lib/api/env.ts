@@ -37,3 +37,9 @@ export function isVideoDestinationNotWiredFallbackEnabled(): boolean {
   }
   return true;
 }
+
+/** plip-chat REST/WS 원격 연동. 로컬 양방향 E2E 시 true */
+export function isEnableRemoteChatEnabled(): boolean {
+  const raw = process.env.ENABLE_REMOTE_CHAT?.trim().toLowerCase();
+  return raw === "true" || raw === "1" || raw === "on";
+}
