@@ -118,8 +118,6 @@ export function TopicGallerySection({
     );
   }
 
-  const paddedEmpty = videos.length === 0;
-
   return (
     <section
       className="relative h-full min-h-0 w-full overflow-hidden"
@@ -132,11 +130,7 @@ export function TopicGallerySection({
       onClickCapture={handleClickCapture}
     >
       {pageCount <= 1 ? (
-        <div
-          className={
-            paddedEmpty ? "flex h-full min-h-0 flex-col px-[23px] pb-6" : "flex h-full min-h-0 flex-col"
-          }
-        >
+        <div className="flex h-full min-h-0 flex-col">
           {renderPage(pages[0] ?? [], "topic-page-0")}
         </div>
       ) : (
