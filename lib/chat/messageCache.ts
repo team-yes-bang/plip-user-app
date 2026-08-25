@@ -2,24 +2,45 @@ import type { UiChatMessage } from "@/types/chat/ui";
 
 const STORAGE_PREFIX = "plip-chat-message:";
 
+type ParsedCacheEntry = {
+  raw: string;
+  message: UiChatMessage | null;
+};
+
+const parsedCache = new Map<string, ParsedCacheEntry>();
+
+function storageKey(messageId: string): string {
+  return `${STORAGE_PREFIX}${messageId}`;
+}
+
 export function cacheChatMessage(message: UiChatMessage): void {
   if (typeof window === "undefined") {
     return;
   }
-  sessionStorage.setItem(`${STORAGE_PREFIX}${message.id}`, JSON.stringify(message));
+  const raw = JSON.stringify(message);
+  sessionStorage.setItem(storageKey(message.id), raw);
+  parsedCache.set(message.id, { raw, message });
 }
 
 export function readCachedChatMessage(messageId: string): UiChatMessage | null {
   if (typeof window === "undefined") {
     return null;
   }
-  const raw = sessionStorage.getItem(`${STORAGE_PREFIX}${messageId}`);
+  const raw = sessionStorage.getItem(storageKey(messageId));
   if (!raw) {
+    parsedCache.delete(messageId);
     return null;
   }
+  const cached = parsedCache.get(messageId);
+  if (cached?.raw === raw) {
+    return cached.message;
+  }
   try {
-    return JSON.parse(raw) as UiChatMessage;
+    const message = JSON.parse(raw) as UiChatMessage;
+    parsedCache.set(messageId, { raw, message });
+    return message;
   } catch {
+    parsedCache.set(messageId, { raw, message: null });
     return null;
   }
 }
@@ -28,5 +49,6 @@ export function removeCachedChatMessage(messageId: string): void {
   if (typeof window === "undefined") {
     return;
   }
-  sessionStorage.removeItem(`${STORAGE_PREFIX}${messageId}`);
+  sessionStorage.removeItem(storageKey(messageId));
+  parsedCache.delete(messageId);
 }

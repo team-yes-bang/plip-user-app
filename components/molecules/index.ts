@@ -39,7 +39,6 @@ export {
 export { ExploreNav } from "./ExploreNav";
 export { TopicOption } from "./TopicOption";
 export { ChatBubble } from "./ChatBubble";
-export { ChatMemberRow } from "./ChatMemberRow";
 export { ChatMessageBody } from "./ChatMessageBody";
 export { ChatComposer } from "./ChatComposer";
 export { ChatPollCard } from "./ChatPollCard";

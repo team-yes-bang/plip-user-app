@@ -5,10 +5,8 @@ import {
   ChatComposer,
   ChatRoomMessage,
   HeaderBackLink,
-  HeaderMenuButton,
   ScreenHeader,
 } from "@/components/molecules";
-import { ChatMoreSheet } from "@/components/organisms/ChatMoreSheet";
 import { NotificationIconToggle } from "@/components/molecules/NotificationIconToggle";
 import { ROUTES } from "@/config/routes";
 import { useAgitChatSocket } from "@/hooks/useAgitChatSocket";
@@ -16,6 +14,11 @@ import { createLocalTalkMessage } from "@/lib/chat/createLocalMessage";
 import { formatChatDateLabel, isSameChatDay, isSameChatMessageGroup, shouldShowChatMessageTime } from "@/lib/chat/formatMessageTime";
 import { normalizeChatDraft } from "@/lib/chat/limits";
 import { mapApiChatMessage } from "@/lib/chat/mapMessage";
+import {
+  mergeChatMessages,
+  readRoomHistoryCache,
+  writeRoomHistoryCache,
+} from "@/lib/chat/roomHistoryCache";
 import type { ApiAgitDetailMember } from "@/types/agit/api";
 import type { UiAgit } from "@/types/agit/ui";
 import type { UiChatHistory, UiChatMessage } from "@/types/chat/ui";
@@ -31,16 +34,26 @@ type RoomChatSectionProps = {
 };
 
 function mergeMessages(existing: UiChatMessage[], incoming: UiChatMessage[]): UiChatMessage[] {
-  const map = new Map<string, UiChatMessage>();
-  for (const message of existing) {
-    map.set(message.id, message);
+  return mergeChatMessages(existing, incoming);
+}
+
+function resolveInitialHistory(
+  agitId: string,
+  initialHistory: UiChatHistory,
+  enableRemoteChat: boolean,
+): UiChatHistory {
+  if (!enableRemoteChat) {
+    return initialHistory;
   }
-  for (const message of incoming) {
-    map.set(message.id, message);
+  const cached = readRoomHistoryCache(agitId);
+  if (!cached) {
+    return initialHistory;
   }
-  return [...map.values()].sort(
-    (left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
-  );
+  return {
+    messages: mergeMessages(initialHistory.messages, cached.messages),
+    nextCursor: cached.nextCursor ?? initialHistory.nextCursor,
+    hasNext: cached.hasNext ?? initialHistory.hasNext,
+  };
 }
 
 function scrollToBottom(container: HTMLDivElement | null) {
@@ -58,15 +71,24 @@ export function RoomChatSection({
   enableRemoteChat = false,
   chatWsUrl,
 }: RoomChatSectionProps) {
+  const resolvedInitialHistory = resolveInitialHistory(agit.id, initialHistory, enableRemoteChat);
   const [notify, setNotify] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [draft, setDraft] = useState("");
-  const [messages, setMessages] = useState(initialHistory.messages);
-  const [nextCursor, setNextCursor] = useState(initialHistory.nextCursor);
-  const [hasNext, setHasNext] = useState(initialHistory.hasNext);
+  const [messages, setMessages] = useState(resolvedInitialHistory.messages);
+  const [nextCursor, setNextCursor] = useState(resolvedInitialHistory.nextCursor);
+  const [hasNext, setHasNext] = useState(resolvedInitialHistory.hasNext);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const shouldStickToBottomRef = useRef(true);
+  const messagesRef = useRef(messages);
+  const nextCursorRef = useRef(nextCursor);
+  const hasNextRef = useRef(hasNext);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+    nextCursorRef.current = nextCursor;
+    hasNextRef.current = hasNext;
+  }, [hasNext, messages, nextCursor]);
 
   const handleIncomingMessage = useCallback(
     (payload: Parameters<typeof mapApiChatMessage>[0]) => {
@@ -91,6 +113,38 @@ export function RoomChatSection({
     void markChatReadAction(agit.id);
     return () => {
       void markChatReadAction(agit.id);
+    };
+  }, [agit.id, enableRemoteChat]);
+
+  useEffect(() => {
+    if (!enableRemoteChat) {
+      return;
+    }
+    writeRoomHistoryCache(agit.id, { messages, nextCursor, hasNext });
+    return () => {
+      writeRoomHistoryCache(agit.id, {
+        messages: messagesRef.current,
+        nextCursor: nextCursorRef.current,
+        hasNext: hasNextRef.current,
+      });
+    };
+  }, [agit.id, enableRemoteChat, hasNext, messages, nextCursor]);
+
+  useEffect(() => {
+    if (!enableRemoteChat) {
+      return;
+    }
+    let cancelled = false;
+    void getChatHistoryAction(agit.id).then((result) => {
+      if (cancelled || !result.ok) {
+        return;
+      }
+      setMessages((current) => mergeMessages(current, result.data.messages));
+      setNextCursor(result.data.nextCursor);
+      setHasNext(result.data.hasNext);
+    });
+    return () => {
+      cancelled = true;
     };
   }, [agit.id, enableRemoteChat]);
 
@@ -191,10 +245,7 @@ export function RoomChatSection({
         title={agit.name}
         subtitle="채팅"
         trailing={
-          <>
-            <NotificationIconToggle checked={notify} label="채팅 알림" onChange={setNotify} />
-            <HeaderMenuButton label="더보기" expanded={menuOpen} onClick={() => setMenuOpen(true)} />
-          </>
+          <NotificationIconToggle checked={notify} label="채팅 알림" onChange={setNotify} />
         }
       />
 
@@ -239,14 +290,6 @@ export function RoomChatSection({
       <div className="shrink-0 pt-[8px]">
         <ChatComposer value={draft} onChange={setDraft} onSubmit={handleSend} />
       </div>
-
-      <ChatMoreSheet
-        agit={agit}
-        members={members}
-        currentUserUuid={currentUserUuid}
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-      />
     </section>
   );
 }
