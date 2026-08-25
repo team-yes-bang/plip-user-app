@@ -185,7 +185,7 @@ export function RecordCalendar({ agitId }: RecordCalendarProps) {
                   # {section.themeName} ({section.clipCount})
                 </span>
                 <div className="grid grid-cols-4 gap-2">
-                  {section.clips.map((clip) => (
+                  {(section.clips ?? []).map((clip) => (
                     <button
                       key={clip.id}
                       type="button"
