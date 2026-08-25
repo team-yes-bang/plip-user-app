@@ -1,7 +1,6 @@
 import * as agitApi from "@/lib/api/agitApi";
 import type {
   ApiAgitDetail,
-  ApiAgitDetailMember,
   ApiAgitLanding,
   ApiCreateAgitRequest,
   ApiCreateAgitResponse,
@@ -12,6 +11,8 @@ import type {
   ApiUpdateMyMemberProfileResponse,
 } from "@/types/agit/api";
 import type { UiAgit, UiCreateAgitInput } from "@/types/agit/ui";
+
+export { sortAgitMembers } from "@/lib/agit/sortMembers";
 
 const DEFAULT_COVER_GRADIENT = "linear-gradient(104deg, #2e1f52 0%, #7a5cfa 100%)";
 
@@ -61,20 +62,6 @@ function mapAgitDetail(item: ApiAgitDetail): UiAgit {
     joined: true,
     myRole: item.myRole,
   };
-}
-
-export function sortAgitMembers(
-  members: ApiAgitDetailMember[],
-  currentUserUuid?: string,
-): ApiAgitDetailMember[] {
-  return [...members].sort((a, b) => {
-    const rank = (member: ApiAgitDetailMember) => {
-      if (member.role === "HOST") return 0;
-      if (currentUserUuid && member.userUuid === currentUserUuid) return 1;
-      return 2;
-    };
-    return rank(a) - rank(b);
-  });
 }
 
 export async function listMyAgits(): Promise<UiAgit[]> {

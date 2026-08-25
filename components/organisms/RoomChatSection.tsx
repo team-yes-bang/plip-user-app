@@ -1,104 +1,293 @@
 "use client";
 
-import { DailyIcon } from "@/components/atoms";
-import { HeaderBackLink, HeaderMenuButton, ScreenHeader } from "@/components/molecules";
-import { ChatMoreSheet } from "@/components/organisms/ChatMoreSheet";
+import { getChatHistoryAction, markChatReadAction } from "@/actions/chatActions";
+import {
+  ChatComposer,
+  ChatRoomMessage,
+  ScreenHeader,
+} from "@/components/molecules";
 import { NotificationIconToggle } from "@/components/molecules/NotificationIconToggle";
 import { ROUTES } from "@/config/routes";
+import { useAgitChatSocket } from "@/hooks/useAgitChatSocket";
+import { createLocalTalkMessage } from "@/lib/chat/createLocalMessage";
+import { formatChatDateLabel, isSameChatDay, isSameChatMessageGroup, shouldShowChatMessageTime } from "@/lib/chat/formatMessageTime";
+import { normalizeChatDraft } from "@/lib/chat/limits";
+import { mapApiChatMessage } from "@/lib/chat/mapMessage";
+import {
+  mergeChatMessages,
+  readRoomHistoryCache,
+  writeRoomHistoryCache,
+} from "@/lib/chat/roomHistoryCache";
+import type { ApiAgitDetailMember } from "@/types/agit/api";
 import type { UiAgit } from "@/types/agit/ui";
-import { useState } from "react";
-
-type ChatLine = {
-  id: string;
-  direction: "incoming" | "outgoing";
-  sender: string;
-  body: string;
-  time: string;
-};
-
-const MOCK_MESSAGES: ChatLine[] = [
-  { id: "m1", direction: "incoming", sender: "지민", body: "내일 토픽은 러닝 인증으로 할까요?", time: "오후 9:14" },
-  { id: "m2", direction: "outgoing", sender: "나", body: "좋아요. 러닝 토픽으로 이어갈게요!", time: "오후 9:15" },
-  { id: "m3", direction: "incoming", sender: "민지", body: "오늘 토픽은 러닝으로 이어갈까요?", time: "07:18" },
-  { id: "m4", direction: "outgoing", sender: "나", body: "좋아요. 촬영 후 바로 올릴게요!", time: "07:19" },
-];
+import type { UiChatHistory, UiChatMessage } from "@/types/chat/ui";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type RoomChatSectionProps = {
   agit: UiAgit;
+  initialHistory: UiChatHistory;
+  members: ApiAgitDetailMember[];
+  currentUserUuid?: string;
+  enableRemoteChat?: boolean;
+  chatWsUrl?: string;
 };
 
-export function RoomChatSection({ agit }: RoomChatSectionProps) {
+function mergeMessages(existing: UiChatMessage[], incoming: UiChatMessage[]): UiChatMessage[] {
+  return mergeChatMessages(existing, incoming);
+}
+
+function resolveInitialHistory(
+  agitId: string,
+  initialHistory: UiChatHistory,
+  enableRemoteChat: boolean,
+): UiChatHistory {
+  if (!enableRemoteChat) {
+    return initialHistory;
+  }
+  const cached = readRoomHistoryCache(agitId);
+  if (!cached) {
+    return initialHistory;
+  }
+  return {
+    messages: mergeMessages(initialHistory.messages, cached.messages),
+    nextCursor: cached.nextCursor ?? initialHistory.nextCursor,
+    hasNext: cached.hasNext ?? initialHistory.hasNext,
+  };
+}
+
+function scrollToBottom(container: HTMLDivElement | null) {
+  if (!container) {
+    return;
+  }
+  container.scrollTop = container.scrollHeight;
+}
+
+export function RoomChatSection({
+  agit,
+  initialHistory,
+  members,
+  currentUserUuid,
+  enableRemoteChat = false,
+  chatWsUrl,
+}: RoomChatSectionProps) {
+  const resolvedInitialHistory = resolveInitialHistory(agit.id, initialHistory, enableRemoteChat);
   const [notify, setNotify] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [draft, setDraft] = useState("");
+  const [messages, setMessages] = useState(resolvedInitialHistory.messages);
+  const [nextCursor, setNextCursor] = useState(resolvedInitialHistory.nextCursor);
+  const [hasNext, setHasNext] = useState(resolvedInitialHistory.hasNext);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  const shouldStickToBottomRef = useRef(true);
+  const messagesRef = useRef(messages);
+  const nextCursorRef = useRef(nextCursor);
+  const hasNextRef = useRef(hasNext);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+    nextCursorRef.current = nextCursor;
+    hasNextRef.current = hasNext;
+  }, [hasNext, messages, nextCursor]);
+
+  const handleIncomingMessage = useCallback(
+    (payload: Parameters<typeof mapApiChatMessage>[0]) => {
+      const mapped = mapApiChatMessage(payload, members, currentUserUuid);
+      setMessages((current) => mergeMessages(current, [mapped]));
+    },
+    [currentUserUuid, members],
+  );
+
+  const { sendMessage: sendRemoteMessage } = useAgitChatSocket({
+    agitUuid: agit.id,
+    userUuid: currentUserUuid ?? "",
+    wsUrl: chatWsUrl ?? "",
+    enabled: enableRemoteChat && Boolean(currentUserUuid && chatWsUrl),
+    onMessage: handleIncomingMessage,
+  });
+
+  useEffect(() => {
+    if (!enableRemoteChat) {
+      return;
+    }
+    void markChatReadAction(agit.id);
+    return () => {
+      void markChatReadAction(agit.id);
+    };
+  }, [agit.id, enableRemoteChat]);
+
+  useEffect(() => {
+    if (!enableRemoteChat) {
+      return;
+    }
+    writeRoomHistoryCache(agit.id, { messages, nextCursor, hasNext });
+    return () => {
+      writeRoomHistoryCache(agit.id, {
+        messages: messagesRef.current,
+        nextCursor: nextCursorRef.current,
+        hasNext: hasNextRef.current,
+      });
+    };
+  }, [agit.id, enableRemoteChat, hasNext, messages, nextCursor]);
+
+  useEffect(() => {
+    if (!enableRemoteChat) {
+      return;
+    }
+    let cancelled = false;
+    void getChatHistoryAction(agit.id).then((result) => {
+      if (cancelled || !result.ok) {
+        return;
+      }
+      setMessages((current) => mergeMessages(current, result.data.messages));
+      setNextCursor(result.data.nextCursor);
+      setHasNext(result.data.hasNext);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [agit.id, enableRemoteChat]);
+
+  useEffect(() => {
+    if (!shouldStickToBottomRef.current) {
+      return;
+    }
+    scrollToBottom(listRef.current);
+  }, [messages]);
+
+  const loadOlderMessages = useCallback(async () => {
+    if (!enableRemoteChat || !hasNext || !nextCursor || loadingOlder) {
+      return;
+    }
+    setLoadingOlder(true);
+    const result = await getChatHistoryAction(agit.id, {
+      cursorCreatedAt: nextCursor.createdAt,
+      cursorId: nextCursor.id,
+    });
+    setLoadingOlder(false);
+    if (!result.ok) {
+      return;
+    }
+    const container = listRef.current;
+    const previousHeight = container?.scrollHeight ?? 0;
+    setMessages((current) => mergeMessages(result.data.messages, current));
+    setNextCursor(result.data.nextCursor);
+    setHasNext(result.data.hasNext);
+    requestAnimationFrame(() => {
+      if (!container) {
+        return;
+      }
+      container.scrollTop = container.scrollHeight - previousHeight;
+    });
+  }, [agit.id, enableRemoteChat, hasNext, loadingOlder, nextCursor]);
+
+  const handleScroll = useCallback(() => {
+    const container = listRef.current;
+    if (!container) {
+      return;
+    }
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    shouldStickToBottomRef.current = distanceFromBottom < 80;
+    if (enableRemoteChat && container.scrollTop < 48) {
+      void loadOlderMessages();
+    }
+  }, [enableRemoteChat, loadOlderMessages]);
+
+  const renderedMessages = useMemo(
+    () =>
+      messages.map((message, index) => {
+        const previous = index > 0 ? messages[index - 1] : null;
+        const next = index < messages.length - 1 ? messages[index + 1] : null;
+        const showDateLabel = !previous || !isSameChatDay(previous.createdAt, message.createdAt);
+        const isGroupedWithPrevious = Boolean(
+          previous && !showDateLabel && isSameChatMessageGroup(message, previous),
+        );
+        return {
+          message,
+          dateLabel: showDateLabel ? formatChatDateLabel(message.createdAt) : null,
+          showTimeLabel: shouldShowChatMessageTime(message, next),
+          isGroupedWithPrevious,
+        };
+      }),
+    [messages],
+  );
+
+  const handleSend = useCallback(() => {
+    const content = normalizeChatDraft(draft);
+    if (!content) {
+      return;
+    }
+
+    if (enableRemoteChat) {
+      const sent = sendRemoteMessage(content);
+      if (!sent) {
+        return;
+      }
+    } else {
+      const localMessage = createLocalTalkMessage(agit.id, content, currentUserUuid);
+      setMessages((current) => mergeMessages(current, [localMessage]));
+    }
+
+    shouldStickToBottomRef.current = true;
+    setDraft("");
+    requestAnimationFrame(() => scrollToBottom(listRef.current));
+  }, [agit.id, currentUserUuid, draft, enableRemoteChat, sendRemoteMessage]);
 
   return (
-    <section className="flex min-h-[calc(100dvh_-_80px)] flex-col p-[12px_23px_16px]" aria-label="아지트 채팅">
+    <section
+      className="flex h-full min-h-0 flex-col overflow-hidden p-[12px_24px_16px]"
+      aria-label="아지트 채팅"
+    >
       <ScreenHeader
-        tone="plain"
-        leading={<HeaderBackLink href={ROUTES.agit.detail(agit.id)} />}
+        className="shrink-0"
+        backHref={ROUTES.agit.detail(agit.id)}
         title={agit.name}
-        subtitle={`채팅 · 알림 ${notify ? "켜짐" : "꺼짐"}`}
+        subtitle="채팅"
         trailing={
-          <>
-            <NotificationIconToggle checked={notify} label="채팅 알림" onChange={setNotify} />
-            <HeaderMenuButton label="더보기" expanded={menuOpen} onClick={() => setMenuOpen(true)} />
-          </>
+          <NotificationIconToggle checked={notify} label="채팅 알림" onChange={setNotify} />
         }
       />
 
-      <p className="m-[16px_0_8px] text-center text-xs font-medium text-[#7a758f]">오늘</p>
-
-      <div className="flex flex-1 flex-col gap-[18px] overflow-y-auto">
-        {MOCK_MESSAGES.map((message) =>
-          message.direction === "incoming" ? (
-            <article key={message.id} className="flex gap-2">
-              <span className="size-9 shrink-0 rounded-full bg-[linear-gradient(135deg,#6b4af5_0%,#fc8c6e_100%)]" aria-hidden />
-              <div className="flex max-w-[276px] flex-col gap-1">
-                <p className="m-0 text-xs font-medium text-[var(--dl-color-text-secondary)]">{message.sender}</p>
-                <p className="m-0 rounded-2xl bg-[var(--dl-color-bg-surface)] px-3 py-2.5 text-sm leading-5 text-[var(--dl-color-text-primary)]">{message.body}</p>
-                <p className="m-0 text-[11px] text-[var(--dl-color-text-tertiary)]">{message.time}</p>
-              </div>
-            </article>
-          ) : (
-            <article key={message.id} className="flex justify-end gap-2">
-              <div className="flex max-w-[276px] flex-col items-end gap-1">
-                <p className="m-0 rounded-2xl bg-[var(--dl-color-bg-brand)] px-3 py-2.5 text-sm leading-5 text-[var(--dl-color-text-inverse)]">{message.body}</p>
-                <p className="m-0 text-[11px] text-[var(--dl-color-text-tertiary)]">{message.time}</p>
-              </div>
-            </article>
-          ),
+      <div
+        ref={listRef}
+        className="mt-[8px] min-h-0 flex-1 overflow-y-auto"
+        onScroll={handleScroll}
+      >
+        <div className="flex flex-col">
+        {loadingOlder ? (
+          <p className="m-0 text-center text-xs text-[var(--dl-color-text-tertiary)]">
+            이전 메시지 불러오는 중
+          </p>
+        ) : null}
+        {renderedMessages.length === 0 ? (
+          <p className="m-[24px_0] text-center text-sm text-[var(--dl-color-text-secondary)]">
+            메시지를 입력해 대화를 시작하세요.
+          </p>
+        ) : (
+          renderedMessages.map(({ message, dateLabel, showTimeLabel, isGroupedWithPrevious }, index) => (
+            <div
+              key={message.id}
+              className={isGroupedWithPrevious ? "mt-1" : index === 0 ? "" : "mt-[18px]"}
+            >
+              {dateLabel ? (
+                <p className="m-[8px_0_18px] text-center text-xs font-medium text-[var(--dl-color-text-tertiary)]">
+                  {dateLabel}
+                </p>
+              ) : null}
+              <ChatRoomMessage
+                agitId={agit.id}
+                message={message}
+                showTimeLabel={showTimeLabel}
+                compact={isGroupedWithPrevious}
+              />
+            </div>
+          ))
         )}
+        </div>
       </div>
 
-      <form
-        className="flex items-center gap-[8px] min-h-[60px] mt-[12px] p-[8px_8px_8px_14px] rounded-[18px] bg-[var(--dl-color-bg-brand-subtle)]"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setDraft("");
-        }}
-      >
-        <input
-          className="flex-1 border-0 bg-[transparent] text-[13px] text-[var(--dl-color-text-primary)] [outline:none] placeholder:text-[var(--dl-color-text-tertiary)]"
-          value={draft}
-          placeholder="메시지를 입력하세요"
-          aria-label="메시지 입력"
-          onChange={(event) => setDraft(event.target.value)}
-        />
-        <button type="submit" className="grid w-[44px] h-[44px] shrink-0 place-items-center rounded-[var(--dl-radius-md)] bg-[var(--dl-color-bg-surface)]" aria-label="전송">
-          <DailyIcon name="upload" size={20} />
-        </button>
-      </form>
-
-      <ChatMoreSheet
-        agitId={agit.id}
-        open={menuOpen}
-        notify={notify}
-        myRole={agit.myRole}
-        onClose={() => setMenuOpen(false)}
-        onToggleNotify={() => setNotify((current) => !current)}
-      />
+      <div className="shrink-0 pt-[8px]">
+        <ChatComposer value={draft} onChange={setDraft} onSubmit={handleSend} />
+      </div>
     </section>
   );
 }
-

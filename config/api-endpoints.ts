@@ -68,6 +68,10 @@ export const API_ENDPOINTS = {
     videoUnbind: (diaryVideoId: string) =>
       gatewayPath("diary", `/api/v1/diaries/videos/${diaryVideoId}`),
   },
+  chat: {
+    messages: (agitUuid: string) => gatewayPath("chat", `/api/v1/agits/${agitUuid}/messages`),
+    read: (agitUuid: string) => gatewayPath("chat", `/api/v1/agits/${agitUuid}/read`),
+  },
   video: {
     uploadUrl: gatewayPath("video", "/api/v1/videos/upload-url"),
     complete: (videoUuid: string) =>

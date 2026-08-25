@@ -57,7 +57,7 @@ export type UiAgitTopic = {
   clipCount: number;
 };
 
-export type UiChatMessage = {
+export type UiCardChatMessage = {
   id: string;
   senderName: string;
   body: string;

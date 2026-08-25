@@ -1,7 +1,7 @@
-import type { UiChatMessage } from "@/types/agit/ui";
+import type { UiCardChatMessage } from "@/types/agit/ui";
 
 type ChatBubbleProps = {
-  message: UiChatMessage;
+  message: UiCardChatMessage;
 };
 
 export function ChatBubble({ message }: ChatBubbleProps) {

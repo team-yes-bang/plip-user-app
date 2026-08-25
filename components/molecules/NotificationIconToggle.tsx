@@ -1,7 +1,6 @@
 "use client";
-import leftoverStyles from "@/components/styles/leftover.module.css";
 
-import { DailyIcon } from "@/components/atoms";
+import { Bell, BellOff } from "lucide-react";
 
 type NotificationIconToggleProps = {
   checked: boolean;
@@ -16,16 +15,23 @@ export function NotificationIconToggle({
   label,
   size = 20,
 }: NotificationIconToggleProps) {
+  const Icon = checked ? Bell : BellOff;
+
   return (
     <button
       type="button"
-      className={`grid size-11 shrink-0 place-items-center rounded-[var(--dl-radius-md)] bg-[var(--dl-color-bg-surface)] ${leftoverStyles.dlIconSqNotify} ${checked ? leftoverStyles.isOn : ""}`}
+      className="grid size-11 shrink-0 place-items-center rounded-[var(--dl-radius-md)] bg-[var(--dl-color-bg-surface)]"
       aria-label={label}
       aria-pressed={checked}
       title={checked ? `${label} 끄기` : `${label} 켜기`}
       onClick={() => onChange(!checked)}
     >
-      <DailyIcon name="bell" size={size} />
+      <Icon
+        className="text-[var(--dl-color-text-primary)]"
+        size={size}
+        strokeWidth={2}
+        aria-hidden
+      />
     </button>
   );
 }

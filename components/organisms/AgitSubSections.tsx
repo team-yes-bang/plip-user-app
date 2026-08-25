@@ -1,6 +1,5 @@
 import { TextLink } from "@/components/atoms";
 import { HeaderBackLink, ScreenHeader } from "@/components/molecules";
-import { RoomChatSection } from "@/components/organisms/RoomChatSection";
 import { AGIT_MEMBERS, AGIT_TOPICS, getAgitById } from "@/config/agit-mock";
 import { ROUTES } from "@/config/routes";
 
@@ -72,12 +71,6 @@ export function AgitTopicsSection({ agitId }: AgitIdProps) {
       ))}
     </section>
   );
-}
-
-export function AgitChatSection({ agitId }: AgitIdProps) {
-  const agit = getAgitById(agitId);
-  if (!agit) return null;
-  return <RoomChatSection agit={agit} />;
 }
 
 export function AgitSearchSection() {

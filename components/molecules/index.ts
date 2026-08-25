@@ -90,9 +90,12 @@ export { ThumbnailUpload } from "./ThumbnailUpload";
 
 // --- 7. Chat, Social & Member Molecules ---
 export { ChatBubble } from "./ChatBubble";
+export { ChatComposer } from "./ChatComposer";
+export { ChatMessageBody } from "./ChatMessageBody";
+export { ChatRoomMessage } from "./ChatRoomMessage";
 export { ChatPollCard } from "./ChatPollCard";
 export { PollChoiceRow } from "./PollChoiceRow";
+export { SystemMessageRow } from "./SystemMessageRow";
 export { MemberManageRow } from "./MemberManageRow";
 export { ProfileOption } from "./ProfileOption";
 export { UserProfileBadge } from "./UserProfileBadge";
-
