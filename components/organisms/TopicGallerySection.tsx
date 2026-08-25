@@ -98,6 +98,7 @@ export function TopicGallerySection({
       authorProfileUrl: v.profileImageSrc,
       uploadedAt: v.uploadedAt,
       thumbnailUrl: v.thumbnailSrc,
+      rawPlaybackUrl: v.rawPlaybackUrl,
       topicName: topicTitle,
       agitName: agitName,
     }));

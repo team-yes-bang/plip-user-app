@@ -50,6 +50,7 @@ async function mapTopicVideo(
       profileNickname: profile.nickname,
       uploadedAt: detail.createdAt.toISOString(),
       caption: detail.caption?.trim() ?? "",
+      rawPlaybackUrl: detail.rawPlaybackUrl,
     };
   } catch {
     return {
