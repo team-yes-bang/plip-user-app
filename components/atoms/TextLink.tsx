@@ -8,7 +8,7 @@ export function TextLink({ className = "", children, ...props }: TextLinkProps) 
   return (
     <Link
       className={cn(
-        "text-sm text-zinc-600 underline-offset-2 hover:underline dark:text-zinc-400",
+        "text-sm text-zinc-600",
         className,
       )}
       {...props}
