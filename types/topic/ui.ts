@@ -5,6 +5,7 @@ export type UiTopicVideo = {
   profileNickname: string;
   uploadedAt: string;
   caption: string;
+  rawPlaybackUrl?: string;
 };
 
 export type UiTopic = {

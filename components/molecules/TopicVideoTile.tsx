@@ -12,10 +12,22 @@ type TopicVideoTileProps = {
 export function TopicVideoTile({ video, onSelect }: TopicVideoTileProps) {
   const body = (
     <>
-      <VideoClipThumbnail
-        src={video.thumbnailSrc}
-        className="absolute inset-0 size-full object-cover"
-      />
+      {video.rawPlaybackUrl ? (
+        <video
+          src={video.rawPlaybackUrl}
+          poster={video.thumbnailSrc}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 size-full object-cover"
+        />
+      ) : (
+        <VideoClipThumbnail
+          src={video.thumbnailSrc}
+          className="absolute inset-0 size-full object-cover"
+        />
+      )}
       <span
         className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.28)_0%,transparent_22%,transparent_55%,rgba(0,0,0,0.48)_100%)]"
         aria-hidden

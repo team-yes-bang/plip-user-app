@@ -75,3 +75,5 @@ export { SocialLoginSection } from "./SocialLoginSection";
 export { SwitchField } from "./SwitchField";
 export { ThemePreviewStrip } from "./ThemePreviewStrip";
 export { VideoThumbnailGrid } from "./VideoThumbnailGrid";
+export { UserProfileBadge } from "./UserProfileBadge";
+

@@ -23,6 +23,8 @@ type TopicGallerySectionProps = {
   videos: UiTopicVideo[];
   captureHref: string;
   showCaptureSlot?: boolean;
+  topicTitle?: string;
+  agitName?: string;
   onSelectVideo?: (videoId: string) => void;
 };
 
@@ -30,6 +32,8 @@ export function TopicGallerySection({
   videos,
   captureHref,
   showCaptureSlot = false,
+  topicTitle,
+  agitName,
   onSelectVideo,
 }: TopicGallerySectionProps) {
   const items = useMemo<GalleryPageItem[]>(
@@ -91,8 +95,12 @@ export function TopicGallerySection({
       videoUuid: v.id,
       title: v.caption || "토픽 클립",
       authorName: v.profileNickname,
+      authorProfileUrl: v.profileImageSrc,
       uploadedAt: v.uploadedAt,
       thumbnailUrl: v.thumbnailSrc,
+      rawPlaybackUrl: v.rawPlaybackUrl,
+      topicName: topicTitle,
+      agitName: agitName,
     }));
     openViewer(videoId, formattedList, "agit");
   }

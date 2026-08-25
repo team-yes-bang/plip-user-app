@@ -35,5 +35,7 @@ export { Switch } from "./Switch";
 export { Text } from "./Text";
 export { TextLink } from "./TextLink";
 export { UserAvatar } from "./UserAvatar";
+export { UserProfileAvatar } from "./UserProfileAvatar";
 export { ThemeChip } from "./ThemeChip";
 export { VideoThumbnail } from "./VideoThumbnail";
+
