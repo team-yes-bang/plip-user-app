@@ -46,7 +46,7 @@ export function AppChromeTemplate({
 
   return (
     <div className={`${shellClass} ${className}`.trim()}>
-      <div className={`flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden ${showNav ? "pb-[80px]" : ""}`}>
+      <div className={`flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden ${showNav ? "pb-[calc(80px+env(safe-area-inset-bottom,0px))]" : ""}`}>
         {header}
         <main
           className={`flex min-h-0 w-full flex-1 flex-col ${mainOverflow === "hidden" ? "overflow-hidden" : "overflow-y-auto"} ${paddingClass} ${contentClassName}`.trim()}

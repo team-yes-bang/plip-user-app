@@ -63,34 +63,63 @@ export function BottomNavigation({
 
   return (
     <LayoutGroup id="app-bottom-nav">
-      <nav
-        aria-label="주 메뉴"
-        className="absolute inset-x-0 bottom-0 z-30 flex h-[80px] shrink-0 items-center justify-between border-t border-[var(--dl-color-border-default)] bg-[var(--dl-color-bg-elevated)] p-[6px_16px]"
-        onMouseLeave={() => setHoveredId(null)}
-      >
-        {NAV_ITEMS.map((item) => {
-          const isActive = active === item.id;
-          const isHovered = hoveredId === item.id;
+      <div className="absolute inset-x-0 bottom-0 z-30 h-[calc(80px+env(safe-area-inset-bottom,0px))] w-full pointer-events-none overflow-visible">
+        <nav
+          aria-label="주 메뉴"
+          className="pointer-events-auto relative flex h-full w-full items-center justify-between border-t border-black/5 dark:border-white/10 bg-[var(--dl-color-bg-elevated)] px-4 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom,0px))] overflow-visible"
+          onMouseLeave={() => setHoveredId(null)}
+        >
+          {NAV_ITEMS.map((item) => {
+            const isActive = active === item.id;
+            const isHovered = hoveredId === item.id;
 
-          if (item.create) {
-            return (
-              <TextLink
-                key={item.id}
-                href={item.href}
-                aria-label={item.label}
-                className="relative z-10 flex h-16 w-16 flex-col items-center justify-center gap-1 text-[var(--dl-color-text-tertiary)] !no-underline"
-                onMouseEnter={() => setHoveredId(item.id)}
-                onFocus={() => setHoveredId(item.id)}
-              >
-                <span className="grid size-10 place-items-center rounded-full bg-[var(--dl-color-bg-brand)]">
-                  {item.icon}
-                </span>
-                <span className="text-[11px] font-medium leading-[14px] whitespace-nowrap">
-                  {item.label}
-                </span>
-              </TextLink>
-            );
-          }
+            if (item.create) {
+              return (
+                <div
+                  key={item.id}
+                  className="relative z-20 flex h-16 w-16 items-center justify-center overflow-visible"
+                  onMouseEnter={() => setHoveredId(item.id)}
+                  onFocus={() => setHoveredId(item.id)}
+                >
+                  {/* 1. Active Indicator */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="bottom-nav-active-pill"
+                      className="absolute -inset-x-1 inset-y-0 z-0 rounded-2xl bg-gradient-to-b from-[var(--dl-color-bg-brand-subtle)]/90 via-[var(--dl-color-bg-brand-subtle)] to-[var(--dl-color-bg-brand-subtle)]/60 border border-[var(--dl-color-border-brand)]/10 shadow-[0_2px_12px_rgba(79,70,229,0.12)] transition-colors duration-300 pointer-events-none"
+                      transition={{
+                        type: "spring",
+                        stiffness: 350,
+                        damping: 28,
+                      }}
+                    />
+                  )}
+
+                  {/* 2. Hover Indicator */}
+                  {isHovered && !isActive && (
+                    <motion.div
+                      layoutId="bottom-nav-hover-pill"
+                      className="absolute -inset-x-1 inset-y-0 z-0 rounded-2xl bg-gradient-to-b from-gray-100/90 to-gray-50/50 dark:from-white/10 dark:to-white/5 transition-colors duration-300 pointer-events-none"
+                      transition={{
+                        type: "spring",
+                        stiffness: 350,
+                        damping: 28,
+                      }}
+                    />
+                  )}
+
+                  <TextLink
+                    href={item.href}
+                    aria-label={item.label}
+                    className="relative z-10 flex items-center justify-center !no-underline overflow-visible group"
+                  >
+                    {/* 상단은 솟아오르고(-40px), 좌우 섀도우도 뚫려있으며(-30px), 하단만 독 바운더리(0px)에 맞춘 3D 카메라 버튼 */}
+                    <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 grid size-[84px] place-items-center rounded-full bg-[linear-gradient(145deg,var(--dl-color-bg-brand),#3b82f6)] ring-4 ring-white/20 shadow-[0_-6px_20px_rgba(79,70,229,0.4)] [clip-path:inset(-40px_-30px_0px_-30px)] transition-all duration-200 group-hover:scale-105 group-hover:ring-white/40 group-hover:shadow-[0_-8px_25px_rgba(79,70,229,0.6)] group-active:scale-95">
+                      <Camera className="size-9 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform duration-200 group-hover:scale-110" strokeWidth={2.2} />
+                    </span>
+                  </TextLink>
+                </div>
+              );
+            }
 
           return (
             <TextLink
@@ -98,14 +127,14 @@ export function BottomNavigation({
               href={item.href}
               aria-label={item.label}
               aria-current={isActive ? "page" : undefined}
-              className={`relative flex h-16 w-16 flex-col items-center justify-center gap-1 !no-underline transition-colors ${isActive
+              className={`relative z-10 flex h-16 w-16 flex-col items-center justify-center gap-1 !no-underline transition-colors ${isActive
                 ? "font-bold text-[var(--dl-color-text-brand)]"
                 : "text-[var(--dl-color-text-tertiary)] hover:text-[var(--dl-color-text-primary)]"
                 }`}
               onMouseEnter={() => setHoveredId(item.id)}
               onFocus={() => setHoveredId(item.id)}
             >
-              {/* 1. Active Indicator (외곽에 은은한 그라데이션이 들어간 둥근 사각형 슬라이딩) */}
+              {/* 1. Active Indicator */}
               {isActive && (
                 <motion.div
                   layoutId="bottom-nav-active-pill"
@@ -118,7 +147,7 @@ export function BottomNavigation({
                 />
               )}
 
-              {/* 2. Hover Indicator (호버 시 은은한 소프트 그라데이션 및 칼라 트랜지션) */}
+              {/* 2. Hover Indicator */}
               {isHovered && !isActive && (
                 <motion.div
                   layoutId="bottom-nav-hover-pill"
@@ -131,7 +160,7 @@ export function BottomNavigation({
                 />
               )}
 
-              {/* 아이콘 및 라벨 (z-10) */}
+              {/* 아이콘 및 라벨 */}
               <span className="relative z-10 flex flex-col items-center justify-center gap-1 transition-colors duration-300">
                 {item.icon}
                 <span className="text-[11px] font-medium leading-[14px] whitespace-nowrap transition-colors duration-300">
@@ -142,6 +171,7 @@ export function BottomNavigation({
           );
         })}
       </nav>
+    </div>
     </LayoutGroup>
   );
 }

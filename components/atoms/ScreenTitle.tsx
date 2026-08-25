@@ -8,7 +8,7 @@ type ScreenTitleProps = {
 
 export function ScreenTitle({ children, className }: ScreenTitleProps) {
   return (
-    <h1 className={cn("m-0 text-[22px] font-bold leading-[27px] text-[var(--dl-color-text-primary)]", className)}>
+    <h1 className={cn("m-0 text-[22px] font-bold leading-[27px] font-[family-name:var(--font-title)] text-[var(--dl-color-text-primary)]", className)}>
       {children}
     </h1>
   );

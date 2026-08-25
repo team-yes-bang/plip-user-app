@@ -1,6 +1,6 @@
 "use client";
 
-import { TextLink } from "@/components/atoms";
+import { IconButton, TextLink } from "@/components/atoms";
 import { ROUTES } from "@/config/routes";
 import type { UiDiaryTheme } from "@/types/diary/ui";
 import { Pencil, Plus } from "lucide-react";
@@ -77,9 +77,15 @@ export function DiaryThemeAddCard({ onClick }: DiaryThemeAddCardProps) {
       className="flex aspect-[1/1.22] w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-[18px] border border-dashed border-[var(--dl-color-border-brand)] bg-[linear-gradient(135deg,rgba(247,244,255,0.85),rgba(255,255,255,0.95))] p-4 shadow-[0_8px_24px_rgba(23,_23,_28,_0.03)] transition-all hover:bg-[var(--dl-color-bg-brand-subtle)] hover:shadow-xs"
       aria-label="새 테마 추가"
     >
-      <span className="grid size-10 place-items-center rounded-xl bg-[var(--dl-color-bg-brand)] text-white shadow-xs">
+      <IconButton
+        variant="brand"
+        size="md"
+        label="새 테마 추가"
+        tabIndex={-1}
+        className="pointer-events-none rounded-xl"
+      >
         <Plus className="size-5 stroke-[2.5]" />
-      </span>
+      </IconButton>
       <span className="text-xs font-bold text-[var(--dl-color-text-brand)]">테마 추가</span>
     </button>
   );

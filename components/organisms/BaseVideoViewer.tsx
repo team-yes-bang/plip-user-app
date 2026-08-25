@@ -151,7 +151,7 @@ export function BaseVideoViewer({
         titleAlign="center"
         leading={
           <FeedPillIconButton label="닫기" onClick={() => onClose?.()}>
-            <DailyIcon name="chevronLeft" size={16} className="brightness-0 invert" />
+            <DailyIcon name="chevronLeft" size={20} className="brightness-0 invert" />
           </FeedPillIconButton>
         }
         title={headerTitle ?? currentItem.topicName ?? currentItem.title ?? "오늘의 영상"}

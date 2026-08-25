@@ -43,7 +43,7 @@ export function AgitVideoViewer({
         headerSubtitle={agitName}
         headerTrailing={
           <FeedPillIconButton label="더보기" onClick={() => setActionsOpen(true)}>
-            <DailyIcon name="ellipsis" size={16} className="brightness-0 invert" />
+            <DailyIcon name="ellipsis" size={20} className="brightness-0 invert" />
           </FeedPillIconButton>
         }
         overlayChildren={({ currentItem: item, currentDetail }: BaseVideoViewerOverlayProps) => (
@@ -58,8 +58,8 @@ export function AgitVideoViewer({
             {/* 우측 이모지 리액션 바 */}
             <VideoReactionBar />
 
-            {/* 하단 오버레이: 좌측 작성자 아토믹 뱃지 / 우측 정규화된 날짜 */}
-            <div className="relative z-10 mt-auto flex items-end justify-between px-6 pb-12 text-white pointer-events-none">
+            {/* 하단 오버레이: 좌측 작성자 아토믹 뱃지 / 우측 정규화된 날짜 (세로 정중앙 맞춤) */}
+            <div className="relative z-10 mt-auto flex items-center justify-between px-6 pb-12 text-white pointer-events-none">
               <UserProfileBadge
                 profileUrl={item.authorProfileUrl}
                 nickname={item.authorName || "작성자"}

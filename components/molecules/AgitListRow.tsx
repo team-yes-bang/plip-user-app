@@ -14,7 +14,7 @@ function topicBadgeLabel(topicSummary: string) {
 }
 
 const ACTION_CLASS =
-  "relative grid h-[40px] w-[40px] place-items-center rounded-[12px] border border-[var(--dl-color-border-default)] bg-[var(--dl-color-bg-elevated)] text-[var(--dl-color-text-primary)] no-underline";
+  "relative grid h-[40px] w-[40px] place-items-center rounded-[12px] border border-[var(--dl-color-border-default)] bg-[var(--dl-color-bg-elevated)] text-[var(--dl-color-text-primary)] no-underline transition-all duration-300 hover:border-[var(--dl-color-border-brand)]/40 hover:bg-gradient-to-b hover:from-[var(--dl-color-bg-brand-subtle)]/60 hover:to-[var(--dl-color-bg-elevated)] hover:text-[var(--dl-color-text-brand)] hover:shadow-[0_2px_12px_rgba(79,70,229,0.12)]";
 
 export function AgitListRow({ agit }: AgitListRowProps) {
   return (

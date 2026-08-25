@@ -20,7 +20,7 @@ export function DiaryThemeDetailTemplate({
   error,
 }: DiaryThemeDetailTemplateProps) {
   return (
-    <DiaryTemplate>
+    <DiaryTemplate fixedMain>
       <DiaryThemeDetailSection
         themeId={themeId}
         themeName={themeName}

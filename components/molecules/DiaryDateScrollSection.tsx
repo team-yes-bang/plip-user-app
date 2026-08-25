@@ -1,4 +1,4 @@
-import { TextLink } from "@/components/atoms";
+import { IconButton, TextLink } from "@/components/atoms";
 import { Card } from "@/components/ui/card";
 import { formatDiaryDate, formatDiaryWeekday } from "@/config/diary-mock";
 import { ROUTES } from "@/config/routes";
@@ -34,16 +34,22 @@ export function DiaryDateScrollSection({ entry, className }: DiaryDateScrollSect
 
 
       <TextLink href={href} className="block min-h-0 flex-1 no-underline">
-        <Card className="flex h-full min-h-0 flex-col overflow-hidden border-0 p-0 shadow-none ring-1 ring-black/5">
+        <Card className="flex h-full min-h-0 flex-col overflow-hidden border-0 p-0 shadow-none ring-0">
           {isEmpty ? (
-            <div className="flex h-full min-h-0 flex-1 flex-col items-center justify-center gap-2 bg-secondary text-muted-foreground">
-              <span className="grid size-10 place-items-center rounded-full bg-white shadow-sm ring-1 ring-black/5">
-                <Plus className="size-5 text-primary" />
-              </span>
-              <span className="text-xs font-semibold">다이어리 기록</span>
+            <div className="flex h-full min-h-0 min-h-[96px] flex-1 flex-col items-center justify-center gap-2 rounded-[18px] border border-dashed border-[var(--dl-color-border-brand)] bg-[linear-gradient(135deg,rgba(247,244,255,0.85),rgba(255,255,255,0.95))] p-4 shadow-[0_8px_24px_rgba(23,_23,_28,_0.03)] transition-all hover:bg-[var(--dl-color-bg-brand-subtle)]">
+              <IconButton
+                variant="brand"
+                size="md"
+                label="다이어리 기록"
+                tabIndex={-1}
+                className="pointer-events-none rounded-xl"
+              >
+                <Plus className="size-5 stroke-[2.5]" />
+              </IconButton>
+              <span className="text-xs font-bold text-[var(--dl-color-text-brand)]">다이어리 기록</span>
             </div>
           ) : (
-            <div className="grid h-full min-h-0 flex-1 grid-cols-3 gap-px bg-white">
+            <div className="grid h-full min-h-0 flex-1 grid-cols-3 gap-px bg-white rounded-[18px] overflow-hidden">
               {TILES.map((tile) => (
                 <div key={tile} className={cn("min-h-0", tile)} aria-hidden />
               ))}

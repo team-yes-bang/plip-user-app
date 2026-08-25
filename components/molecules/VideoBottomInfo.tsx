@@ -16,7 +16,7 @@ export function VideoBottomInfo({
   return (
     <div
       className={cn(
-        "relative z-10 mt-auto flex items-end justify-between px-6 pb-12 text-white",
+        "relative z-10 mt-auto flex items-center justify-between px-6 pb-12 text-white",
         className
       )}
     >

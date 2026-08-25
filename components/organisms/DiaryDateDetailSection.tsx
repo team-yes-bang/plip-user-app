@@ -1,7 +1,7 @@
 "use client";
 
 import { fetchDiaryDateWindowAction } from "@/actions/diaryActions";
-import { DailyIcon } from "@/components/atoms";
+import { DailyIcon, IconButton } from "@/components/atoms";
 import { DiaryThemeClipGroup, ScreenHeader } from "@/components/molecules";
 import { DiarySideMenu } from "@/components/organisms/DiarySideMenu";
 import { ROUTES } from "@/config/routes";
@@ -143,41 +143,39 @@ export function DiaryDateDetailSection({
   const formattedDate = focusDate.replaceAll("-", ".");
 
   return (
-    <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       <ScreenHeader
-        tone="plain"
-        titleAlign="center"
         backHref={ROUTES.diary.root}
         title={formattedDate}
+        titleAlign="center"
         onMenuOpen={() => setMenuOpen(true)}
         menuLabel="다이어리 메뉴"
-        className="shrink-0 px-6 pt-3 pb-3"
       />
 
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         {/* 화면 중앙 좌우 플로팅 날짜 이동 버튼 */}
-        <button
-          type="button"
-          className="absolute left-2.5 top-1/2 z-20 -translate-y-1/2 grid size-10 cursor-pointer place-items-center rounded-full border border-[var(--dl-color-border-default)] bg-[var(--dl-color-bg-elevated)]/85 text-[var(--dl-color-text-primary)] shadow-[0_4px_16px_rgba(23,23,28,0.08)] backdrop-blur-md transition-opacity hover:opacity-100 disabled:pointer-events-none disabled:opacity-20"
-          aria-label="이전 날짜"
+        <IconButton
+          variant="surface"
+          label="이전 날짜"
           onClick={goPrev}
+          className="absolute left-2.5 top-1/2 z-20 -translate-y-1/2 rounded-full border border-[var(--dl-color-border-default)] shadow-[0_4px_16px_rgba(23,23,28,0.08)] backdrop-blur-md transition-opacity hover:opacity-100 disabled:pointer-events-none disabled:opacity-20"
         >
           <DailyIcon name="chevronLeft" size={20} />
-        </button>
+        </IconButton>
 
-        <button
-          type="button"
-          className="absolute right-2.5 top-1/2 z-20 -translate-y-1/2 grid size-10 cursor-pointer place-items-center rounded-full border border-[var(--dl-color-border-default)] bg-[var(--dl-color-bg-elevated)]/85 text-[var(--dl-color-text-primary)] shadow-[0_4px_16px_rgba(23,23,28,0.08)] backdrop-blur-md transition-opacity hover:opacity-100 disabled:pointer-events-none disabled:opacity-20"
-          aria-label="다음 날짜"
+        <IconButton
+          variant="surface"
+          label="다음 날짜"
           disabled={!canGoNext}
           onClick={goNext}
+          className="absolute right-2.5 top-1/2 z-20 -translate-y-1/2 rounded-full border border-[var(--dl-color-border-default)] shadow-[0_4px_16px_rgba(23,23,28,0.08)] backdrop-blur-md transition-opacity hover:opacity-100 disabled:pointer-events-none disabled:opacity-20"
         >
           <DailyIcon name="chevronRight" size={20} />
-        </button>
+        </IconButton>
 
         {/* 다이어리 클립 목록 */}
         <div
-          className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 pt-2 pb-6 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none]"
+          className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-[12px_24px_24px] pt-2 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none]"
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerCancel}

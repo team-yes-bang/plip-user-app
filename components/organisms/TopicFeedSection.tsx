@@ -40,7 +40,7 @@ function TopicFeedEmptyCover({
 }: TopicFeedEmptyCoverProps) {
   return (
     <div
-      className="flex h-full min-h-0 w-full shrink-0 snap-start snap-always flex-col items-center justify-center p-6 pt-16 text-center bg-[var(--dl-color-bg-surface-default)]"
+      className="relative flex min-h-full w-full shrink-0 snap-start snap-always flex-col items-center justify-center p-6 text-center bg-[var(--dl-color-bg-surface-default)]"
       style={style}
     >
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--dl-color-bg-surface-subtle)]">
@@ -49,7 +49,7 @@ function TopicFeedEmptyCover({
       <p className="m-0 mt-4 text-base font-semibold text-[var(--dl-color-text-primary)]">
         {isFullyEmpty ? "등록된 토픽이 없습니다." : "진행 중인 토픽이 없습니다."}
       </p>
-      <p className="mt-1.5 mb-6 text-xs font-normal leading-relaxed text-[var(--dl-color-text-secondary)]">
+      <p className="mt-1.5 mb-6 text-xs font-normal leading-relaxed text-[var(--dl-color-text-secondary)] max-w-xs break-keep">
         {isFullyEmpty
           ? "새로운 토픽을 생성하고 영상 기록을 시작해 보세요."
           : "새로운 토픽을 생성하거나, 아래로 끌어 이전 기록을 확인하세요."}
@@ -68,10 +68,18 @@ function TopicFeedEmptyCover({
         <button
           type="button"
           onClick={onScrollToFeed}
-          className="mt-8 flex flex-col items-center gap-1.5 text-xs font-semibold text-[var(--dl-color-text-secondary)] animate-bounce cursor-pointer border-0 bg-transparent"
+          className="absolute top-[75%] left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 border-0 bg-transparent p-2 text-center cursor-pointer group"
         >
-          <span>이전 기록 피드 보기</span>
-          <DailyIcon name="chevronLeft" size={16} className="-rotate-90 brightness-0 opacity-60" />
+          <span className="text-[11px] font-medium text-[var(--dl-color-text-tertiary)] group-hover:text-[var(--dl-color-text-primary)] transition-colors whitespace-nowrap">
+            이전 기록 피드 보기
+          </span>
+          <span className="inline-block animate-bounce">
+            <DailyIcon
+              name="chevronLeft"
+              size={16}
+              className="-rotate-90 text-[var(--dl-color-text-tertiary)] group-hover:text-[var(--dl-color-text-primary)] opacity-70 transition-colors"
+            />
+          </span>
         </button>
       )}
     </div>
@@ -295,7 +303,7 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
 
         {/* 피드 슬라이드 노출 시 하단 우측 고정 날짜 */}
         {!isAtCoverSlide && (
-          <div className="pointer-events-none absolute bottom-4 right-4 z-30 flex items-center">
+          <div className="pointer-events-none absolute bottom-7 right-6 z-30 flex items-center">
             <span className="text-xs font-medium text-white/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]">
               {extractDate(currentTopic.startDate)}
             </span>

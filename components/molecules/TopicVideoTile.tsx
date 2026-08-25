@@ -1,5 +1,5 @@
-import { UserAvatar } from "@/components/atoms";
 import { CaptureClipOverlays } from "@/components/molecules/CaptureClipOverlays";
+import { UserProfileBadge } from "@/components/molecules/UserProfileBadge";
 import { VideoClipThumbnail } from "@/components/molecules/VideoClipThumbnail";
 import { parseUploadedAtToDate } from "@/lib/video/formatOverlayClock";
 import type { UiTopicVideo } from "@/types/topic/ui";
@@ -37,13 +37,13 @@ export function TopicVideoTile({ video, onSelect }: TopicVideoTileProps) {
         caption={video.caption}
         scale={1}
       />
-      <div className="pointer-events-none absolute inset-0 z-10">
-        <div className="absolute bottom-3 left-3 flex min-w-0 max-w-[calc(100%-1.5rem)] items-center gap-2">
-          <UserAvatar src={video.profileImageSrc} size={28} />
-          <p className="m-0 overflow-hidden text-[13px] font-semibold leading-4 text-white [text-overflow:ellipsis] whitespace-nowrap [text-shadow:0_1px_2px_rgba(0,0,0,0.45)]">
-            {video.profileNickname}
-          </p>
-        </div>
+      <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-end p-6">
+        <UserProfileBadge
+          profileUrl={video.profileImageSrc}
+          nickname={video.profileNickname}
+          size="sm"
+          textClassName="!text-white font-semibold text-sm drop-shadow"
+        />
       </div>
     </>
   );
