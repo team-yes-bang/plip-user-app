@@ -10,7 +10,7 @@ import type {
 } from "@/types/video/action";
 import type { VideoDestinationRequest } from "@/types/video/api";
 import type { VideoDestination } from "@/types/video/destination";
-import { getVideoApiBaseUrl, isVideoDestinationNotWiredFallbackEnabled } from "@/lib/api/env";
+import { getApiUrl, isVideoDestinationNotWiredFallbackEnabled } from "@/lib/api/env";
 import { ApiError } from "@/lib/api/apiFetch";
 import { getServerUserUuid } from "@/lib/auth/server-token";
 import {
@@ -69,7 +69,7 @@ function toActionError(error: unknown): ActionResult<never> {
     const cause = error.cause instanceof Error ? error.cause.message : "";
     if (error.message.includes("fetch failed") || cause.includes("ECONNREFUSED")) {
       return actionFailure(
-        `plip-video에 연결할 수 없습니다 (${getVideoApiBaseUrl()}). 백엔드 bootRun 여부를 확인하세요.`,
+        `plip-video에 연결할 수 없습니다 (${getApiUrl()}). gateway·video-service bootRun 여부를 확인하세요.`,
       );
     }
 
