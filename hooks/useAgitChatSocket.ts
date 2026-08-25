@@ -1,5 +1,6 @@
 "use client";
 
+import { issueChatWsTicketAction } from "@/actions/chatActions";
 import type { ApiChatMessage } from "@/types/chat/api";
 import { Client } from "@stomp/stompjs";
 import { useEffect, useRef } from "react";
@@ -7,37 +8,38 @@ import SockJS from "sockjs-client";
 
 type UseAgitChatSocketOptions = {
   agitUuid: string;
-  userUuid: string;
-  wsUrl: string;
   enabled?: boolean;
   onMessage: (message: ApiChatMessage) => void;
 };
 
 export function useAgitChatSocket({
   agitUuid,
-  userUuid,
-  wsUrl,
   enabled = true,
   onMessage,
 }: UseAgitChatSocketOptions) {
   const clientRef = useRef<Client | null>(null);
   const onMessageRef = useRef(onMessage);
+  const wsUrlRef = useRef("");
 
   useEffect(() => {
     onMessageRef.current = onMessage;
   }, [onMessage]);
 
   useEffect(() => {
-    if (!enabled || !agitUuid || !userUuid || !wsUrl) {
+    if (!enabled || !agitUuid) {
       return;
     }
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(wsUrl),
-      connectHeaders: {
-        "X-User-UUID": userUuid,
-      },
       reconnectDelay: 5000,
+      beforeConnect: async () => {
+        const result = await issueChatWsTicketAction();
+        if (!result.ok) {
+          throw new Error(result.error);
+        }
+        wsUrlRef.current = result.data.wsUrl;
+      },
+      webSocketFactory: () => new SockJS(wsUrlRef.current),
       onConnect: () => {
         client.subscribe(`/sub/agits/${agitUuid}`, (frame) => {
           try {
@@ -57,7 +59,7 @@ export function useAgitChatSocket({
       client.deactivate();
       clientRef.current = null;
     };
-  }, [agitUuid, enabled, userUuid, wsUrl]);
+  }, [agitUuid, enabled]);
 
   const sendMessage = (content: string) => {
     const trimmed = content.trim();

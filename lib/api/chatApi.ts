@@ -3,7 +3,7 @@ import { getActorUserHeaders } from "@/lib/api/actorHeaders";
 import { apiFetch } from "@/lib/api/apiFetch";
 import { getApiUrl } from "@/lib/api/env";
 import { withAuthRetry } from "@/lib/api/withAuthRetry";
-import type { ApiChatHistory } from "@/types/chat/api";
+import type { ApiChatHistory, ApiChatWsTicket } from "@/types/chat/api";
 
 type ChatHistoryQuery = {
   cursorCreatedAt?: string;
@@ -37,4 +37,19 @@ export async function markChatRead(agitUuid: string): Promise<void> {
       headers: await getActorUserHeaders(),
     }),
   );
+}
+
+export async function issueWsTicket(): Promise<ApiChatWsTicket> {
+  return withAuthRetry(async () =>
+    apiFetch<ApiChatWsTicket>(API_ENDPOINTS.chat.wsTicket, {
+      method: "POST",
+      baseUrl: getApiUrl(),
+      headers: await getActorUserHeaders(),
+    }),
+  );
+}
+
+export function buildChatWsGatewayUrl(ticket: string): string {
+  const base = getApiUrl().replace(/\/$/, "");
+  return `${base}/api/chat/ws/chat?ticket=${encodeURIComponent(ticket)}`;
 }

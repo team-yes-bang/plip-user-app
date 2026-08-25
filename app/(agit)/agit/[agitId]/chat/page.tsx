@@ -1,7 +1,7 @@
 import { getChatHistoryAction } from "@/actions/chatActions";
 import { AgitChatTemplate } from "@/components/templates";
 import { ROUTES } from "@/config/routes";
-import { getChatWsUrl, isEnableRemoteChatEnabled } from "@/lib/api/env";
+import { isEnableRemoteChatEnabled } from "@/lib/api/env";
 import { buildSeedChatHistory } from "@/lib/chat/seedMessages";
 import { getServerUserUuid } from "@/lib/auth/server-token";
 import { getAgitAndMembers } from "@/services/agitService";
@@ -51,7 +51,6 @@ export default async function AgitChatPage({ params }: PageProps) {
       members={members}
       currentUserUuid={currentUserUuid}
       enableRemoteChat={enableRemoteChat}
-      chatWsUrl={getChatWsUrl()}
     />
   );
 }

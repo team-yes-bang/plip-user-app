@@ -1,5 +1,4 @@
 const DEFAULT_API_URL = "http://localhost:8000";
-const DEFAULT_CHAT_WS_URL = "http://localhost:8082/ws/chat";
 const DEFAULT_DEV_USER_UUID = "00000000-0000-4000-8000-000000000001";
 
 export function getApiUrl(): string {
@@ -8,11 +7,6 @@ export function getApiUrl(): string {
 
 export function getDevUserUuid(): string {
   return process.env.DEV_USER_UUID?.trim() || DEFAULT_DEV_USER_UUID;
-}
-
-/** STOMP WebSocket 엔드포인트. Gateway 미경유 시 chat-service 직접 연결 */
-export function getChatWsUrl(): string {
-  return process.env.CHAT_WS_URL?.trim() || DEFAULT_CHAT_WS_URL;
 }
 
 export function getDevLoginEmail(): string | undefined {
