@@ -1,5 +1,3 @@
-import { resolveVideoServicePath } from "./video-path";
-
 /** Gateway `/api/{serviceId}/**` + StripPrefix=2 — Gateway 경유 시 auth/users에 적용 */
 function gatewayPath(serviceId: string, servicePath: string): string {
   const normalized = servicePath.startsWith("/") ? servicePath : `/${servicePath}`;
@@ -71,10 +69,13 @@ export const API_ENDPOINTS = {
       gatewayPath("diary", `/api/v1/diaries/videos/${diaryVideoId}`),
   },
   video: {
-    uploadUrl: resolveVideoServicePath("/api/v1/videos/upload-url"),
-    complete: (videoUuid: string) => resolveVideoServicePath(`/api/v1/videos/${videoUuid}/complete`),
-    detail: (videoUuid: string) => resolveVideoServicePath(`/api/v1/videos/${videoUuid}`),
-    downloadUrl: (videoUuid: string) => resolveVideoServicePath(`/api/v1/videos/${videoUuid}/download-url`),
-    destination: (videoUuid: string) => resolveVideoServicePath(`/api/v1/videos/${videoUuid}/destination`),
+    uploadUrl: gatewayPath("video", "/api/v1/videos/upload-url"),
+    complete: (videoUuid: string) =>
+      gatewayPath("video", `/api/v1/videos/${videoUuid}/complete`),
+    detail: (videoUuid: string) => gatewayPath("video", `/api/v1/videos/${videoUuid}`),
+    downloadUrl: (videoUuid: string) =>
+      gatewayPath("video", `/api/v1/videos/${videoUuid}/download-url`),
+    destination: (videoUuid: string) =>
+      gatewayPath("video", `/api/v1/videos/${videoUuid}/destination`),
   },
 } as const;

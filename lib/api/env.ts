@@ -1,17 +1,8 @@
-import { getVideoRequestBaseUrl, shouldUseVideoGateway } from "@/config/video-path";
-
 const DEFAULT_API_URL = "http://localhost:8000";
 const DEFAULT_DEV_USER_UUID = "00000000-0000-4000-8000-000000000001";
 
-export { getVideoRequestBaseUrl, shouldUseVideoGateway };
-
 export function getApiUrl(): string {
   return process.env.API_URL?.trim() || DEFAULT_API_URL;
-}
-
-/** VIDEO_USE_GATEWAY=true 이면 gateway(8000), 아니면 VIDEO_API_BASE_URL(8085) */
-export function getVideoApiBaseUrl(): string {
-  return getVideoRequestBaseUrl();
 }
 
 export function getDevUserUuid(): string {
