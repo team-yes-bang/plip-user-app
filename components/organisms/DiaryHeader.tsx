@@ -16,7 +16,7 @@ export function DiaryHeader({
 }: DiaryHeaderProps) {
   return (
     <ScreenHeader
-      tone="glass"
+      tone="default"
       title={title}
       trailing={
         <>
