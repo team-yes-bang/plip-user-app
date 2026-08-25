@@ -44,7 +44,7 @@ export function ThemePreviewStrip({ themes }: ThemePreviewStripProps) {
   return (
     <section aria-label="테마 목록 캐러셀" className="w-full shrink-0">
       <div className="mb-2.5 flex items-center justify-between">
-        <h2 className="m-0 text-sm font-bold text-[#1f1c29]">테마</h2>
+        <h2 className="m-0 text-base font-semibold text-[#1f1c29]">테마</h2>
         <TextLink
           href={ROUTES.diary.themes.root}
           className="flex items-center gap-0.5 text-xs font-semibold text-[var(--dl-color-text-brand)] !no-underline hover:underline"
@@ -78,7 +78,7 @@ export function ThemePreviewStrip({ themes }: ThemePreviewStripProps) {
                   />
                 ) : null}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                <span className="absolute bottom-2 left-2 right-2 truncate text-center text-[11px] font-bold text-white drop-shadow-xs">
+                <span className="absolute bottom-2 left-2 right-2 truncate text-center text-xs font-bold text-white drop-shadow-xs">
                   {theme.name}
                 </span>
               </div>
@@ -87,5 +87,6 @@ export function ThemePreviewStrip({ themes }: ThemePreviewStripProps) {
         })}
       </div>
     </section>
+
   );
 }

@@ -87,12 +87,13 @@ export function DiaryThemeClipGroup({
   return (
     <section className="flex flex-col gap-[0.65rem]" aria-label={title}>
       {showDateLink ? (
-        <TextLink href={ROUTES.diary.date(date)} className="m-0 text-[0.88rem] font-extrabold !text-[#111] !no-underline">
+        <TextLink href={ROUTES.diary.date(date)} className="m-0 text-sm font-semibold text-[#1f1c29] !no-underline">
           {title}
         </TextLink>
       ) : (
-        <h3 className="m-0 text-[0.88rem] font-extrabold !text-[#111] !no-underline">{title}</h3>
+        <h3 className="m-0 text-sm font-semibold text-[#1f1c29]">{title}</h3>
       )}
+
       <ThumbGrid clips={clips} clipCount={clipCount} date={date} themeName={themeName} />
     </section>
   );
