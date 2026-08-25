@@ -33,16 +33,17 @@ export function DiaryThemesListSection({ themes, error: fetchError }: DiaryTheme
   }
 
   return (
-    <>
-      <PageContainer aria-label="테마 목록">
-        <ScreenHeader
-          backHref={ROUTES.diary.root}
-          title="테마"
-          tone="plain"
-          onMenuOpen={() => setMenuOpen(true)}
-          menuLabel="다이어리 메뉴"
-        />
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+      <ScreenHeader
+        backHref={ROUTES.diary.root}
+        title="테마"
+        onMenuOpen={() => setMenuOpen(true)}
+        menuLabel="다이어리 메뉴"
+      />
 
+      <DiarySideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+
+      <PageContainer aria-label="테마 목록" className="flex-1">
         {fetchError ? (
           <p className="m-0 text-sm text-[var(--dl-color-text-danger)]" role="alert">
             {fetchError}
@@ -70,8 +71,6 @@ export function DiaryThemesListSection({ themes, error: fetchError }: DiaryTheme
         onClose={closeSheet}
         theme={editingTheme}
       />
-
-      <DiarySideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
-    </>
+    </div>
   );
 }

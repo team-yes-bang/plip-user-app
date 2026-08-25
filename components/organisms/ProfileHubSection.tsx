@@ -2,7 +2,7 @@
 
 import { logoutAction } from "@/actions/authActions";
 import { SubmitButton, TextLink, UserAvatar } from "@/components/atoms";
-import { SettingsRow } from "@/components/molecules/SettingsRow";
+import { PageContainer, ScreenHeader, SettingsRow } from "@/components/molecules";
 import { WithdrawAccountDialog } from "@/components/organisms/WithdrawAccountDialog";
 import { toast } from "@/components/ui/toast";
 import { ROUTES } from "@/config/routes";
@@ -50,10 +50,12 @@ export function ProfileHubSection({ profile }: ProfileHubSectionProps) {
   }
 
   return (
-    <>
-      <section className="flex w-full flex-col gap-3.5 pb-6" aria-label="마이페이지">
-        <h1 className="m-0 text-[26px] font-bold text-[var(--dl-color-text-primary)]">마이페이지</h1>
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+      <ScreenHeader
+        tone="default"
+        title="설정" />
 
+      <PageContainer aria-label="마이페이지" className="flex-1">
         <div className="flex w-full items-center gap-[12px] rounded-[18px] bg-[var(--dl-color-bg-brand-subtle)] p-[14px]">
           <UserAvatar src={displayProfile.profileImageUrl} size={64} />
           <div className="flex min-w-0 flex-1 flex-col gap-[2px]">
@@ -130,7 +132,7 @@ export function ProfileHubSection({ profile }: ProfileHubSectionProps) {
             회원 탈퇴
           </button>
         </div>
-      </section>
+      </PageContainer>
 
       <WithdrawAccountDialog
         open={withdrawOpen}
@@ -138,6 +140,6 @@ export function ProfileHubSection({ profile }: ProfileHubSectionProps) {
         email={displayProfile.email}
         requiresPasswordConfirmation={displayProfile.hasLocalAuth}
       />
-    </>
+    </div>
   );
 }

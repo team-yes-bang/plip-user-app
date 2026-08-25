@@ -18,7 +18,6 @@ export function DiaryMainSection({ entries, themes, error }: DiaryMainSectionPro
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       <ScreenHeader
         title="다이어리"
-        tone="default"
         onMenuOpen={() => setMenuOpen(true)}
         menuLabel="다이어리 메뉴"
       />

@@ -53,16 +53,17 @@ export function DiaryThemeDetailSection({
   }
 
   return (
-    <>
-      <PageContainer aria-label={`${themeName} 테마 상세`}>
-        <ScreenHeader
-          titleAlign="center"
-          backHref={ROUTES.diary.themes.root}
-          title={themeName}
-          onMenuOpen={() => setMenuOpen(true)}
-          menuLabel="다이어리 메뉴"
-        />
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+      <ScreenHeader
+        title={themeName}
+        backHref={ROUTES.diary.themes.root}
+        onMenuOpen={() => setMenuOpen(true)}
+        menuLabel="다이어리 메뉴"
+      />
 
+      <DiarySideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+
+      <PageContainer aria-label={`${themeName} 테마 상세`} className="flex-1">
         {error ? <p className="m-0 text-center text-sm text-red-600">{error}</p> : null}
 
         {dateGroups.length > 0 ? (
@@ -96,8 +97,6 @@ export function DiaryThemeDetailSection({
           </button>
         ) : null}
       </PageContainer>
-
-      <DiarySideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
-    </>
+    </div>
   );
 }
