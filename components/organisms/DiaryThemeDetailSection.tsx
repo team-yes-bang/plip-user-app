@@ -1,8 +1,7 @@
 "use client";
 
 import { loadDiaryThemeTimelinePageAction } from "@/actions/diaryActions";
-import { ScreenTitle } from "@/components/atoms";
-import { DiaryThemeClipGroup, HeaderBackLink, HeaderMenuButton, ScreenHeader } from "@/components/molecules";
+import { DiaryThemeClipGroup, PageContainer, ScreenHeader } from "@/components/molecules";
 import { ROUTES } from "@/config/routes";
 import { mergeThemeDateGroups } from "@/lib/diary/mergeThemeDateGroups";
 import type { UiDiaryThemeDateGroup } from "@/types/diary/ui";
@@ -52,13 +51,13 @@ export function DiaryThemeDetailSection({
   }
 
   return (
-    <div className="flex flex-col gap-[1.15rem] p-[0.9rem_1rem_1.75rem]">
+    <PageContainer aria-label={`${themeName} 테마 상세`}>
       <ScreenHeader
-        tone="plain"
         titleAlign="center"
-        leading={<HeaderBackLink href={ROUTES.diary.themes.root} />}
-        title={<ScreenTitle className="text-[1rem] font-extrabold text-[#111]">{themeName}</ScreenTitle>}
-        trailing={<HeaderMenuButton label="테마 옵션" onClick={() => undefined} />}
+        backHref={ROUTES.diary.themes.root}
+        title={themeName}
+        onMenuOpen={() => undefined}
+        menuLabel="테마 옵션"
       />
 
       {error ? <p className="m-0 text-center text-sm text-red-600">{error}</p> : null}
@@ -93,6 +92,6 @@ export function DiaryThemeDetailSection({
           {loadingMore ? "불러오는 중..." : "더보기"}
         </button>
       ) : null}
-    </div>
+    </PageContainer>
   );
 }
