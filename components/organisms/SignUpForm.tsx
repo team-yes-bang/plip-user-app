@@ -45,8 +45,7 @@ export function SignUpForm() {
   const requiredTerms = terms.filter((term) => term.required);
   const optionalTerms = terms.filter((term) => !term.required);
   const agreeAll = terms.length > 0 && terms.every((term) => agreements[term.id]);
-  const allRequiredAgreed =
-    requiredTerms.length > 0 && requiredTerms.every((term) => agreements[term.id] === true);
+  const allRequiredAgreed = requiredTerms.every((term) => agreements[term.id] === true);
 
   const activeStep: SignUpStep = isSocialSignup ? 3 : step;
 
@@ -390,7 +389,7 @@ export function SignUpForm() {
           ))}
         </section>
       ) : null}
-      <SubmitButton variant="brand" disabled={!allRequiredAgreed || termsLoading || terms.length === 0 || pending}>
+      <SubmitButton variant="brand" disabled={!allRequiredAgreed || termsLoading || pending}>
         {pending ? "처리 중..." : "다음"}
       </SubmitButton>
       <p className="text-center text-[11px] text-[var(--dl-color-text-tertiary)]">
