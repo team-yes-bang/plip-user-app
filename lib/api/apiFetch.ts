@@ -1,4 +1,4 @@
-import { getVideoApiBaseUrl } from "@/lib/api/env";
+import { getVideoRequestBaseUrl } from "@/config/video-path";
 import { getSessionAuthHeaders } from "@/lib/auth/server-token";
 
 export class ApiError extends Error {
@@ -26,7 +26,7 @@ function buildUrl(
   searchParams?: Record<string, string | undefined>,
   baseUrl?: string,
 ): string {
-  const base = (baseUrl ?? getVideoApiBaseUrl()).replace(/\/$/, "");
+  const base = (baseUrl ?? getVideoRequestBaseUrl()).replace(/\/$/, "");
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   const url = new URL(`${base}${normalizedPath}`);
 

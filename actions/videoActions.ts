@@ -80,7 +80,8 @@ function toActionError(error: unknown): ActionResult<never> {
 }
 
 export async function issueUploadUrlAction(
-  contentType?: string,
+  contentType: string | undefined,
+  contentLengthBytes: number,
 ): Promise<ActionResult<VideoUploadUrlActionData>> {
   const session = await requireSessionUserUuid();
   if (!session.ok) {
@@ -92,8 +93,15 @@ export async function issueUploadUrlAction(
     return actionFailure("contentType must be video/mp4 or video/quicktime");
   }
 
+  if (!Number.isFinite(contentLengthBytes) || contentLengthBytes <= 0) {
+    return actionFailure("contentLengthBytes must be a positive number");
+  }
+
   try {
-    const data = await videoService.issueUploadUrl(session.userUuid, resolvedContentType);
+    const data = await videoService.issueUploadUrl(
+      resolvedContentType,
+      contentLengthBytes,
+    );
     return actionSuccess(toUploadUrlActionData(data));
   } catch (error) {
     return toActionError(error);
@@ -119,7 +127,6 @@ export async function completeVideoAction(
   try {
     const data = await videoService.completeVideo(
       resolvedVideoUuid,
-      session.userUuid,
       normalizedCaption,
     );
     return actionSuccess(toCompleteActionData(data));
