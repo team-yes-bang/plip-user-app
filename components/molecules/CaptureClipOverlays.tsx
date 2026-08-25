@@ -37,7 +37,7 @@ export function CaptureClipOverlays({ capturedAt, caption, scale = 1 }: CaptureC
               </p>
             ) : null}
             <p
-              className="m-0 font-light text-white/80 opacity-80 [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]"
+              className="absolute left-1/2 top-full -translate-x-1/2 mt-1 m-0 font-light text-white/80 opacity-80 [text-shadow:0_1px_3px_rgba(0,0,0,0.55)] whitespace-nowrap pointer-events-none"
               style={{ fontSize: Math.min(captionSize, 13), lineHeight: 1.2 }}
             >
               {trimmedCaption}
