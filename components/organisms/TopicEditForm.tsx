@@ -2,7 +2,7 @@
 
 import { deleteTopicAction, updateTopicAction } from "@/actions/topicActions";
 import { SubmitButton } from "@/components/atoms";
-import { AuthField } from "@/components/molecules";
+import { AuthField, TopicDatePicker } from "@/components/molecules";
 import { toast } from "@/components/ui/toast";
 import { ROUTES } from "@/config/routes";
 import { TOPIC_FORBIDDEN, TOPIC_LOGIN_REQUIRED } from "@/lib/topic/actionErrors";
@@ -87,11 +87,9 @@ export function TopicEditForm({ agitId, topic }: TopicEditFormProps) {
           maxLength={TOPIC_TITLE_MAX_LENGTH}
           required
         />
-        <AuthField
+        <TopicDatePicker
           id="topic-edit-date"
           name="startDate"
-          label="토픽 진행 날짜"
-          type="date"
           defaultValue={topic.startDate}
           required
         />
