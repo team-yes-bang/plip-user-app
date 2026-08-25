@@ -1,7 +1,7 @@
 "use client";
 
 import { getTopicVideosAction } from "@/actions/topicActions";
-import { DailyIcon, SubmitButton } from "@/components/atoms";
+import { DailyIcon, FeedPillIconButton, SubmitButton } from "@/components/atoms";
 import { HeaderBackLink, HeaderMenuButton, ScreenHeader, TopicFeedPillHeader } from "@/components/molecules";
 import { AgitMenuDrawer } from "@/components/organisms/AgitMenuDrawer";
 import { MoveTopicSheet } from "@/components/organisms/MoveTopicSheet";
@@ -235,9 +235,18 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
         {isAtCoverSlide ? (
           <div className="pointer-events-none absolute top-0 inset-x-0 z-30">
             <ScreenHeader
-              leading={<HeaderBackLink onClick={handleBack} />}
+              tone="overlay"
+              leading={
+                <FeedPillIconButton label="뒤로" onClick={handleBack}>
+                  <DailyIcon name="chevronLeft" size={16} className="brightness-0 invert" />
+                </FeedPillIconButton>
+              }
               title={resolvedAgit?.name || "아지트"}
-              trailing={<HeaderMenuButton label="아지트 메뉴" onClick={() => setMenuOpen(true)} />}
+              trailing={
+                <FeedPillIconButton label="아지트 메뉴" onClick={() => setMenuOpen(true)}>
+                  <DailyIcon name="ellipsis" size={16} className="brightness-0 invert" />
+                </FeedPillIconButton>
+              }
             />
           </div>
         ) : (
