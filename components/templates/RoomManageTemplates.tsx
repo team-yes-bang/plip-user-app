@@ -66,6 +66,7 @@ export function TopicsLayoutTemplate({
             sections={sections}
             myRole={agit.myRole}
             currentUserUuid={currentUserUuid}
+            memberCount={agit.memberCount}
           />
         </div>
       </div>
@@ -149,7 +150,7 @@ export function TopicCreateTemplate({ agit }: { agit: UiAgit | null }) {
       <AuthTopBar
         title="토픽 만들기"
         backHref={ROUTES.agit.topics(agit.id)}
-        step="토픽 이름과 진행 날짜를 정합니다"
+      // step="토픽 이름과 진행 날짜를 정합니다"
       />
       <TopicCreateForm agitId={agit.id} />
     </AgitFlowChrome>

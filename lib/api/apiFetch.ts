@@ -1,4 +1,4 @@
-import { getVideoApiBaseUrl } from "@/lib/api/env";
+import { getApiUrl } from "@/lib/api/env";
 import { getSessionAuthHeaders } from "@/lib/auth/server-token";
 
 export class ApiError extends Error {
@@ -15,7 +15,7 @@ export class ApiError extends Error {
 type ApiFetchOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
   searchParams?: Record<string, string | undefined>;
-  /** 생략 시 기존처럼 VIDEO_API_BASE_URL */
+  /** 생략 시 API_URL (gateway base) */
   baseUrl?: string;
   /** false면 세션 토큰을 붙이지 않음. 로그인/재발급 등 공개 API용. 기본 true */
   auth?: boolean;
@@ -26,7 +26,7 @@ function buildUrl(
   searchParams?: Record<string, string | undefined>,
   baseUrl?: string,
 ): string {
-  const base = (baseUrl ?? getVideoApiBaseUrl()).replace(/\/$/, "");
+  const base = (baseUrl ?? getApiUrl()).replace(/\/$/, "");
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   const url = new URL(`${base}${normalizedPath}`);
 

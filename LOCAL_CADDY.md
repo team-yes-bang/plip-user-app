@@ -18,7 +18,7 @@
 | chat       | 8082 | `/api/chat`                                  |
 | agit       | 8083 | `/api/agit`                                  |
 | topic      | 8084 | `/api/topic`                                 |
-| video      | 8085 | `/api/video` (현재 앱 `/api/videos`는 prefix 유지) |
+| video      | 8085 | `/api/video`                                 |
 | point      | 8086 | `/api/point`                                 |
 | shop       | 8087 | `/api/shop`                                  |
 | backoffice | 8088 | `/api/backoffice`                            |

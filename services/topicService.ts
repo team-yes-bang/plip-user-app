@@ -50,6 +50,7 @@ async function mapTopicVideo(
       profileNickname: profile.nickname,
       uploadedAt: detail.createdAt.toISOString(),
       caption: detail.caption?.trim() ?? "",
+      rawPlaybackUrl: detail.rawPlaybackUrl,
     };
   } catch {
     return {
@@ -70,6 +71,7 @@ export function toUiTopicListItem(topic: ApiTopic): UiTopicListItem {
     startAtLabel: formatKstDotDate(topic.startAt),
     videoCount: topic.videoCount,
     creatorUuid: topic.creatorUuid,
+    uploadedByMe: topic.uploadedByMe ?? null,
   };
 }
 

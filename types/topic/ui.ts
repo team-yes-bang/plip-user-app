@@ -5,6 +5,7 @@ export type UiTopicVideo = {
   profileNickname: string;
   uploadedAt: string;
   caption: string;
+  rawPlaybackUrl?: string;
 };
 
 export type UiTopic = {
@@ -25,6 +26,7 @@ export type UiTopicListItem = {
   startAtLabel: string;
   videoCount: number;
   creatorUuid: string;
+  uploadedByMe: boolean | null;
 };
 
 export type UiTopicDetail = {

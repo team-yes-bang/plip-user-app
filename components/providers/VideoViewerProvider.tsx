@@ -7,6 +7,7 @@ export type VideoViewerItem = {
   videoUuid?: string;
   title?: string;
   authorName?: string;
+  authorProfileUrl?: string;
   uploadedAt?: string;
   thumbnailUrl?: string;
   rawPlaybackUrl?: string;

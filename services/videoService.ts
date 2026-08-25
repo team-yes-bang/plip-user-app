@@ -63,19 +63,18 @@ function mapDownloadUrl(result: VideoDownloadUrlResult): VideoDownloadUrlUi {
 }
 
 export async function issueUploadUrl(
-  userUuid: string,
-  contentType?: string,
+  contentType: string | undefined,
+  contentLengthBytes: number,
 ): Promise<VideoUploadUrlUi> {
-  const response = await videoApi.postUploadUrl(userUuid, contentType);
+  const response = await videoApi.postUploadUrl(contentType, contentLengthBytes);
   return mapUploadUrl(response);
 }
 
 export async function completeVideo(
   videoUuid: string,
-  userUuid: string,
   caption?: string,
 ): Promise<VideoCompleteUi> {
-  const response = await videoApi.postComplete(videoUuid, userUuid, { caption });
+  const response = await videoApi.postComplete(videoUuid, { caption });
   return mapComplete(response);
 }
 

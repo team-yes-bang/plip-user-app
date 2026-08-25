@@ -23,6 +23,8 @@ type TopicGallerySectionProps = {
   videos: UiTopicVideo[];
   captureHref: string;
   showCaptureSlot?: boolean;
+  topicTitle?: string;
+  agitName?: string;
   onSelectVideo?: (videoId: string) => void;
 };
 
@@ -30,6 +32,8 @@ export function TopicGallerySection({
   videos,
   captureHref,
   showCaptureSlot = false,
+  topicTitle,
+  agitName,
   onSelectVideo,
 }: TopicGallerySectionProps) {
   const items = useMemo<GalleryPageItem[]>(
@@ -91,8 +95,12 @@ export function TopicGallerySection({
       videoUuid: v.id,
       title: v.caption || "토픽 클립",
       authorName: v.profileNickname,
+      authorProfileUrl: v.profileImageSrc,
       uploadedAt: v.uploadedAt,
       thumbnailUrl: v.thumbnailSrc,
+      rawPlaybackUrl: v.rawPlaybackUrl,
+      topicName: topicTitle,
+      agitName: agitName,
     }));
     openViewer(videoId, formattedList, "agit");
   }
@@ -110,8 +118,6 @@ export function TopicGallerySection({
     );
   }
 
-  const paddedEmpty = videos.length === 0;
-
   return (
     <section
       className="relative h-full min-h-0 w-full overflow-hidden"
@@ -124,11 +130,7 @@ export function TopicGallerySection({
       onClickCapture={handleClickCapture}
     >
       {pageCount <= 1 ? (
-        <div
-          className={
-            paddedEmpty ? "flex h-full min-h-0 flex-col px-[23px] pb-6" : "flex h-full min-h-0 flex-col"
-          }
-        >
+        <div className="flex h-full min-h-0 flex-col">
           {renderPage(pages[0] ?? [], "topic-page-0")}
         </div>
       ) : (

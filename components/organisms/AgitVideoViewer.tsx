@@ -1,7 +1,7 @@
 "use client";
 
 import { DailyIcon, FeedPill, FeedPillIconButton } from "@/components/atoms";
-import { CaptureClipOverlays, VideoReactionBar } from "@/components/molecules";
+import { CaptureClipOverlays, UserProfileBadge, VideoReactionBar } from "@/components/molecules";
 import { BaseVideoViewer, type BaseVideoViewerOverlayProps } from "@/components/organisms/BaseVideoViewer";
 import { MoveTopicSheet } from "@/components/organisms/MoveTopicSheet";
 import { ViewerActionsSheet } from "@/components/organisms/ViewerActionsSheet";
@@ -58,11 +58,14 @@ export function AgitVideoViewer({
             {/* 우측 이모지 리액션 바 */}
             <VideoReactionBar />
 
-            {/* 하단 오버레이: 좌측 작성자 / 우측 정규화된 날짜 */}
+            {/* 하단 오버레이: 좌측 작성자 아토믹 뱃지 / 우측 정규화된 날짜 */}
             <div className="relative z-10 mt-auto flex items-end justify-between px-6 pb-12 text-white pointer-events-none">
-              <span className="text-base font-bold truncate max-w-[60%]">
-                {item.authorName || "작성자"}
-              </span>
+              <UserProfileBadge
+                profileUrl={item.authorProfileUrl}
+                nickname={item.authorName || "작성자"}
+                size="sm"
+                textClassName="!text-white font-semibold text-sm drop-shadow"
+              />
 
               <span className="text-xs font-medium text-white/80 shrink-0 ml-2">
                 {extractDate(item.uploadedAt)}

@@ -10,7 +10,7 @@ import type {
 } from "@/types/video/action";
 import type { VideoDestinationRequest } from "@/types/video/api";
 import type { VideoDestination } from "@/types/video/destination";
-import { getVideoApiBaseUrl, isVideoDestinationNotWiredFallbackEnabled } from "@/lib/api/env";
+import { getApiUrl, isVideoDestinationNotWiredFallbackEnabled } from "@/lib/api/env";
 import { ApiError } from "@/lib/api/apiFetch";
 import { getServerUserUuid } from "@/lib/auth/server-token";
 import {
@@ -69,7 +69,7 @@ function toActionError(error: unknown): ActionResult<never> {
     const cause = error.cause instanceof Error ? error.cause.message : "";
     if (error.message.includes("fetch failed") || cause.includes("ECONNREFUSED")) {
       return actionFailure(
-        `plip-video에 연결할 수 없습니다 (${getVideoApiBaseUrl()}). 백엔드 bootRun 여부를 확인하세요.`,
+        `plip-video에 연결할 수 없습니다 (${getApiUrl()}). gateway·video-service bootRun 여부를 확인하세요.`,
       );
     }
 
@@ -80,7 +80,8 @@ function toActionError(error: unknown): ActionResult<never> {
 }
 
 export async function issueUploadUrlAction(
-  contentType?: string,
+  contentType: string | undefined,
+  contentLengthBytes: number,
 ): Promise<ActionResult<VideoUploadUrlActionData>> {
   const session = await requireSessionUserUuid();
   if (!session.ok) {
@@ -92,8 +93,15 @@ export async function issueUploadUrlAction(
     return actionFailure("contentType must be video/mp4 or video/quicktime");
   }
 
+  if (!Number.isFinite(contentLengthBytes) || contentLengthBytes <= 0) {
+    return actionFailure("contentLengthBytes must be a positive number");
+  }
+
   try {
-    const data = await videoService.issueUploadUrl(session.userUuid, resolvedContentType);
+    const data = await videoService.issueUploadUrl(
+      resolvedContentType,
+      contentLengthBytes,
+    );
     return actionSuccess(toUploadUrlActionData(data));
   } catch (error) {
     return toActionError(error);
@@ -119,7 +127,6 @@ export async function completeVideoAction(
   try {
     const data = await videoService.completeVideo(
       resolvedVideoUuid,
-      session.userUuid,
       normalizedCaption,
     );
     return actionSuccess(toCompleteActionData(data));

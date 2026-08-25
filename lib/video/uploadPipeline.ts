@@ -36,7 +36,7 @@ export async function uploadRecordedVideo(
 
   const contentType = resolveUploadContentType(options?.recorderMimeType ?? blob.type);
 
-  const uploadUrlResult = await issueUploadUrlAction(contentType);
+  const uploadUrlResult = await issueUploadUrlAction(contentType, blob.size);
   const uploadUrlError = extractActionError(uploadUrlResult);
   if (uploadUrlError || !uploadUrlResult.ok) {
     throw new Error(uploadUrlError ?? "upload-url failed");

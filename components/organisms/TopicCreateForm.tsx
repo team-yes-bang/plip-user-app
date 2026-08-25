@@ -2,7 +2,7 @@
 
 import { createTopicAction } from "@/actions/topicActions";
 import { SubmitButton } from "@/components/atoms";
-import { AuthField } from "@/components/molecules";
+import { AuthField, TopicDatePicker } from "@/components/molecules";
 import { NoticeCard } from "@/components/molecules/NoticeCard";
 import { toast } from "@/components/ui/toast";
 import { ROUTES } from "@/config/routes";
@@ -59,11 +59,9 @@ export function TopicCreateForm({ agitId }: TopicCreateFormProps) {
         maxLength={TOPIC_TITLE_MAX_LENGTH}
         required
       />
-      <AuthField
+      <TopicDatePicker
         id="topic-date"
         name="startDate"
-        label="토픽 진행 날짜"
-        type="date"
         defaultValue={today}
         required
       />

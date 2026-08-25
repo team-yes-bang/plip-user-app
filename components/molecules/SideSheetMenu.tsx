@@ -29,7 +29,7 @@ export function MenuNavRow({ href, onClick, children }: MenuNavRowProps) {
   return (
     <TextLink
       href={href}
-      className="flex min-h-[52px] items-center gap-[14px] rounded-[14px] border border-[#e3e0ed] bg-[#fff] p-[12px_14px] text-sm font-semibold !text-[#262433] !no-underline"
+      className="flex min-h-[52px] items-center gap-[14px] rounded-[14px] border border-[#e3e0ed] bg-[#fff] p-[12px_14px] text-sm font-semibold !text-[#262433] !no-underline transition-all hover:border-[var(--dl-color-text-brand)] hover:bg-[var(--dl-color-bg-brand-subtle)] hover:text-[var(--dl-color-text-brand)] hover:shadow-xs cursor-pointer"
       onClick={onClick}
     >
       {children}

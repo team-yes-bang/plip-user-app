@@ -51,7 +51,7 @@ export function VideoCaptureSection() {
         </p>
         <h1 className="text-lg font-semibold">Video Capture (Day 1)</h1>
         <p className="text-black/60">
-          로그인 필수 · 5초 · 720×1280 · 최대 {MAX_UPLOAD_MB}MB → upload-url → PUT → complete
+          로그인 필수 · 5초 · 720×1280 · 최대 {MAX_UPLOAD_MB}MB → upload-url(size) → PUT → complete
         </p>
         <p className="text-xs text-amber-700">
           세션 JWT의 userUuid만 사용합니다. stub URL이면 put이 skipped-stub입니다.
