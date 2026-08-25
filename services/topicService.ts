@@ -71,6 +71,7 @@ export function toUiTopicListItem(topic: ApiTopic): UiTopicListItem {
     startAtLabel: formatKstDotDate(topic.startAt),
     videoCount: topic.videoCount,
     creatorUuid: topic.creatorUuid,
+    uploadedByMe: topic.uploadedByMe ?? null,
   };
 }
 

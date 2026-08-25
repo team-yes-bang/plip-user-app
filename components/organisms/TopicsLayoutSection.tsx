@@ -1,8 +1,7 @@
 "use client";
 
 import { listTopicsByStatusAction } from "@/actions/topicActions";
-import { DailyIcon, TextLink } from "@/components/atoms";
-import { ManageListRow } from "@/components/molecules/ManageListRow";
+import { Badge, DailyIcon, TextLink } from "@/components/atoms";
 import { ROUTES } from "@/config/routes";
 import type { UiAgitRole } from "@/types/agit/ui";
 import type { ApiTopicListStatus } from "@/types/topic/api";
@@ -23,6 +22,7 @@ type TopicsLayoutSectionProps = {
   sections: UiTopicListSections;
   myRole?: UiAgitRole;
   currentUserUuid?: string;
+  memberCount?: number;
 };
 
 export function TopicsLayoutSection({
@@ -30,6 +30,7 @@ export function TopicsLayoutSection({
   sections,
   myRole,
   currentUserUuid,
+  memberCount,
 }: TopicsLayoutSectionProps) {
   const [openSections, setOpenSections] = useState<Record<UiTopicListSectionKey, boolean>>({
     ongoing: true,
@@ -108,9 +109,9 @@ export function TopicsLayoutSection({
                 {section.label}
               </h2>
               <span className="inline-flex items-center gap-2">
-                <span className="inline-flex h-[28px] items-center justify-center rounded-[14px] bg-[var(--dl-color-bg-brand-subtle)] p-[0_12px] text-xs font-semibold leading-none text-[var(--dl-color-text-brand)]">
+                <Badge variant="brand" size="md">
                   {items.length}개
-                </span>
+                </Badge>
                 <DailyIcon
                   name="chevronRight"
                   size={16}
@@ -124,54 +125,73 @@ export function TopicsLayoutSection({
                 {error ? (
                   <p className="m-0 text-[13px] text-[var(--dl-color-text-danger)]">{error}</p>
                 ) : items.length === 0 ? (
-                  <p className="m-0 text-[13px] text-[var(--dl-color-text-secondary)]">
-                    아직 토픽이 없어요
-                  </p>
+                  <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-[#e3e0ed] bg-[#fbfaff] p-3.5 text-center">
+                    <p className="m-0 text-xs font-medium text-[#756e8a]">아직 토픽이 없어요</p>
+                  </div>
                 ) : (
-                  items.map((topic) => {
-                    const canEdit =
-                      myRole === "HOST" ||
-                      (Boolean(currentUserUuid) && topic.creatorUuid === currentUserUuid);
+                  <div className="flex flex-col overflow-hidden rounded-xl border border-[#e3e0ed] bg-white divide-y divide-[#f0f0f5]">
+                    {items.map((topic) => {
+                      const isOngoing = section.id === "ongoing";
+                      const needsUpload = !topic.uploadedByMe;
+                      const canEdit =
+                        myRole === "HOST" ||
+                        (Boolean(currentUserUuid) && topic.creatorUuid === currentUserUuid);
 
-                    return (
-                      <ManageListRow
-                        key={topic.id}
-                        title={
+                      return (
+                        <div
+                          key={topic.id}
+                          className="group flex items-center justify-between gap-3 p-3 transition-colors hover:bg-[var(--dl-color-bg-brand-subtle)]"
+                        >
                           <TextLink
                             href={ROUTES.agit.topicFeed(agitId, topic.id)}
-                            className="flex min-w-0 flex-col gap-[2px] !text-inherit !no-underline"
+                            className="flex min-w-0 flex-1 items-center gap-2.5 !text-inherit !no-underline"
                           >
-                            <p className="m-0 text-sm font-semibold leading-5 text-[var(--dl-color-text-primary)]">
-                              {topic.title || "제목 없음"}
-                            </p>
-                            <p className="m-0 text-xs font-normal leading-[17px] text-[var(--dl-color-text-secondary)]">
-                              {topic.startAtLabel}
-                            </p>
+                            {isOngoing ? (
+                              <div className="relative flex size-2 shrink-0 items-center justify-center">
+                                {needsUpload ? (
+                                  <>
+                                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-[var(--dl-color-text-brand)] opacity-75" />
+                                    <span className="relative inline-flex size-2 rounded-full bg-[var(--dl-color-text-brand)]" />
+                                  </>
+                                ) : (
+                                  <span className="size-2 rounded-full bg-gray-300" title="기록 완료" />
+                                )}
+                              </div>
+                            ) : null}
+
+                            <div className="flex min-w-0 flex-col gap-0.5">
+                              <p className="m-0 truncate text-sm font-semibold leading-5 text-[var(--dl-color-text-primary)] group-hover:text-[var(--dl-color-text-brand)] transition-colors">
+                                {topic.title || "제목 없음"}
+                              </p>
+                              <p className="m-0 text-[11px] font-normal leading-[15px] text-[var(--dl-color-text-secondary)]">
+                                {topic.startAtLabel}
+                              </p>
+                            </div>
                           </TextLink>
-                        }
-                        trailing={
-                          <div className="flex flex-col items-end gap-1.5">
-                            <span
-                              className={`inline-flex h-[28px] items-center justify-center rounded-[14px] p-[0_12px] text-xs font-semibold leading-none ${topic.videoCount === 0
-                                  ? "m-dlBadgeSuccess bg-[var(--dl-color-bg-success)] text-[var(--dl-color-text-success)]"
-                                  : "bg-[var(--dl-color-bg-brand-subtle)] text-[var(--dl-color-text-brand)]"
-                                }`}
-                            >
-                              {topic.videoCount}개 영상
+
+                          <div className="flex shrink-0 items-center gap-2">
+                            <span className="text-xs font-semibold text-[var(--dl-color-text-secondary)]">
+                              {memberCount ? `${topic.videoCount}/${memberCount}` : `${topic.videoCount}개`}
                             </span>
                             {canEdit ? (
                               <TextLink
                                 href={ROUTES.agit.topicEdit(agitId, topic.id)}
-                                className="text-[12px] font-semibold !text-[var(--dl-color-text-brand)] !no-underline"
+                                className="!no-underline inline-flex"
                               >
-                                편집
+                                <Badge
+                                  variant="brand"
+                                  size="sm"
+                                  className="cursor-pointer hover:bg-[var(--dl-color-bg-brand)] hover:text-white transition-all shadow-xs"
+                                >
+                                  편집
+                                </Badge>
                               </TextLink>
                             ) : null}
                           </div>
-                        }
-                      />
-                    );
-                  })
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
                 {open && canLoadMore ? (
                   <button

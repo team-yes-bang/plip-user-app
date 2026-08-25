@@ -1,6 +1,7 @@
 export { AppLogo } from "./AppLogo";
 export { AuroraButtonLink } from "./AuroraButtonLink";
 export { AuthCopyright } from "./AuthCopyright";
+export { Badge } from "./Badge";
 export { Button } from "./Button";
 export { Checkbox } from "./Checkbox";
 export { GlassInput } from "./GlassInput";
