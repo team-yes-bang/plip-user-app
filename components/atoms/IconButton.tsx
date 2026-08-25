@@ -3,7 +3,8 @@ import type { ComponentProps, ReactNode } from "react";
 import { ui } from "./styles";
 import { TextLink } from "./TextLink";
 
-const SURFACE_CLASS = cn(ui.topbarBack, "border-0 text-[var(--dl-color-text-primary)]");
+const SURFACE_CLASS = cn(ui.topbarBack, "border-0 cursor-pointer text-[var(--dl-color-text-primary)]");
+
 
 type IconButtonProps = ComponentProps<"button"> & {
   label: string;
@@ -26,7 +27,8 @@ export function IconButton({
       className={cn(
         variant === "surface"
           ? SURFACE_CLASS
-          : "inline-flex size-8 items-center justify-center rounded-md border border-zinc-200 text-zinc-600 sm:size-9 dark:border-zinc-700 dark:text-zinc-300",
+          : "inline-flex size-8 cursor-pointer items-center justify-center rounded-md border border-zinc-200 text-zinc-600 sm:size-9 dark:border-zinc-700 dark:text-zinc-300",
+
         className,
       )}
       {...props}

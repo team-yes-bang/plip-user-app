@@ -5,12 +5,14 @@
 // --- 1. Pure / Generic UI Molecules (Domain-Data-Free) ---
 export { ActionSheet } from "./ActionSheet";
 export {
+  AnimatedBottomSheet,
   AnimatedDialog,
   AnimatedDropdown,
   AnimatedSideSheet,
   OverlayPortalProvider,
   useOverlayPortalHost,
 } from "./AnimatedOverlays";
+export { ConfirmModal } from "./ConfirmModal";
 export {
   ScreenHeader,
   AuthTopBar,
@@ -73,6 +75,7 @@ export { DiaryCard } from "./DiaryCard";
 export { DiaryEntryCard } from "./DiaryEntryCard";
 export { DiaryDateScrollSection } from "./DiaryDateScrollSection";
 export { DiaryThemeClipGroup } from "./DiaryThemeClipGroup";
+export { DiaryThemeCard, DiaryThemeAddCard } from "./DiaryThemeCard";
 export { DiaryNotifyTimePicker } from "./DiaryNotifyTimePicker";
 export { CalendarClipCard } from "./CalendarClipCard";
 export { CalendarDay } from "./CalendarDay";
