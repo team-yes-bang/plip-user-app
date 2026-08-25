@@ -26,6 +26,7 @@ export type UiTopicListItem = {
   startAtLabel: string;
   videoCount: number;
   creatorUuid: string;
+  uploadedByMe: boolean | null;
 };
 
 export type UiTopicDetail = {
