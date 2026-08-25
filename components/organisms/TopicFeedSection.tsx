@@ -265,6 +265,8 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
                   videos={videosByTopic[topic.id] ?? EMPTY_TOPIC_VIDEOS}
                   captureHref={ROUTES.capture.videoWith({ agitUuid: agitId, topicUuid: topic.id })}
                   showCaptureSlot={shouldShowTopicCaptureSlot(topic)}
+                  topicTitle={topic.title}
+                  agitName={resolvedAgit?.name}
                 />
               ) : null}
             </div>
