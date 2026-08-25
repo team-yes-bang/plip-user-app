@@ -19,6 +19,8 @@ export {
   HeaderBackButton,
   HeaderBackLink,
   HeaderMenuButton,
+  HeaderSearchButton,
+  HeaderSearchLink,
   HeaderStep,
 } from "./ScreenHeader";
 export { PageContainer } from "./PageContainer";
