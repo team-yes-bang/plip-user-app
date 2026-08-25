@@ -1,7 +1,7 @@
 "use client";
 
 import { TextLink } from "@/components/atoms";
-import { HeaderBackLink, HeaderMenuButton, ScreenHeader } from "@/components/molecules";
+import { ScreenHeader } from "@/components/molecules";
 import { AgitMenuDrawer } from "@/components/organisms/AgitMenuDrawer";
 import { TopicGallerySection } from "@/components/organisms/TopicGallerySection";
 import { ROUTES } from "@/config/routes";
@@ -65,10 +65,12 @@ export function AgitDetailSection({ agit, gallery, error, galleryError }: AgitDe
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <ScreenHeader
-        leading={<HeaderBackLink href={ROUTES.agit.root} />}
+        tone="default"
+        backHref={ROUTES.agit.root}
         title={heading}
         subtitle={formatTopicMeta(gallery)}
-        trailing={<HeaderMenuButton label="아지트 메뉴" onClick={() => setMenuOpen(true)} />}
+        onMenuOpen={() => setMenuOpen(true)}
+        menuLabel="아지트 메뉴"
       />
 
       {galleryError ? (

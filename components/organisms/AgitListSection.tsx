@@ -2,7 +2,7 @@
 import leftoverStyles from "@/components/styles/leftover.module.css";
 
 import { DailyIcon, IconLink, TextLink } from "@/components/atoms";
-import { AgitListRow, ScreenHeader } from "@/components/molecules";
+import { AgitListRow, PageContainer, ScreenHeader } from "@/components/molecules";
 import { ROUTES } from "@/config/routes";
 import type { UiAgit } from "@/types/agit/ui";
 
@@ -16,7 +16,7 @@ export function AgitListSection({ items, error }: AgitListSectionProps) {
   const totalVideos = rooms.reduce((sum, room) => sum + (room.todayVideoCount ?? 0), 0);
 
   return (
-    <section aria-label="내 아지트" className="flex flex-1 flex-col gap-[14px] p-[12px_24px_24px]">
+    <PageContainer aria-label="내 아지트">
       <ScreenHeader
         tone="plain"
         title="아지트"
@@ -64,6 +64,6 @@ export function AgitListSection({ items, error }: AgitListSectionProps) {
           <small>새 루틴을 함께 시작해요</small>
         </span>
       </TextLink>
-    </section>
+    </PageContainer>
   );
 }

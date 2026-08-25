@@ -4,7 +4,6 @@ import { getChatHistoryAction, markChatReadAction } from "@/actions/chatActions"
 import {
   ChatComposer,
   ChatRoomMessage,
-  HeaderBackLink,
   ScreenHeader,
 } from "@/components/molecules";
 import { NotificationIconToggle } from "@/components/molecules/NotificationIconToggle";
@@ -235,13 +234,12 @@ export function RoomChatSection({
 
   return (
     <section
-      className="flex h-full min-h-0 flex-col overflow-hidden p-[12px_23px_16px]"
+      className="flex h-full min-h-0 flex-col overflow-hidden p-[12px_24px_16px]"
       aria-label="아지트 채팅"
     >
       <ScreenHeader
-        tone="plain"
         className="shrink-0"
-        leading={<HeaderBackLink href={ROUTES.agit.detail(agit.id)} />}
+        backHref={ROUTES.agit.detail(agit.id)}
         title={agit.name}
         subtitle="채팅"
         trailing={

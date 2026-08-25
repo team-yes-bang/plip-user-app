@@ -77,10 +77,7 @@ export function TopicsLayoutSection({
   }
 
   return (
-    <section className="flex w-full flex-col gap-3.5">
-      <p className="m-0 text-[13px] font-normal leading-5 text-[var(--dl-color-text-secondary)]">
-        토픽을 진행 상태별로 보고 만들 수 있어요
-      </p>
+    <div className="flex w-full flex-col gap-3.5">
 
       <TextLink
         href={ROUTES.agit.topicCreate(agitId)}
@@ -208,6 +205,6 @@ export function TopicsLayoutSection({
           </div>
         );
       })}
-    </section>
+    </div>
   );
 }

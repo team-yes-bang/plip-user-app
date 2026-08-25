@@ -1,8 +1,8 @@
 "use client";
 
 import { getTopicVideosAction } from "@/actions/topicActions";
-import { DailyIcon, FeedPillIconButton, SubmitButton } from "@/components/atoms";
-import { HeaderBackLink, HeaderMenuButton, ScreenHeader, TopicFeedPillHeader } from "@/components/molecules";
+import { DailyIcon, SubmitButton } from "@/components/atoms";
+import { ScreenHeader, TopicFeedPillHeader } from "@/components/molecules";
 import { AgitMenuDrawer } from "@/components/organisms/AgitMenuDrawer";
 import { MoveTopicSheet } from "@/components/organisms/MoveTopicSheet";
 import { TopicGallerySection } from "@/components/organisms/TopicGallerySection";
@@ -203,9 +203,11 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
       <>
         <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[var(--dl-color-bg-surface-default)]">
           <ScreenHeader
-            leading={<HeaderBackLink href={ROUTES.agit.root} />}
+            tone="default"
+            backHref={ROUTES.agit.root}
             title={resolvedAgit?.name || "아지트"}
-            trailing={<HeaderMenuButton label="아지트 메뉴" onClick={() => setMenuOpen(true)} />}
+            onMenuOpen={() => setMenuOpen(true)}
+            menuLabel="아지트 메뉴"
           />
           <TopicFeedEmptyCover
             isFullyEmpty={true}
@@ -231,22 +233,15 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
   return (
     <>
       <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-        {/* 상단 헤더: ScreenHeader와 TopicFeedPillHeader 모두 absolute 오버레이로 상단에 올려서 스크롤러 높이가 변하지 않도록 보장 */}
+        {/* 상단 헤더: 커버 슬라이드에서는 아지트 표준 헤더, 실제 영상 피드 슬라이드에서는 TopicFeedPillHeader */}
         {isAtCoverSlide ? (
-          <div className="pointer-events-none absolute top-0 inset-x-0 z-30">
+          <div className="pointer-events-auto absolute top-0 inset-x-0 z-30">
             <ScreenHeader
-              tone="overlay"
-              leading={
-                <FeedPillIconButton label="뒤로" onClick={handleBack}>
-                  <DailyIcon name="chevronLeft" size={16} className="brightness-0 invert" />
-                </FeedPillIconButton>
-              }
+              tone="default"
+              onBack={handleBack}
               title={resolvedAgit?.name || "아지트"}
-              trailing={
-                <FeedPillIconButton label="아지트 메뉴" onClick={() => setMenuOpen(true)}>
-                  <DailyIcon name="ellipsis" size={16} className="brightness-0 invert" />
-                </FeedPillIconButton>
-              }
+              onMenuOpen={() => setMenuOpen(true)}
+              menuLabel="아지트 메뉴"
             />
           </div>
         ) : (

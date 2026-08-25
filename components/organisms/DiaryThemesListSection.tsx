@@ -2,7 +2,7 @@
 
 import { deleteThemeAction } from "@/actions/diaryActions";
 import { TextLink } from "@/components/atoms";
-import { HeaderBackLink, ScreenHeader } from "@/components/molecules";
+import { PageContainer, ScreenHeader } from "@/components/molecules";
 import { AnimatedDropdown } from "@/components/molecules/AnimatedOverlays";
 import { CreateThemeDialog } from "@/components/organisms/CreateThemeDialog";
 import { ROUTES } from "@/config/routes";
@@ -153,11 +153,10 @@ export function DiaryThemesListSection({ themes, error: fetchError }: DiaryTheme
 
   return (
     <>
-      <div className="flex flex-col gap-[0.95rem] p-[0.9rem_1rem_1.5rem]">
+      <PageContainer aria-label="테마 목록">
         <ScreenHeader
-          tone="plain"
           titleAlign="center"
-          leading={<HeaderBackLink href={ROUTES.diary.root} />}
+          backHref={ROUTES.diary.root}
           title="테마"
           trailing={
             <button
@@ -201,7 +200,7 @@ export function DiaryThemesListSection({ themes, error: fetchError }: DiaryTheme
             </div>
           ))}
         </div>
-      </div>
+      </PageContainer>
 
       <CreateThemeDialog open={dialogOpen} onClose={closeDialog} theme={editingTheme} />
     </>

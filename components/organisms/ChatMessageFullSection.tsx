@@ -1,6 +1,6 @@
 "use client";
 
-import { HeaderBackLink, ScreenHeader } from "@/components/molecules";
+import { PageContainer, ScreenHeader } from "@/components/molecules";
 import { UserAvatar } from "@/components/atoms/UserAvatar";
 import { ROUTES } from "@/config/routes";
 import { readCachedChatMessage } from "@/lib/chat/messageCache";
@@ -35,10 +35,9 @@ export function ChatMessageFullSection({ agitId, messageId }: ChatMessageFullSec
   }
 
   return (
-    <section className="flex min-h-[calc(100dvh_-_80px)] flex-col p-[12px_23px_16px]" aria-label="메시지 전체보기">
+    <PageContainer aria-label="메시지 전체보기">
       <ScreenHeader
-        tone="plain"
-        leading={<HeaderBackLink href={ROUTES.agit.chat(agitId)} />}
+        backHref={ROUTES.agit.chat(agitId)}
         title="메시지"
       />
 
@@ -65,6 +64,6 @@ export function ChatMessageFullSection({ agitId, messageId }: ChatMessageFullSec
           {message.content}
         </p>
       </article>
-    </section>
+    </PageContainer>
   );
 }
