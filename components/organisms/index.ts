@@ -39,7 +39,7 @@ export { DiaryThemesListSection } from "./DiaryThemesListSection";
 export { DiaryHeader } from "./DiaryHeader";
 export { DiarySideMenu } from "./DiarySideMenu";
 export { RecordCalendar } from "./RecordCalendar";
-export { CreateThemeDialog } from "./CreateThemeDialog";
+export { ThemeBottomSheet } from "./ThemeBottomSheet";
 
 // --- 4. Chat Organisms ---
 export { RoomChatSection } from "./RoomChatSection";

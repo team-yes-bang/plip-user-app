@@ -2,6 +2,7 @@ export type UiDiaryTheme = {
   id: string;
   themeUuid: string;
   name: string;
+  thumbnailSrc?: string;
 };
 
 export type UiDiaryClip = {

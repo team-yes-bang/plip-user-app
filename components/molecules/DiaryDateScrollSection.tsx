@@ -27,10 +27,11 @@ export function DiaryDateScrollSection({ entry, className }: DiaryDateScrollSect
     >
       <TextLink
         href={ROUTES.diary.date(entry.date)}
-        className="shrink-0 px-0.5 text-[13px] font-bold text-[#161823] no-underline"
+        className="shrink-0 px-0.5 text-sm font-semibold text-[#1f1c29] no-underline"
       >
         {dateLabel} · {weekday}
       </TextLink>
+
 
       <TextLink href={href} className="block min-h-0 flex-1 no-underline">
         <Card className="flex h-full min-h-0 flex-col overflow-hidden border-0 p-0 shadow-none ring-1 ring-black/5">

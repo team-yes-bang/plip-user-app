@@ -1,9 +1,9 @@
 "use client";
 
 import { fetchDiaryDateWindowAction } from "@/actions/diaryActions";
-import { TextLink } from "@/components/atoms";
-import { DiaryThemeClipGroup, HeaderBackLink, ScreenHeader } from "@/components/molecules";
-import { formatDiaryDate } from "@/config/diary-mock";
+import { DailyIcon } from "@/components/atoms";
+import { DiaryThemeClipGroup, ScreenHeader } from "@/components/molecules";
+import { DiarySideMenu } from "@/components/organisms/DiarySideMenu";
 import { ROUTES } from "@/config/routes";
 import type { UiDiaryDateWindow } from "@/types/diary/ui";
 import {
@@ -20,8 +20,6 @@ type DiaryDateDetailSectionProps = {
 };
 
 const SWIPE_THRESHOLD = 48;
-const NAV_ARROW_CLASS =
-  "!grid place-items-center w-[2.25rem] h-[2.25rem] rounded-[999px] border border-[var(--dc-glass-border)] bg-[linear-gradient(180deg,_var(--dc-glass-from),_var(--dc-glass-to))] shadow-[var(--dc-shadow)] !text-[var(--dc-fg-primary)] text-[1.35rem] font-bold leading-none !no-underline [&.is-disabled]:opacity-[0.28]";
 
 export function DiaryDateDetailSection({
   initialWindow,
@@ -33,6 +31,7 @@ export function DiaryDateDetailSection({
   const [daysCache, setDaysCache] = useState(initialWindow.days);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(initialError);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const themes = daysCache[focusDate] ?? [];
   const prevDate = shiftDiaryDate(focusDate, -1);
@@ -141,84 +140,74 @@ export function DiaryDateDetailSection({
     pointerStart.current = null;
   }
 
-  return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="shrink-0 px-6 pb-[1.15rem] pt-3">
-        <ScreenHeader
-          tone="plain"
-          titleAlign="center"
-          className="mb-[1.15rem]"
-          leading={<HeaderBackLink href={ROUTES.diary.root} />}
-          title={<span className="sr-only">{formatDiaryDate(focusDate)}</span>}
-        />
+  const formattedDate = focusDate.replaceAll("-", ".");
 
-        <div className="grid grid-cols-[2.25rem_1fr_2.25rem] items-center gap-[0.5rem]">
-          <TextLink
-            href={ROUTES.diary.date(prevDate)}
-            className={NAV_ARROW_CLASS}
-            aria-label="이전 날짜"
-            onClick={(event) => {
-              event.preventDefault();
-              goPrev();
-            }}
-          >
-            ‹
-          </TextLink>
-          <div className="text-center">
-            <h1 className="m-0 text-[1.4rem] font-bold leading-tight tracking-tight text-[var(--dl-color-text-primary)]">
-              {formatDiaryDate(focusDate)}
-            </h1>
-            <p className="m-[0.25rem_0_0] text-[0.8rem] font-semibold text-[var(--dl-color-text-secondary)]">
-              {focusDate}
-            </p>
-          </div>
-          {canGoNext ? (
-            <TextLink
-              href={ROUTES.diary.date(nextDate)}
-              className={NAV_ARROW_CLASS}
-              aria-label="다음 날짜"
-              onClick={(event) => {
-                event.preventDefault();
-                goNext();
-              }}
-            >
-              ›
-            </TextLink>
-          ) : (
-            <span className={`${NAV_ARROW_CLASS} is-disabled`} aria-hidden>
-              ›
-            </span>
-          )}
+  return (
+    <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+      <ScreenHeader
+        tone="plain"
+        titleAlign="center"
+        backHref={ROUTES.diary.root}
+        title={formattedDate}
+        onMenuOpen={() => setMenuOpen(true)}
+        menuLabel="다이어리 메뉴"
+        className="shrink-0 px-6 pt-3 pb-3"
+      />
+
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+        {/* 화면 중앙 좌우 플로팅 날짜 이동 버튼 */}
+        <button
+          type="button"
+          className="absolute left-2.5 top-1/2 z-20 -translate-y-1/2 grid size-10 cursor-pointer place-items-center rounded-full border border-[var(--dl-color-border-default)] bg-[var(--dl-color-bg-elevated)]/85 text-[var(--dl-color-text-primary)] shadow-[0_4px_16px_rgba(23,23,28,0.08)] backdrop-blur-md transition-opacity hover:opacity-100 disabled:pointer-events-none disabled:opacity-20"
+          aria-label="이전 날짜"
+          onClick={goPrev}
+        >
+          <DailyIcon name="chevronLeft" size={20} />
+        </button>
+
+        <button
+          type="button"
+          className="absolute right-2.5 top-1/2 z-20 -translate-y-1/2 grid size-10 cursor-pointer place-items-center rounded-full border border-[var(--dl-color-border-default)] bg-[var(--dl-color-bg-elevated)]/85 text-[var(--dl-color-text-primary)] shadow-[0_4px_16px_rgba(23,23,28,0.08)] backdrop-blur-md transition-opacity hover:opacity-100 disabled:pointer-events-none disabled:opacity-20"
+          aria-label="다음 날짜"
+          disabled={!canGoNext}
+          onClick={goNext}
+        >
+          <DailyIcon name="chevronRight" size={20} />
+        </button>
+
+        {/* 다이어리 클립 목록 */}
+        <div
+          className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 pt-2 pb-6 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none]"
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
+        >
+          {loading ? (
+            <p className="m-0 text-center text-xs font-semibold text-[var(--dl-color-text-secondary)]">불러오는 중...</p>
+          ) : null}
+          {error ? <p className="m-0 text-center text-sm text-[var(--dl-color-text-danger)]">{error}</p> : null}
+
+          {themes.length > 0 ? (
+            themes.map((group) => (
+              <DiaryThemeClipGroup
+                key={group.themeId}
+                themeName={group.themeName}
+                date={focusDate}
+                clipCount={group.clipCount}
+                clips={group.clips}
+              />
+            ))
+          ) : !loading ? (
+            <div className="my-auto flex flex-col items-center justify-center p-8 text-center">
+              <p className="m-0 text-sm font-medium text-[var(--dl-color-text-secondary)]">
+                해당 날짜의 다이어리 기록이 없습니다.
+              </p>
+            </div>
+          ) : null}
         </div>
       </div>
 
-      <div
-        className="flex min-h-0 flex-1 flex-col gap-[1.15rem] overflow-y-auto px-6 pb-6 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none]"
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerCancel}
-      >
-        {loading ? (
-          <p className="m-0 text-center text-[0.85rem] font-semibold text-[rgba(0,_0,_0,_0.4)]">불러오는 중...</p>
-        ) : null}
-        {error ? <p className="m-0 text-center text-sm text-red-600">{error}</p> : null}
-
-        {themes.length > 0 ? (
-          themes.map((group) => (
-            <DiaryThemeClipGroup
-              key={group.themeId}
-              themeName={group.themeName}
-              date={focusDate}
-              clipCount={group.clipCount}
-              clips={group.clips}
-            />
-          ))
-        ) : !loading ? (
-          <p className="m-[2rem_0_0] text-center text-[0.85rem] font-semibold text-[rgba(0,_0,_0,_0.4)]">
-            해당 날짜의 다이어리 기록이 없습니다.
-          </p>
-        ) : null}
-      </div>
+      <DiarySideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </div>
   );
 }
