@@ -1,5 +1,5 @@
 import { TextLink } from "@/components/atoms";
-import { AuthTopBar, HeaderBackLink, ScreenHeader } from "@/components/molecules";
+import { AuthTopBar, HeaderBackLink, PageContainer, ScreenHeader } from "@/components/molecules";
 import { AgitManageForm } from "@/components/organisms/AgitManageForm";
 import { AgitProfileEditForm } from "@/components/organisms/AgitProfileEditForm";
 import { InvitesSafetySection } from "@/components/organisms/InvitesSafetySection";
@@ -55,21 +55,20 @@ export function TopicsLayoutTemplate({
 
   return (
     <AppChromeTemplate activeTab="agit" variant="light">
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <PageContainer aria-label="토픽 목록">
         <ScreenHeader
-          leading={<HeaderBackLink href={ROUTES.agit.detail(agit.id)} />}
+          backHref={ROUTES.agit.detail(agit.id)}
           title="토픽"
+          subtitle="토픽을 진행 상태별로 보고 만들 수 있어요"
         />
-        <div className="min-h-0 flex-1 overflow-y-auto px-[23px] pb-6">
-          <TopicsLayoutSection
-            agitId={agit.id}
-            sections={sections}
-            myRole={agit.myRole}
-            currentUserUuid={currentUserUuid}
-            memberCount={agit.memberCount}
-          />
-        </div>
-      </div>
+        <TopicsLayoutSection
+          agitId={agit.id}
+          sections={sections}
+          myRole={agit.myRole}
+          currentUserUuid={currentUserUuid}
+          memberCount={agit.memberCount}
+        />
+      </PageContainer>
     </AppChromeTemplate>
   );
 }

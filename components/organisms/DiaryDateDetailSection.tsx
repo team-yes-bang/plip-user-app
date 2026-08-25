@@ -142,8 +142,8 @@ export function DiaryDateDetailSection({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[var(--dc-page-bg)]">
-      <div className="shrink-0 px-4 pb-[1.15rem] pt-[0.9rem]">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="shrink-0 px-6 pb-[1.15rem] pt-3">
         <ScreenHeader
           tone="plain"
           titleAlign="center"
@@ -164,7 +164,14 @@ export function DiaryDateDetailSection({
           >
             ‹
           </TextLink>
-          <h2 className="m-0 text-center text-[1rem] font-extrabold text-[#111]">{formatDiaryDate(focusDate)}</h2>
+          <div className="text-center">
+            <h1 className="m-0 text-[1.4rem] font-bold leading-tight tracking-tight text-[var(--dl-color-text-primary)]">
+              {formatDiaryDate(focusDate)}
+            </h1>
+            <p className="m-[0.25rem_0_0] text-[0.8rem] font-semibold text-[var(--dl-color-text-secondary)]">
+              {focusDate}
+            </p>
+          </div>
           {canGoNext ? (
             <TextLink
               href={ROUTES.diary.date(nextDate)}
@@ -186,7 +193,7 @@ export function DiaryDateDetailSection({
       </div>
 
       <div
-        className="flex min-h-0 flex-1 flex-col gap-[1.15rem] overflow-y-auto px-4 pb-7 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none]"
+        className="flex min-h-0 flex-1 flex-col gap-[1.15rem] overflow-y-auto px-6 pb-6 touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none]"
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}

@@ -10,7 +10,7 @@ type DiaryMainTemplateProps = {
 
 export function DiaryMainTemplate({ entries, themes, error }: DiaryMainTemplateProps) {
   return (
-    <DiaryTemplate>
+    <DiaryTemplate fixedMain>
       <DiaryMainSection entries={entries} themes={themes} error={error} />
     </DiaryTemplate>
   );
