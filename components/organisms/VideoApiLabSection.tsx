@@ -89,7 +89,18 @@ export function VideoApiLabSection() {
   }
 
   async function handleIssueUploadUrl() {
-    await run("issueUploadUrlAction", () => issueUploadUrlAction("video/mp4"));
+    const file = fileInputRef.current?.files?.[0];
+    if (!file) {
+      applyActionResult("issueUploadUrlAction", {
+        ok: false,
+        error: "mp4/mov 파일을 먼저 선택한 뒤 upload-url을 발급하세요 (contentLength 서명).",
+      });
+      return;
+    }
+
+    await run("issueUploadUrlAction", () =>
+      issueUploadUrlAction("video/mp4", file.size),
+    );
   }
 
   async function handlePutToS3() {
@@ -188,7 +199,7 @@ export function VideoApiLabSection() {
           로그인 필수. Server Actions는 세션 JWT의 userUuid만 사용합니다.
         </p>
         <p className="text-xs text-black/50">
-          순서: upload-url → S3 PUT → complete → GET detail → GET download-url. 촬영 UI는{" "}
+          순서: 파일 선택 → upload-url(size) → S3 PUT → complete → GET detail → GET download-url. 촬영 UI는{" "}
           <a href={ROUTES.capture.video} className="underline">
             {ROUTES.capture.video}
           </a>

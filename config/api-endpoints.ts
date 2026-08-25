@@ -1,3 +1,5 @@
+import { resolveVideoServicePath } from "./video-path";
+
 /** Gateway `/api/{serviceId}/**` + StripPrefix=2 — Gateway 경유 시 auth/users에 적용 */
 function gatewayPath(serviceId: string, servicePath: string): string {
   const normalized = servicePath.startsWith("/") ? servicePath : `/${servicePath}`;
@@ -69,11 +71,10 @@ export const API_ENDPOINTS = {
       gatewayPath("diary", `/api/v1/diaries/videos/${diaryVideoId}`),
   },
   video: {
-    uploadUrl: "/api/videos/upload-url",
-    complete: (videoUuid: string) => `/api/videos/${videoUuid}/complete` as const,
-    detail: (videoUuid: string) => `/api/videos/${videoUuid}` as const,
-    downloadUrl: (videoUuid: string) => `/api/videos/${videoUuid}/download-url` as const,
-    /** Kafka produce는 video-service. 토픽명은 백엔드 env로 나중에 채움 */
-    destination: (videoUuid: string) => `/api/videos/${videoUuid}/destination` as const,
+    uploadUrl: resolveVideoServicePath("/api/v1/videos/upload-url"),
+    complete: (videoUuid: string) => resolveVideoServicePath(`/api/v1/videos/${videoUuid}/complete`),
+    detail: (videoUuid: string) => resolveVideoServicePath(`/api/v1/videos/${videoUuid}`),
+    downloadUrl: (videoUuid: string) => resolveVideoServicePath(`/api/v1/videos/${videoUuid}/download-url`),
+    destination: (videoUuid: string) => resolveVideoServicePath(`/api/v1/videos/${videoUuid}/destination`),
   },
 } as const;

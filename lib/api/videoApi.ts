@@ -13,16 +13,20 @@ import type {
   VideoUploadUrlResponse,
 } from "@/types/video/api";
 
+/**
+ * Actor identity comes from session headers (Authorization + X-User-UUID),
+ * not query `userUuid` (gateway strips client-supplied identity).
+ */
 export async function postUploadUrl(
-  userUuid: string,
-  contentType?: string,
+  contentType: string | undefined,
+  contentLengthBytes: number,
 ): Promise<VideoUploadUrlResponse> {
   return withAuthRetry(() =>
     apiFetch<VideoUploadUrlResponse>(API_ENDPOINTS.video.uploadUrl, {
       method: "POST",
       searchParams: {
-        userUuid,
         contentType,
+        contentLengthBytes: String(contentLengthBytes),
       },
     }),
   );
@@ -30,13 +34,11 @@ export async function postUploadUrl(
 
 export async function postComplete(
   videoUuid: string,
-  userUuid: string,
   request?: VideoCompleteRequest,
 ): Promise<VideoCompleteResponse> {
   return withAuthRetry(() =>
     apiFetch<VideoCompleteResponse>(API_ENDPOINTS.video.complete(videoUuid), {
       method: "POST",
-      searchParams: { userUuid },
       body: request ?? {},
     }),
   );

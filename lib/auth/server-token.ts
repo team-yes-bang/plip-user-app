@@ -63,7 +63,8 @@ export async function getSessionAuthHeaders(): Promise<Record<string, string>> {
     sessionHeaders.Authorization = `Bearer ${jwt.accessToken}`;
   }
   if (typeof jwt.userUuid === "string" && jwt.userUuid) {
-    sessionHeaders["X-User-Uuid"] = jwt.userUuid;
+    // Canonical gateway / video header (legacy X-User-Uuid still accepted by video filter)
+    sessionHeaders["X-User-UUID"] = jwt.userUuid;
   }
   return sessionHeaders;
 }

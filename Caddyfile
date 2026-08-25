@@ -27,12 +27,7 @@
 		reverse_proxy localhost:8084
 	}
 
-	# video — 현재 프론트는 prefix 없이 /api/videos 로 직행
-	handle /api/videos/* {
-		reverse_proxy localhost:8085
-	}
-
-	# video — 게이트웨이형 /api/video/**
+	# video
 	handle_path /api/video/* {
 		reverse_proxy localhost:8085
 	}
