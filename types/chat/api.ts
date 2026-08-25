@@ -20,3 +20,8 @@ export type ApiChatHistory = {
   nextCursor: ApiChatCursor | null;
   hasNext: boolean;
 };
+
+export type ApiChatWsTicket = {
+  ticket: string;
+  expiresInSeconds: number;
+};

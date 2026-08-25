@@ -1,6 +1,7 @@
 "use server";
 
 import { ApiError } from "@/lib/api/apiFetch";
+import * as chatApi from "@/lib/api/chatApi";
 import { getServerUserUuid } from "@/lib/auth/server-token";
 import * as chatService from "@/services/chatService";
 import { getAgitAndMembers } from "@/services/agitService";
@@ -71,6 +72,25 @@ export async function markChatReadAction(agitId: string): Promise<ActionResult<v
   try {
     await chatService.markChatRead(agitId);
     return actionSuccess(undefined);
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
+export async function issueChatWsTicketAction(): Promise<
+  ActionResult<{ ticket: string; expiresInSeconds: number; wsUrl: string }>
+> {
+  const loginError = await requireLogin();
+  if (loginError) {
+    return actionFailure(loginError);
+  }
+
+  try {
+    const ticket = await chatService.issueWsTicket();
+    return actionSuccess({
+      ...ticket,
+      wsUrl: chatApi.buildChatWsGatewayUrl(ticket.ticket),
+    });
   } catch (error) {
     return toActionError(error);
   }

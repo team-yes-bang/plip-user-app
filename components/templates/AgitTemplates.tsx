@@ -65,14 +65,12 @@ export function AgitChatTemplate({
   members,
   currentUserUuid,
   enableRemoteChat = false,
-  chatWsUrl,
 }: {
   agit: UiAgit | null;
   initialHistory: UiChatHistory;
   members: ApiAgitDetailMember[];
   currentUserUuid?: string;
   enableRemoteChat?: boolean;
-  chatWsUrl?: string;
 }) {
   if (!agit) {
     return (
@@ -93,7 +91,6 @@ export function AgitChatTemplate({
         members={members}
         currentUserUuid={currentUserUuid}
         enableRemoteChat={enableRemoteChat}
-        chatWsUrl={chatWsUrl}
       />
     </AppChromeTemplate>
   );

@@ -37,3 +37,7 @@ export async function getChatHistory(
 export async function markChatRead(agitUuid: string): Promise<void> {
   await chatApi.markChatRead(agitUuid);
 }
+
+export async function issueWsTicket(): Promise<{ ticket: string; expiresInSeconds: number }> {
+  return chatApi.issueWsTicket();
+}

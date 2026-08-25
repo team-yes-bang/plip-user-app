@@ -29,7 +29,6 @@ type RoomChatSectionProps = {
   members: ApiAgitDetailMember[];
   currentUserUuid?: string;
   enableRemoteChat?: boolean;
-  chatWsUrl?: string;
 };
 
 function mergeMessages(existing: UiChatMessage[], incoming: UiChatMessage[]): UiChatMessage[] {
@@ -68,7 +67,6 @@ export function RoomChatSection({
   members,
   currentUserUuid,
   enableRemoteChat = false,
-  chatWsUrl,
 }: RoomChatSectionProps) {
   const resolvedInitialHistory = resolveInitialHistory(agit.id, initialHistory, enableRemoteChat);
   const [notify, setNotify] = useState(true);
@@ -99,9 +97,7 @@ export function RoomChatSection({
 
   const { sendMessage: sendRemoteMessage } = useAgitChatSocket({
     agitUuid: agit.id,
-    userUuid: currentUserUuid ?? "",
-    wsUrl: chatWsUrl ?? "",
-    enabled: enableRemoteChat && Boolean(currentUserUuid && chatWsUrl),
+    enabled: enableRemoteChat && Boolean(currentUserUuid),
     onMessage: handleIncomingMessage,
   });
 

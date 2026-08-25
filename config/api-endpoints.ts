@@ -71,6 +71,7 @@ export const API_ENDPOINTS = {
   chat: {
     messages: (agitUuid: string) => gatewayPath("chat", `/api/v1/agits/${agitUuid}/messages`),
     read: (agitUuid: string) => gatewayPath("chat", `/api/v1/agits/${agitUuid}/read`),
+    wsTicket: gatewayPath("chat", "/api/v1/ws/ticket"),
   },
   video: {
     uploadUrl: gatewayPath("video", "/api/v1/videos/upload-url"),
