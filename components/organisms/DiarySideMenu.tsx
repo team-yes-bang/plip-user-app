@@ -1,9 +1,10 @@
 "use client";
 
-import { DailyIcon, TextLink } from "@/components/atoms";
+import { TextLink } from "@/components/atoms";
 import { MenuNavRow, MonthCalendarGrid, SideSheetHeader, buildMonthGridCells } from "@/components/molecules";
 import { AnimatedSideSheet } from "@/components/molecules/AnimatedOverlays";
 import { ROUTES } from "@/config/routes";
+import { CalendarDays, ChevronLeft, ChevronRight, FolderKanban, LayoutGrid } from "lucide-react";
 import { useMemo } from "react";
 
 type DiarySideMenuProps = {
@@ -11,7 +12,7 @@ type DiarySideMenuProps = {
   onClose: () => void;
 };
 
-const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"] as const;
+const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"] as const;
 
 export function DiarySideMenu({ open, onClose }: DiarySideMenuProps) {
   const cells = useMemo(() => buildMonthGridCells(2026, 7, "adjacent"), []);
@@ -24,59 +25,74 @@ export function DiarySideMenu({ open, onClose }: DiarySideMenuProps) {
     >
       <SideSheetHeader title="다이어리" onClose={onClose} />
 
-      <div className="flex shrink-0 flex-col gap-2">
-        <MenuNavRow href={ROUTES.diary.themes.root} onClick={onClose}>
-          <DailyIcon name="usersBrand" size={24} />
-          테마 관리
-        </MenuNavRow>
-        <MenuNavRow href={ROUTES.diary.themes.root} onClick={onClose}>
-          <DailyIcon name="grid" size={24} />
-          테마별
-        </MenuNavRow>
-        <MenuNavRow href={ROUTES.diary.root} onClick={onClose}>
-          <DailyIcon name="calendar" size={24} />
-          날짜별
-        </MenuNavRow>
-      </div>
-
-      <div
-        className="flex shrink-0 flex-col gap-[0.85rem] rounded-[var(--dc-radius)] border border-[var(--dc-glass-border)] bg-[linear-gradient(180deg,_var(--dc-glass-from),_var(--dc-glass-to))] p-[0.85rem] shadow-[var(--dc-shadow)] backdrop-blur-[20px]"
-        aria-label="캘린더"
-      >
-        <div className="flex items-center justify-between gap-[0.5rem] [&_button]:h-[2rem] [&_button]:w-[2rem] [&_button]:cursor-pointer [&_button]:rounded-[999px] [&_button]:border-0 [&_button]:bg-[#fff] [&_button]:text-[1.1rem] [&_button]:leading-none [&_button]:text-[#111] [&_p]:m-0 [&_p]:flex-1 [&_p]:text-center [&_p]:text-[0.88rem] [&_p]:font-extrabold [&_p]:text-[#111]">
-          <button type="button" aria-label="이전 달">
-            ‹
-          </button>
-          <p>August 2026</p>
-          <button type="button" aria-label="다음 달">
-            ›
-          </button>
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+        <div className="flex shrink-0 flex-col gap-2">
+          <MenuNavRow href={ROUTES.diary.themes.root} onClick={onClose}>
+            <FolderKanban className="size-5 shrink-0 text-[var(--dl-color-text-brand)]" strokeWidth={2.2} />
+            테마 관리
+          </MenuNavRow>
+          <MenuNavRow href={ROUTES.diary.themes.root} onClick={onClose}>
+            <LayoutGrid className="size-5 shrink-0 text-[var(--dl-color-text-brand)]" strokeWidth={2.2} />
+            테마별
+          </MenuNavRow>
+          <MenuNavRow href={ROUTES.diary.root} onClick={onClose}>
+            <CalendarDays className="size-5 shrink-0 text-[var(--dl-color-text-brand)]" strokeWidth={2.2} />
+            날짜별
+          </MenuNavRow>
         </div>
-        <MonthCalendarGrid
-          weekdayLabels={WEEKDAYS}
-          cells={cells}
-          weekdaysClassName="grid grid-cols-[repeat(7,_minmax(0,_1fr))] gap-[0.2rem] [&_span]:inline-flex [&_span]:h-[1.35rem] [&_span]:items-center [&_span]:justify-center [&_span]:text-[0.7rem] [&_span]:font-bold [&_span]:text-[rgba(0,_0,_0,_0.4)]"
-          daysClassName="grid grid-cols-[repeat(7,_minmax(0,_1fr))] gap-[0.2rem]"
-          renderDay={(cell, index) =>
-            cell.date && !cell.outside ? (
-              <TextLink
-                key={`${cell.day}-${index}`}
-                href={ROUTES.diary.date(cell.date)}
-                className={`!inline-flex aspect-[1] items-center justify-center rounded-[999px] !text-[0.8rem] !font-bold !text-[#111] !no-underline [&.is-outside]:!text-[rgba(0,_0,_0,_0.28)] [&.is-selected]:bg-[var(--dc-accent)] [&.is-selected]:!text-[#fff] ${cell.day === 11 ? "is-selected" : ""}`}
-                onClick={onClose}
-              >
-                {cell.day}
-              </TextLink>
-            ) : (
-              <span
-                key={`${cell.day}-${index}`}
-                className="!inline-flex aspect-[1] items-center justify-center rounded-[999px] !text-[0.8rem] !font-bold !text-[rgba(0,_0,_0,_0.28)]"
-              >
-                {cell.day}
-              </span>
-            )
-          }
-        />
+
+        <div
+          className="flex shrink-0 flex-col gap-3 rounded-[18px] border border-[#e3e0ed] bg-[#fff] p-4 shadow-xs"
+          aria-label="캘린더"
+        >
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              className="grid size-7 cursor-pointer place-items-center rounded-full border border-[#e3e0ed] bg-[#fbfaff] text-xs font-bold text-[#262433] transition-colors hover:bg-[var(--dl-color-bg-brand-subtle)] hover:text-[var(--dl-color-text-brand)]"
+              aria-label="이전 달"
+            >
+              <ChevronLeft className="size-3.5" />
+            </button>
+            <p className="m-0 text-xs font-bold tracking-tight text-[#1f1c29]">2026년 8월</p>
+            <button
+              type="button"
+              className="grid size-7 cursor-pointer place-items-center rounded-full border border-[#e3e0ed] bg-[#fbfaff] text-xs font-bold text-[#262433] transition-colors hover:bg-[var(--dl-color-bg-brand-subtle)] hover:text-[var(--dl-color-text-brand)]"
+              aria-label="다음 달"
+            >
+              <ChevronRight className="size-3.5" />
+            </button>
+          </div>
+
+          <MonthCalendarGrid
+            weekdayLabels={WEEKDAYS}
+            cells={cells}
+            weekdaysClassName="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-[#756e8a]"
+            daysClassName="grid grid-cols-7 gap-1"
+            renderDay={(cell, index) =>
+              cell.date && !cell.outside ? (
+                <TextLink
+                  key={`${cell.day}-${index}`}
+                  href={ROUTES.diary.date(cell.date)}
+                  className={`grid aspect-square place-items-center rounded-full text-xs font-bold !no-underline transition-all hover:bg-[var(--dl-color-bg-brand-subtle)] hover:text-[var(--dl-color-text-brand)] ${
+                    cell.day === 19
+                      ? "bg-[var(--dl-color-bg-brand)] !text-[#fff] shadow-xs hover:!bg-[var(--dl-color-bg-brand)] hover:!text-[#fff]"
+                      : "!text-[#262433]"
+                  }`}
+                  onClick={onClose}
+                >
+                  {cell.day}
+                </TextLink>
+              ) : (
+                <span
+                  key={`${cell.day}-${index}`}
+                  className="grid aspect-square place-items-center text-xs font-normal text-[#c4c0d4]"
+                >
+                  {cell.day}
+                </span>
+              )
+            }
+          />
+        </div>
       </div>
     </AnimatedSideSheet>
   );

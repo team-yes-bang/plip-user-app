@@ -3,6 +3,7 @@
 import { leaveAgitAction, reissueInviteCodeAction } from "@/actions/agitActions";
 import { listTopicsByStatusAction } from "@/actions/topicActions";
 import { DailyIcon, IconButton, Separator, TextLink } from "@/components/atoms";
+import { ConfirmModal } from "@/components/molecules";
 import { AnimatedSideSheet } from "@/components/molecules/AnimatedOverlays";
 import { MenuNavRow, SideSheetHeader } from "@/components/molecules/SideSheetMenu";
 import { ROUTES } from "@/config/routes";
@@ -50,18 +51,18 @@ const MENU = [
 
 function MenuItemIcon({ id }: { id: (typeof MENU)[number]["id"] }) {
   if (id === "topics") {
-    return <DailyIcon name="list" size={24} />;
+    return <DailyIcon name="list" size={24} className="brightness-0 saturate-100 [filter:invert(32%)_sepia(98%)_saturate(1142%)_hue-rotate(231deg)_brightness(94%)_contrast(99%)]" />;
   }
   if (id === "chat") {
-    return <DailyIcon name="message" size={24} />;
+    return <DailyIcon name="messageBrand" size={24} />;
   }
   if (id === "members") {
-    return <DailyIcon name="users" size={24} />;
+    return <DailyIcon name="usersBrand" size={24} />;
   }
   if (id === "profile") {
-    return <UserRoundCog className="size-6 shrink-0 text-[#262433]" strokeWidth={2} />;
+    return <UserRoundCog className="size-6 shrink-0 text-[var(--dl-color-text-brand)]" strokeWidth={2} />;
   }
-  return <Settings className="size-6 shrink-0 text-[#262433]" strokeWidth={2} />;
+  return <Settings className="size-6 shrink-0 text-[var(--dl-color-text-brand)]" strokeWidth={2} />;
 }
 
 export function AgitMenuDrawer({ agit, open, onClose }: AgitMenuDrawerProps) {
@@ -275,44 +276,18 @@ export function AgitMenuDrawer({ agit, open, onClose }: AgitMenuDrawerProps) {
         </div>
       </AnimatedSideSheet>
 
-      {confirmLeave ? (
-        <div className="fixed inset-0 z-[41] flex items-center justify-center p-6 md:absolute">
-          <button
-            type="button"
-            className="absolute inset-0 border-0 bg-[rgba(0,0,0,0.32)]"
-            aria-label="취소"
-            onClick={() => setConfirmLeave(false)}
-          />
-          <div
-            role="dialog"
-            aria-modal
-            aria-labelledby="agit-leave-title"
-            className="relative z-[1] w-full max-w-[280px] rounded-[20px] border border-[#e3e0ed] bg-[#fbfaff] p-5 shadow-[0_8px_24px_rgba(31,28,41,0.12)]"
-          >
-            <p id="agit-leave-title" className="m-0 text-base font-semibold text-[#1f1c29]">
-              아지트에서 나가시겠어요?
-            </p>
-            <p className="m-[8px_0_0] text-xs text-[#756e8a]">나가면 목록에서 이 아지트가 사라집니다.</p>
-            <div className="mt-4 flex gap-2">
-              <button
-                type="button"
-                className="flex h-11 flex-1 items-center justify-center rounded-[var(--dl-radius-md)] bg-[var(--dl-color-bg-surface)] text-sm font-medium text-[#262433]"
-                onClick={() => setConfirmLeave(false)}
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                className="flex h-11 flex-1 items-center justify-center rounded-[var(--dl-radius-md)] bg-[var(--dl-color-bg-danger)] text-sm font-medium text-[var(--dl-color-text-danger)] disabled:opacity-50"
-                disabled={leaving}
-                onClick={handleLeave}
-              >
-                {leaving ? "나가는 중..." : "나가기"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <ConfirmModal
+        open={confirmLeave}
+        onClose={() => setConfirmLeave(false)}
+        onConfirm={handleLeave}
+        title="아지트에서 나가시겠어요?"
+        description="나가면 목록에서 이 아지트가 사라집니다."
+        confirmLabel="나가기"
+        cancelLabel="취소"
+        tone="danger"
+        loading={leaving}
+      />
     </>
   );
 }
+
