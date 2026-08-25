@@ -1,15 +1,16 @@
 import { TextLink } from "@/components/atoms";
 import {
-  AgitChatSection,
   AgitSearchSection,
 } from "@/components/organisms/AgitSubSections";
+import { RoomChatSection } from "@/components/organisms/RoomChatSection";
 import { AgitDetailSection } from "@/components/organisms/AgitDetailSection";
 import { AgitListSection } from "@/components/organisms/AgitListSection";
 import { AppChromeTemplate } from "@/components/templates/AppChromeTemplate";
 import { DailyLoopAuthTemplate } from "@/components/templates/DailyLoopAuthTemplate";
-import { getAgitById } from "@/config/agit-mock";
 import { ROUTES } from "@/config/routes";
+import type { ApiAgitDetailMember } from "@/types/agit/api";
 import type { UiAgit } from "@/types/agit/ui";
+import type { UiChatHistory } from "@/types/chat/ui";
 import type { UiTopicGallery } from "@/types/topic/ui";
 
 export function AgitListTemplate({
@@ -58,8 +59,22 @@ export {
   TopicsLayoutTemplate as AgitTopicsTemplate,
 } from "./RoomManageTemplates";
 
-export function AgitChatTemplate({ agitId }: { agitId: string }) {
-  if (!getAgitById(agitId)) {
+export function AgitChatTemplate({
+  agit,
+  initialHistory,
+  members,
+  currentUserUuid,
+  enableRemoteChat = false,
+  chatWsUrl,
+}: {
+  agit: UiAgit | null;
+  initialHistory: UiChatHistory;
+  members: ApiAgitDetailMember[];
+  currentUserUuid?: string;
+  enableRemoteChat?: boolean;
+  chatWsUrl?: string;
+}) {
+  if (!agit) {
     return (
       <DailyLoopAuthTemplate>
         <p className="m-0 text-sm font-normal leading-5 text-[var(--dl-color-text-secondary)]">방을 찾을 수 없습니다.</p>
@@ -71,8 +86,15 @@ export function AgitChatTemplate({ agitId }: { agitId: string }) {
   }
 
   return (
-    <AppChromeTemplate activeTab="agit" variant="light">
-      <AgitChatSection agitId={agitId} />
+    <AppChromeTemplate activeTab="agit" variant="light" mainOverflow="hidden">
+      <RoomChatSection
+        agit={agit}
+        initialHistory={initialHistory}
+        members={members}
+        currentUserUuid={currentUserUuid}
+        enableRemoteChat={enableRemoteChat}
+        chatWsUrl={chatWsUrl}
+      />
     </AppChromeTemplate>
   );
 }

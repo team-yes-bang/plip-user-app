@@ -1,4 +1,4 @@
-import type { UiAgit, UiAgitMember, UiAgitTopic, UiChatMessage } from "@/types/agit/ui";
+import type { UiAgit, UiAgitMember, UiAgitTopic, UiCardChatMessage } from "@/types/agit/ui";
 
 export const AGIT_LIST: UiAgit[] = [
   {
@@ -138,7 +138,7 @@ export const AGIT_TOPICS: UiAgitTopic[] = [
   { id: "t3", title: "자유 토픽", clipCount: 21 },
 ];
 
-export const AGIT_CHAT: UiChatMessage[] = [
+export const AGIT_CHAT: UiCardChatMessage[] = [
   {
     id: "c1",
     senderName: "민지",

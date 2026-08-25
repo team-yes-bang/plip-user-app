@@ -42,6 +42,8 @@ export const ROUTES = {
     upload: (agitId: string) => `/agit/${agitId}/upload` as const,
     safety: (agitId: string) => `/agit/${agitId}/safety` as const,
     chat: (agitId: string) => `/agit/${agitId}/chat` as const,
+    chatMessage: (agitId: string, messageId: string) =>
+      `/agit/${agitId}/chat/m/${messageId}` as const,
     poll: (agitId: string) => `/agit/${agitId}/chat/poll` as const,
     pollEdit: (agitId: string) => `/agit/${agitId}/chat/poll/edit` as const,
     search: "/agit/search",

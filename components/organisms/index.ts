@@ -36,7 +36,6 @@ export { RoomProfileSelect } from "./RoomProfileSelect";
 export { AgitDetailSection } from "./AgitDetailSection";
 export { AgitListSection } from "./AgitListSection";
 export {
-  AgitChatSection,
   AgitEnterSection,
   AgitMembersSection,
   AgitSearchSection,
