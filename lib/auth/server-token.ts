@@ -3,7 +3,7 @@ import {
   FORWARDED_REFRESH_TOKEN_HEADER,
   FORWARDED_USER_UUID_HEADER,
 } from "@/lib/auth/forwarded-auth-headers";
-import { getRequestAuthTokenOverride } from "@/lib/auth/request-token-cache";
+import { getRetryAuthHeaders } from "@/lib/auth/request-token-cache";
 import { headers } from "next/headers";
 import { getToken } from "next-auth/jwt";
 import type { JWT } from "next-auth/jwt";
@@ -58,9 +58,10 @@ export async function getServerUserUuid(): Promise<string | undefined> {
 }
 
 export async function getServerAccessToken(): Promise<string | undefined> {
-  const override = getRequestAuthTokenOverride()?.accessToken;
-  if (override) {
-    return override;
+  const retryHeaders = getRetryAuthHeaders();
+  const retryToken = retryHeaders?.Authorization?.replace(/^Bearer\s+/i, "").trim();
+  if (retryToken) {
+    return retryToken;
   }
 
   const jwt = await getServerAuthJwtSafe();
@@ -69,22 +70,17 @@ export async function getServerAccessToken(): Promise<string | undefined> {
 }
 
 export async function getServerRefreshToken(): Promise<string | undefined> {
-  const override = getRequestAuthTokenOverride()?.refreshToken;
-  if (override) {
-    return override;
-  }
-
   const jwt = await getServerAuthJwtSafe();
   const token = jwt?.refreshToken;
   return typeof token === "string" && token.length > 0 ? token : undefined;
 }
 
 export async function getSessionAuthHeaders(): Promise<Record<string, string>> {
-  const override = getRequestAuthTokenOverride();
   const jwt = await getServerAuthJwtSafe();
+  const retryHeaders = getRetryAuthHeaders();
 
   const accessToken =
-    override?.accessToken ??
+    retryHeaders?.Authorization?.replace(/^Bearer\s+/i, "").trim() ||
     (typeof jwt?.accessToken === "string" && jwt.accessToken.length > 0
       ? jwt.accessToken
       : undefined);

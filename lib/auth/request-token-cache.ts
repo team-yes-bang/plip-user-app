@@ -1,37 +1,44 @@
-/** 401 reissue 후 동일 요청 체인에서 Bearer·refresh 재시도용 (세션 쿠키 갱신 전) */
+import { AsyncLocalStorage } from "node:async_hooks";
+import { cache } from "react";
+import * as authService from "@/services/authService";
+
 export type RequestAuthTokens = {
   accessToken: string;
   refreshToken: string;
 };
 
-let requestAuthTokenOverride: RequestAuthTokens | undefined;
-let reissueInFlight: Promise<RequestAuthTokens> | undefined;
+const retryAuthHeaderStore = new AsyncLocalStorage<Record<string, string>>();
 
-export function setRequestAuthTokenOverride(tokens: RequestAuthTokens): void {
-  requestAuthTokenOverride = tokens;
+export function getRetryAuthHeaders(): Record<string, string> | undefined {
+  const store = retryAuthHeaderStore.getStore();
+  if (!store || Object.keys(store).length === 0) {
+    return undefined;
+  }
+  return store;
 }
 
-export function getRequestAuthTokenOverride(): RequestAuthTokens | undefined {
-  return requestAuthTokenOverride;
+export async function runWithRetryAuthScope<T>(fn: () => Promise<T>): Promise<T> {
+  return retryAuthHeaderStore.run({}, fn);
 }
 
-export function withReissueSingleFlight(
-  reissue: () => Promise<RequestAuthTokens>,
-): Promise<RequestAuthTokens> {
-  if (requestAuthTokenOverride) {
-    return Promise.resolve(requestAuthTokenOverride);
+export const reissueTokensOncePerRequest = cache(async (): Promise<RequestAuthTokens | null> => {
+  const { getServerRefreshToken } = await import("@/lib/auth/server-token");
+  const refreshToken = await getServerRefreshToken();
+  if (typeof refreshToken !== "string" || !refreshToken) {
+    return null;
   }
 
-  if (!reissueInFlight) {
-    reissueInFlight = reissue()
-      .then((tokens) => {
-        requestAuthTokenOverride = tokens;
-        return tokens;
-      })
-      .finally(() => {
-        reissueInFlight = undefined;
-      });
-  }
+  const refreshed = await authService.reissueToken(refreshToken);
+  return {
+    accessToken: refreshed.accessToken,
+    refreshToken: refreshed.refreshToken,
+  };
+});
 
-  return reissueInFlight;
+export function applyRetryAuthHeaders(tokens: RequestAuthTokens): void {
+  const store = retryAuthHeaderStore.getStore();
+  if (!store) {
+    return;
+  }
+  store.Authorization = `Bearer ${tokens.accessToken}`;
 }
