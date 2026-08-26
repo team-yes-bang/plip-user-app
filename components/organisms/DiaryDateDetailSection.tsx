@@ -5,7 +5,7 @@ import { DailyIcon, IconButton } from "@/components/atoms";
 import { DiaryThemeClipGroup, ScreenHeader } from "@/components/molecules";
 import { DiarySideMenu } from "@/components/organisms/DiarySideMenu";
 import { ROUTES } from "@/config/routes";
-import type { UiDiaryDateWindow } from "@/types/diary/ui";
+import type { UiDiaryDateWindow, UiDiaryMenuNav } from "@/types/diary/ui";
 import {
   getTodayKstDateString,
   isFutureDiaryDate,
@@ -16,6 +16,7 @@ import { useRef, useState, type PointerEvent } from "react";
 
 type DiaryDateDetailSectionProps = {
   initialWindow: UiDiaryDateWindow;
+  menuNav?: UiDiaryMenuNav | null;
   error?: string;
 };
 
@@ -23,6 +24,7 @@ const SWIPE_THRESHOLD = 48;
 
 export function DiaryDateDetailSection({
   initialWindow,
+  menuNav,
   error: initialError,
 }: DiaryDateDetailSectionProps) {
   const router = useRouter();
@@ -205,7 +207,7 @@ export function DiaryDateDetailSection({
         </div>
       </div>
 
-      <DiarySideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <DiarySideMenu open={menuOpen} onClose={() => setMenuOpen(false)} menuNav={menuNav} />
     </div>
   );
 }

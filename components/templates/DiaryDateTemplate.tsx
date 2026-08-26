@@ -1,16 +1,17 @@
 import { DiaryDateDetailSection } from "@/components/organisms";
 import { DiaryTemplate } from "@/components/templates/DiaryTemplate";
-import type { UiDiaryDateWindow } from "@/types/diary/ui";
+import type { UiDiaryDateWindow, UiDiaryMenuNav } from "@/types/diary/ui";
 
 type DiaryDateTemplateProps = {
   initialWindow: UiDiaryDateWindow;
+  menuNav?: UiDiaryMenuNav | null;
   error?: string;
 };
 
-export function DiaryDateTemplate({ initialWindow, error }: DiaryDateTemplateProps) {
+export function DiaryDateTemplate({ initialWindow, menuNav, error }: DiaryDateTemplateProps) {
   return (
     <DiaryTemplate fixedMain>
-      <DiaryDateDetailSection initialWindow={initialWindow} error={error} />
+      <DiaryDateDetailSection initialWindow={initialWindow} menuNav={menuNav} error={error} />
     </DiaryTemplate>
   );
 }
