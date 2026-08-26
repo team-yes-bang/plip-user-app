@@ -8,6 +8,7 @@ type CapacityStepperProps = {
   max?: number;
   onChange: (value: number) => void;
   compact?: boolean;
+  disabled?: boolean;
 };
 
 export function CapacityStepper({
@@ -16,9 +17,10 @@ export function CapacityStepper({
   max = 30,
   onChange,
   compact = false,
+  disabled = false,
 }: CapacityStepperProps) {
-  const canDecrease = value > min;
-  const canIncrease = value < max;
+  const canDecrease = !disabled && value > min;
+  const canIncrease = !disabled && value < max;
 
   function decrease() {
     if (!canDecrease) return;
