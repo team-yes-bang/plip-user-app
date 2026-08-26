@@ -16,6 +16,19 @@ import type {
   ApiUserWithdrawResponse,
 } from "@/types/user/api";
 
+export async function getMyProfileWithAccessToken(
+  accessToken: string,
+): Promise<ApiUserProfileResponse> {
+  return apiFetch<ApiUserProfileResponse>(API_ENDPOINTS.users.me, {
+    method: "GET",
+    baseUrl: getApiUrl(),
+    auth: false,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+}
+
 export async function getMyProfile(): Promise<ApiUserProfileResponse> {
   return withAuthRetry(async () =>
     apiFetch<ApiUserProfileResponse>(API_ENDPOINTS.users.me, {

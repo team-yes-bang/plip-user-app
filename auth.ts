@@ -11,6 +11,7 @@ import { ApiError } from "@/lib/api/apiFetch";
 import { AUTH_ERROR_CODES, getApiErrorCode } from "@/lib/auth/auth-errors";
 import { saveSocialSignupPendingToken } from "@/lib/auth/social-signup-pending";
 import { isSocialProvider } from "@/lib/auth/social-providers";
+import { validateSessionTokens } from "@/lib/auth/validate-session-tokens";
 import type { SocialProvider } from "@/types/auth/ui";
 import * as authService from "@/services/authService";
 
@@ -149,6 +150,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const expiresAt = Number(accessTokenExpiresAt);
         if (!userUuid || !accessToken || !refreshToken || !Number.isFinite(expiresAt)) {
+          return null;
+        }
+
+        const isValid = await validateSessionTokens(userUuid, accessToken);
+        if (!isValid) {
           return null;
         }
 
