@@ -90,8 +90,11 @@ export function RecordCalendar({ agitId }: RecordCalendarProps) {
   const hasClips = totalVideoCount > 0;
 
   function handleOpenClip(clipId: string, videoUuid?: string, caption?: string, thumbnail?: string) {
+    if (!videoUuid?.trim()) {
+      return;
+    }
     setActiveClipId(clipId);
-    setActiveVideoUuid(videoUuid || clipId);
+    setActiveVideoUuid(videoUuid);
     setActiveCaption(caption);
     setActiveThumbnail(thumbnail);
     setViewerOpen(true);
@@ -189,7 +192,10 @@ export function RecordCalendar({ agitId }: RecordCalendarProps) {
                     <button
                       key={clip.id}
                       type="button"
-                      onClick={() => handleOpenClip(clip.id, clip.id, "", clip.thumbnailSrc)}
+                      onClick={() =>
+                        clip?.videoUuid &&
+                        handleOpenClip(clip.id, clip.videoUuid, clip.caption, clip.thumbnailSrc)
+                      }
                       className="group relative aspect-square overflow-hidden rounded-xl bg-black/10 cursor-pointer border-0 p-0"
                     >
                       {clip.thumbnailSrc ? (

@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { DailyIcon, IconButton } from "@/components/atoms";
 import { getVideoAction } from "@/actions/videoActions";
+import { DailyIcon, IconButton } from "@/components/atoms";
 import { extractDate } from "@/lib/video/formatOverlayClock";
+import { resolveRemotePlaybackUrl } from "@/lib/video/playback";
+import { safeVideoPlay } from "@/lib/video/safeVideoPlay";
+import { useEffect, useRef, useState } from "react";
 
 type DiaryVideoViewerModalProps = {
   open: boolean;
@@ -24,6 +26,7 @@ export function DiaryVideoViewerModal({
   thumbnailUrl,
   onClose,
 }: DiaryVideoViewerModalProps) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +34,7 @@ export function DiaryVideoViewerModal({
   useEffect(() => {
     let isMounted = true;
 
-    if (!open || !videoUuid) {
+    if (!open || !videoUuid?.trim()) {
       Promise.resolve().then(() => {
         if (isMounted) {
           setPlaybackUrl(null);
@@ -46,18 +49,23 @@ export function DiaryVideoViewerModal({
       if (isMounted) {
         setLoading(true);
         setError(null);
+        setPlaybackUrl(null);
       }
     });
 
     getVideoAction(videoUuid)
       .then((res) => {
         if (!isMounted) return;
-        if (res.ok && res.data.rawPlaybackUrl) {
-          setPlaybackUrl(res.data.rawPlaybackUrl);
-        } else if (res.ok && !res.data.rawPlaybackUrl) {
-          setError("재생 가능한 영상 주소가 아직 준비되지 않았습니다.");
-        } else if (!res.ok) {
+        if (!res.ok) {
           setError(res.error || "영상 상세 정보를 불러오지 못했습니다.");
+          return;
+        }
+
+        const url = resolveRemotePlaybackUrl(res.data.rawPlaybackUrl);
+        if (url) {
+          setPlaybackUrl(url);
+        } else {
+          setError("재생 가능한 영상 주소가 아직 준비되지 않았습니다.");
         }
       })
       .catch(() => {
@@ -100,12 +108,18 @@ export function DiaryVideoViewerModal({
       <div className="relative flex h-full w-full max-w-lg flex-col items-center justify-center overflow-hidden">
         {playbackUrl ? (
           <video
+            ref={videoRef}
             src={playbackUrl}
             controls
             autoPlay
             playsInline
             className="h-full w-full object-contain"
             poster={thumbnailUrl}
+            onCanPlay={() => {
+              if (videoRef.current) {
+                safeVideoPlay(videoRef.current);
+              }
+            }}
           />
         ) : thumbnailUrl ? (
           <div className="relative h-full w-full flex items-center justify-center bg-black">

@@ -59,9 +59,12 @@ function mapVideoSummary(
 
   return {
     id: clipId,
+    videoUuid: legacyVideo.videoUuid,
     themeId,
     date,
     thumbnailSrc: toClipThumbnail(legacyVideo.thumbnailUrl ?? legacyVideo.thumbnailPath),
+    caption: legacyVideo.caption?.trim() || undefined,
+    createdAt: legacyVideo.createdAt,
   };
 }
 

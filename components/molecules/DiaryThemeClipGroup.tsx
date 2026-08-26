@@ -4,6 +4,7 @@ import { TextLink } from "@/components/atoms";
 import { VideoClipThumbnail } from "@/components/molecules/VideoClipThumbnail";
 import { useVideoViewer } from "@/components/providers/VideoViewerProvider";
 import { formatDiaryDate } from "@/config/diary-mock";
+import { toDiaryVideoViewerItems } from "@/lib/diary/toVideoViewerItems";
 import { ROUTES } from "@/config/routes";
 import type { UiDiaryClip } from "@/types/diary/ui";
 
@@ -25,18 +26,43 @@ const THUMB_IMAGE_CLASS = "aspect-[1_/_1] h-full w-full rounded-[0] object-cover
 function DiaryClipThumb({
   thumbnailSrc,
   onClick,
+  disabled,
 }: {
   thumbnailSrc?: string;
   onClick?: () => void;
+  disabled?: boolean;
 }) {
   return (
-    <div className={THUMB_SLOT_CLASS} onClick={onClick}>
+    <div
+      className={`${THUMB_SLOT_CLASS}${disabled ? " cursor-default" : ""}`}
+      onClick={disabled ? undefined : onClick}
+      role={disabled ? undefined : "button"}
+      tabIndex={disabled ? undefined : 0}
+      onKeyDown={
+        disabled
+          ? undefined
+          : (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onClick?.();
+              }
+            }
+      }
+    >
       <VideoClipThumbnail src={thumbnailSrc} className={THUMB_IMAGE_CLASS} />
     </div>
   );
 }
 
-function ThumbGrid({ clips, clipCount, date, themeName }: { clips?: UiDiaryClip[]; clipCount: number; date: string; themeName?: string }) {
+function ThumbGrid({
+  clips,
+  clipCount,
+  themeName,
+}: {
+  clips?: UiDiaryClip[];
+  clipCount: number;
+  themeName: string;
+}) {
   const { openViewer } = useVideoViewer();
   const slotCount = Math.max(clipCount, clips?.length ?? 0);
 
@@ -44,30 +70,32 @@ function ThumbGrid({ clips, clipCount, date, themeName }: { clips?: UiDiaryClip[
     return null;
   }
 
-  const handleThumbClick = (clipId: string) => {
-    const list = (clips ?? []).map((c) => ({
-      clipId: c.id,
-      videoUuid: c.id,
-      title: themeName || "다이어리 영상",
-      themeName,
-      uploadedAt: formatDiaryDate(date),
-      thumbnailUrl: c.thumbnailSrc,
-    }));
+  function handleThumbClick(clip: UiDiaryClip) {
+    if (!clip.videoUuid?.trim()) {
+      return;
+    }
 
-    openViewer(clipId, list, "diary");
-  };
+    const list = toDiaryVideoViewerItems(clips ?? [], themeName);
+    if (list.length === 0) {
+      return;
+    }
+
+    openViewer(clip.id, list, "diary");
+  }
 
   return (
     <div className={THUMB_GRID_CLASS}>
       {Array.from({ length: slotCount }, (_, index) => {
         const clip = clips?.[index];
         const slotKey = clip?.id ?? `slot-${index}`;
+        const canOpen = Boolean(clip?.videoUuid?.trim());
 
         return (
           <DiaryClipThumb
             key={slotKey}
             thumbnailSrc={clip?.thumbnailSrc}
-            onClick={() => clip && handleThumbClick(clip.id)}
+            disabled={!canOpen}
+            onClick={() => clip && handleThumbClick(clip)}
           />
         );
       })}
@@ -94,7 +122,7 @@ export function DiaryThemeClipGroup({
         <h3 className="m-0 text-sm font-semibold text-[#1f1c29]">{title}</h3>
       )}
 
-      <ThumbGrid clips={clips} clipCount={clipCount} date={date} themeName={themeName} />
+      <ThumbGrid clips={clips} clipCount={clipCount} themeName={themeName} />
     </section>
   );
 }
