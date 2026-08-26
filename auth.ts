@@ -204,6 +204,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return Response.redirect(new URL("/diary", request.nextUrl));
       }
 
+      // 방 가입 랜딩 페이지(/agit/join/[code])는 비로그인 상태에서도 접근 허용
+      if (
+        pathname.startsWith("/agit/join/") &&
+        !pathname.includes("/profile") &&
+        !pathname.includes("/complete")
+      ) {
+        return true;
+      }
+
       if (matchesPrefix(pathname, PROTECTED_PREFIXES) && !isLoggedIn) {
         return false;
       }

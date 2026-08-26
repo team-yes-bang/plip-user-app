@@ -92,8 +92,13 @@ export function AgitMenuDrawer({ agit, open, onClose }: AgitMenuDrawerProps) {
 
   async function copyInviteCode() {
     if (!inviteCode) return;
-    const ok = await copyText(inviteCode);
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const joinUrl = `${origin}${ROUTES.agit.join(inviteCode)}`;
+    const ok = await copyText(joinUrl);
     setCopied(ok);
+    if (ok) {
+      toast.add({ type: "success", title: "초대 링크가 복사되었습니다" });
+    }
   }
 
   async function reissueInviteCode() {
@@ -156,7 +161,7 @@ export function AgitMenuDrawer({ agit, open, onClose }: AgitMenuDrawerProps) {
             className="flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-2 bg-transparent px-2.5 text-left disabled:cursor-default"
             onClick={copyInviteCode}
             disabled={!inviteCode}
-            aria-label="초대코드 복사"
+            aria-label="초대 URL 복사"
           >
             <div className="flex min-w-0 items-center gap-2">
               <Link2 className="size-3.5 shrink-0 text-[#262433]" strokeWidth={2} />
