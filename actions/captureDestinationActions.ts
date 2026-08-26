@@ -48,26 +48,5 @@ export async function createCaptureTopicAction(
   title: string,
   startDate: string,
 ): Promise<ActionResult<UiTopicListItem>> {
-  const before = await listAgitTopicsAction(agitUuid);
-  if (!before.ok) {
-    return before;
-  }
-  const beforeIds = new Set(before.data.map((item) => item.id));
-
-  const created = await createTopicAction(agitUuid, { title, startDate });
-  if (!created.ok) {
-    return created;
-  }
-
-  const after = await listAgitTopicsAction(agitUuid);
-  if (!after.ok) {
-    return actionFailure(after.error);
-  }
-
-  const newTopic = after.data.find((item) => !beforeIds.has(item.id));
-  if (!newTopic) {
-    return actionFailure("새 토픽을 목록에서 찾지 못했습니다.");
-  }
-
-  return actionSuccess(newTopic);
+  return createTopicAction(agitUuid, { title, startDate });
 }

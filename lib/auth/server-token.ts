@@ -1,6 +1,28 @@
-import { getRequestAccessTokenOverride } from "@/lib/auth/request-token-cache";
+import {
+  FORWARDED_ACCESS_TOKEN_HEADER,
+  FORWARDED_REFRESH_TOKEN_HEADER,
+  FORWARDED_USER_UUID_HEADER,
+} from "@/lib/auth/forwarded-auth-headers";
+import { getRequestAuthTokenOverride } from "@/lib/auth/request-token-cache";
 import { headers } from "next/headers";
 import { getToken } from "next-auth/jwt";
+import type { JWT } from "next-auth/jwt";
+
+function readForwardedAuthJwt(headerStore: Headers): JWT | null {
+  const accessToken = headerStore.get(FORWARDED_ACCESS_TOKEN_HEADER) ?? "";
+  const refreshToken = headerStore.get(FORWARDED_REFRESH_TOKEN_HEADER) ?? "";
+  const userUuid = headerStore.get(FORWARDED_USER_UUID_HEADER) ?? "";
+
+  if (!accessToken && !refreshToken && !userUuid) {
+    return null;
+  }
+
+  return {
+    accessToken: accessToken || undefined,
+    refreshToken: refreshToken || undefined,
+    userUuid: userUuid || undefined,
+  };
+}
 
 export async function getServerAuthJwt() {
   if (typeof window !== "undefined") {
@@ -8,6 +30,11 @@ export async function getServerAuthJwt() {
   }
 
   const headerStore = await headers();
+  const forwarded = readForwardedAuthJwt(headerStore);
+  if (forwarded) {
+    return forwarded;
+  }
+
   const cookie = headerStore.get("cookie") ?? "";
 
   return getToken({
@@ -31,7 +58,7 @@ export async function getServerUserUuid(): Promise<string | undefined> {
 }
 
 export async function getServerAccessToken(): Promise<string | undefined> {
-  const override = getRequestAccessTokenOverride();
+  const override = getRequestAuthTokenOverride()?.accessToken;
   if (override) {
     return override;
   }
@@ -42,29 +69,35 @@ export async function getServerAccessToken(): Promise<string | undefined> {
 }
 
 export async function getServerRefreshToken(): Promise<string | undefined> {
+  const override = getRequestAuthTokenOverride()?.refreshToken;
+  if (override) {
+    return override;
+  }
+
   const jwt = await getServerAuthJwtSafe();
   const token = jwt?.refreshToken;
   return typeof token === "string" && token.length > 0 ? token : undefined;
 }
 
 export async function getSessionAuthHeaders(): Promise<Record<string, string>> {
-  const override = getRequestAccessTokenOverride();
-  if (override) {
-    return { Authorization: `Bearer ${override}` };
-  }
-
+  const override = getRequestAuthTokenOverride();
   const jwt = await getServerAuthJwtSafe();
-  if (!jwt) {
-    return {};
-  }
+
+  const accessToken =
+    override?.accessToken ??
+    (typeof jwt?.accessToken === "string" && jwt.accessToken.length > 0
+      ? jwt.accessToken
+      : undefined);
+  const userUuid =
+    typeof jwt?.userUuid === "string" && jwt.userUuid.length > 0 ? jwt.userUuid : undefined;
 
   const sessionHeaders: Record<string, string> = {};
-  if (typeof jwt.accessToken === "string" && jwt.accessToken) {
-    sessionHeaders.Authorization = `Bearer ${jwt.accessToken}`;
+  if (accessToken) {
+    sessionHeaders.Authorization = `Bearer ${accessToken}`;
   }
-  if (typeof jwt.userUuid === "string" && jwt.userUuid) {
+  if (userUuid) {
     // Canonical gateway / video header (legacy X-User-Uuid still accepted by video filter)
-    sessionHeaders["X-User-UUID"] = jwt.userUuid;
+    sessionHeaders["X-User-UUID"] = userUuid;
   }
   return sessionHeaders;
 }

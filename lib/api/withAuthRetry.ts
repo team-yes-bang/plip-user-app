@@ -1,13 +1,14 @@
 import { ApiError } from "@/lib/api/apiFetch";
 import { clearDevAccessToken } from "@/lib/api/devAccessToken";
 import {
-  clearRequestAccessTokenOverride,
-  getRequestAccessTokenOverride,
-  setRequestAccessTokenOverride,
+  getRequestAuthTokenOverride,
+  withReissueSingleFlight,
 } from "@/lib/auth/request-token-cache";
 import * as authService from "@/services/authService";
 
 export async function withAuthRetry<T>(request: () => Promise<T>): Promise<T> {
+  const hadOverride = Boolean(getRequestAuthTokenOverride());
+
   try {
     return await request();
   } catch (error) {
@@ -17,29 +18,29 @@ export async function withAuthRetry<T>(request: () => Promise<T>): Promise<T> {
 
     clearDevAccessToken();
 
-    const override = getRequestAccessTokenOverride();
-    if (override) {
-      clearRequestAccessTokenOverride();
-      throw error;
-    }
-
     if (typeof window !== "undefined") {
       throw error;
     }
 
-    const { getServerAuthJwt } = await import("@/lib/auth/server-token");
-    const jwt = await getServerAuthJwt();
-    const refreshToken = jwt?.refreshToken;
-    if (typeof refreshToken !== "string" || !refreshToken) {
+    if (hadOverride) {
       throw error;
     }
 
-    try {
+    await withReissueSingleFlight(async () => {
+      const overrideRefresh = getRequestAuthTokenOverride()?.refreshToken;
+      const { getServerRefreshToken } = await import("@/lib/auth/server-token");
+      const refreshToken = overrideRefresh ?? (await getServerRefreshToken());
+      if (typeof refreshToken !== "string" || !refreshToken) {
+        throw error;
+      }
+
       const refreshed = await authService.reissueToken(refreshToken);
-      setRequestAccessTokenOverride(refreshed.accessToken);
-      return await request();
-    } finally {
-      clearRequestAccessTokenOverride();
-    }
+      return {
+        accessToken: refreshed.accessToken,
+        refreshToken: refreshed.refreshToken,
+      };
+    });
+
+    return await request();
   }
 }

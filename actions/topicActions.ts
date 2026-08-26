@@ -60,7 +60,7 @@ export async function listTopicsByStatusAction(
 export async function createTopicAction(
   agitId: string,
   input: { title: unknown; startDate: unknown },
-): Promise<ActionResult<void>> {
+): Promise<ActionResult<UiTopicListItem>> {
   const loginError = await requireLogin();
   if (loginError) {
     return actionFailure(loginError);
@@ -72,12 +72,12 @@ export async function createTopicAction(
   }
 
   try {
-    await topicService.createTopic({
+    const created = await topicService.createTopic({
       agitUuid: agitId,
       title: parsed.title,
       startAt: parsed.startAt,
     });
-    return actionSuccess(undefined);
+    return actionSuccess(topicService.toUiTopicListItem(created));
   } catch (error) {
     return toActionError(error);
   }

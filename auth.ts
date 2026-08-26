@@ -214,7 +214,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
 
       if (matchesPrefix(pathname, PROTECTED_PREFIXES) && !isLoggedIn) {
-        return false;
+        const signInUrl = request.nextUrl.clone();
+        signInUrl.pathname = "/login";
+        signInUrl.searchParams.set("callbackUrl", request.nextUrl.href);
+        return Response.redirect(signInUrl);
       }
 
       return true;
@@ -330,12 +333,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         typeof token.refreshToken === "string" && token.refreshToken.length > 0
           ? token.refreshToken
           : undefined;
+      const userUuid =
+        typeof token.userUuid === "string" && token.userUuid.length > 0
+          ? token.userUuid
+          : undefined;
 
       return {
         expires: session.expires,
         isLoggedIn: Boolean(accessToken),
         accessToken,
         refreshToken,
+        userUuid,
       };
     },
   },
