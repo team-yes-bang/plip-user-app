@@ -146,14 +146,14 @@ export function TopicCreateTemplate({ agit }: { agit: UiAgit | null }) {
   if (!agit) return <RoomMissing />;
 
   return (
-    <AgitFlowChrome>
-      <AuthTopBar
-        title="토픽 만들기"
-        backHref={ROUTES.agit.topics(agit.id)}
-      // step="토픽 이름과 진행 날짜를 정합니다"
-      />
-      <TopicCreateForm agitId={agit.id} />
-    </AgitFlowChrome>
+    <AppChromeTemplate activeTab="agit" variant="light">
+      <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+        <ScreenHeader backHref={ROUTES.agit.topics(agit.id)} title="토픽 만들기" />
+        <PageContainer aria-label="토픽 만들기">
+          <TopicCreateForm agitId={agit.id} />
+        </PageContainer>
+      </div>
+    </AppChromeTemplate>
   );
 }
 
