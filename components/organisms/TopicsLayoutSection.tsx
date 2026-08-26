@@ -183,7 +183,15 @@ export function TopicsLayoutSection({
                                   편집
                                 </Badge>
                               </TextLink>
-                            ) : null}
+                            ) : (
+                              <Badge
+                                variant="neutral"
+                                size="sm"
+                                className="opacity-50 cursor-not-allowed select-none"
+                              >
+                                편집
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       );
