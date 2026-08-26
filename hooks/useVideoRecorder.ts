@@ -1,16 +1,18 @@
 "use client";
 
 import {
+  DEFAULT_UPLOAD_CONTENT_TYPE,
   MAX_RECORD_MS,
   RECORD_STOP_MS,
   RECORD_TIMESLICE_MS,
   RECORD_VIDEO_BITS_PER_SECOND,
 } from "@/lib/video/constants";
 import {
-  startMirroredCapture,
+  startCaptureCanvas,
   waitForVideoFrame,
-  type MirroredCapture,
-} from "@/lib/video/mirroredCapture";
+  type CaptureCanvas,
+} from "@/lib/video/captureCanvas";
+import { needsPlaybackReencode, preparePlaybackMp4 } from "@/lib/video/preparePlaybackMp4";
 import { pickRecorderMimeType, requestCameraStream } from "@/lib/video/recorderMime";
 import { isIgnorablePlayError, safeVideoPlay } from "@/lib/video/safeVideoPlay";
 import { useCallback, useEffect, useRef, useState, type RefCallback } from "react";
@@ -20,6 +22,7 @@ export type RecorderStatus =
   | "requesting"
   | "ready"
   | "recording"
+  | "preparing"
   | "preview"
   | "error";
 
@@ -70,18 +73,19 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string | undefined>();
   const [liveStream, setLiveStream] = useState<MediaStream | null>(null);
-  const [pixelsMirrored, setPixelsMirrored] = useState(false);
   const [capturedAt, setCapturedAt] = useState<Date | null>(null);
 
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
-  const mirrorRef = useRef<MirroredCapture | null>(null);
+  const captureRef = useRef<CaptureCanvas | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const stopTimerRef = useRef<number | null>(null);
   const tickTimerRef = useRef<number | null>(null);
   const startedAtRef = useRef<number>(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const autoPrepareStartedRef = useRef(false);
+  const prepareGenerationRef = useRef(0);
+  const prepareAbortRef = useRef<AbortController | null>(null);
 
   const syncVideoElement = useCallback(
     (node: HTMLVideoElement | null) => {
@@ -130,9 +134,15 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     setLiveStream(null);
   }, []);
 
-  const stopMirror = useCallback(() => {
-    mirrorRef.current?.stop();
-    mirrorRef.current = null;
+  const stopCapture = useCallback(() => {
+    captureRef.current?.stop();
+    captureRef.current = null;
+  }, []);
+
+  const abortPrepare = useCallback(() => {
+    prepareGenerationRef.current += 1;
+    prepareAbortRef.current?.abort();
+    prepareAbortRef.current = null;
   }, []);
 
   const resetPreview = useCallback(() => {
@@ -144,9 +154,22 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     });
     setBlob(null);
     setElapsedMs(0);
-    setPixelsMirrored(false);
     setCapturedAt(null);
   }, []);
+
+  const applyPreviewBlob = useCallback(
+    (nextBlob: Blob, nextMimeType: string) => {
+      const nextPreviewUrl = URL.createObjectURL(nextBlob);
+      setError(null);
+      setBlob(nextBlob);
+      setPreviewUrl(nextPreviewUrl);
+      setMimeType(nextMimeType);
+      setCapturedAt(new Date());
+      setStatus("preview");
+      onRecordingComplete?.();
+    },
+    [onRecordingComplete],
+  );
 
   const prepareCamera = useCallback(async () => {
     if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
@@ -177,6 +200,40 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     }
   }, [facingMode, resetPreview, stopStream]);
 
+  const restoreLiveCamera = useCallback(async () => {
+    try {
+      stopStream();
+      const stream = await requestCameraStream(facingMode);
+      streamRef.current = stream;
+      setLiveStream(stream);
+    } catch {
+      /* keep conversion error */
+    }
+  }, [facingMode, stopStream]);
+
+  const convertThenPreview = useCallback(
+    async (source: Blob, generation: number, signal: AbortSignal) => {
+      try {
+        const prepared = await preparePlaybackMp4(source, signal);
+        if (generation !== prepareGenerationRef.current) {
+          return;
+        }
+        applyPreviewBlob(prepared, DEFAULT_UPLOAD_CONTENT_TYPE);
+      } catch (cause) {
+        if (generation !== prepareGenerationRef.current) {
+          return;
+        }
+        if (cause instanceof DOMException && cause.name === "AbortError") {
+          return;
+        }
+        setError(cause instanceof Error ? cause.message : "이 파일은 변환할 수 없습니다.");
+        setStatus("error");
+        await restoreLiveCamera();
+      }
+    },
+    [applyPreviewBlob, restoreLiveCamera],
+  );
+
   const stopRecording = useCallback(() => {
     clearTimers();
 
@@ -200,6 +257,13 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
       return;
     }
 
+    const previewNode = videoRef.current;
+    if (!previewNode) {
+      setError("미리보기가 아직 준비되지 않았습니다.");
+      setStatus("error");
+      return;
+    }
+
     const selectedMimeType = pickRecorderMimeType();
     if (!selectedMimeType) {
       setError("MediaRecorder is not supported in this browser");
@@ -209,27 +273,26 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
 
     resetPreview();
     chunksRef.current = [];
-    stopMirror();
+    stopCapture();
+    abortPrepare();
 
-    let recordStream = stream;
-    let recordedMirrored = false;
-    if (facingMode === "user" && videoRef.current) {
-      await waitForVideoFrame(videoRef.current);
-      const mirrored = startMirroredCapture(videoRef.current);
-      if (mirrored) {
-        mirrorRef.current = mirrored;
-        recordStream = mirrored.stream;
-        recordedMirrored = true;
-      }
+    await waitForVideoFrame(previewNode);
+    const capture = startCaptureCanvas(previewNode);
+    if (!capture) {
+      setError("영상을 720p로 녹화할 수 없습니다.");
+      setStatus("error");
+      return;
     }
 
-    const recorder = new MediaRecorder(recordStream, {
+    captureRef.current = capture;
+
+    const recorder = new MediaRecorder(capture.stream, {
       mimeType: selectedMimeType,
       videoBitsPerSecond: RECORD_VIDEO_BITS_PER_SECOND,
+      bitsPerSecond: RECORD_VIDEO_BITS_PER_SECOND,
     });
     recorderRef.current = recorder;
     setMimeType(selectedMimeType);
-    setPixelsMirrored(recordedMirrored);
 
     recorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
@@ -239,7 +302,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
 
     recorder.onstop = () => {
       clearTimers();
-      stopMirror();
+      stopCapture();
 
       const maxChunks = Math.ceil(maxDurationMs / RECORD_TIMESLICE_MS);
       const trimmedChunks = chunksRef.current.slice(0, maxChunks);
@@ -253,19 +316,23 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
         return;
       }
 
-      const nextPreviewUrl = URL.createObjectURL(recordedBlob);
-
       stopStream();
-      setError(null);
-      setBlob(recordedBlob);
-      setPreviewUrl(nextPreviewUrl);
-      setCapturedAt(new Date());
-      setStatus("preview");
-      onRecordingComplete?.();
+
+      if (!needsPlaybackReencode(recordedBlob)) {
+        applyPreviewBlob(recordedBlob, selectedMimeType);
+        return;
+      }
+
+      abortPrepare();
+      const generation = prepareGenerationRef.current;
+      const controller = new AbortController();
+      prepareAbortRef.current = controller;
+      setStatus("preparing");
+      void convertThenPreview(recordedBlob, generation, controller.signal);
     };
 
     recorder.onerror = () => {
-      stopMirror();
+      stopCapture();
       setError("Recording failed");
       setStatus("error");
     };
@@ -290,49 +357,50 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
   }, [
     clearTimers,
     maxDurationMs,
-    onRecordingComplete,
     prepareCamera,
     recordStopMs,
     resetPreview,
     stopRecording,
     stopStream,
-    stopMirror,
-    facingMode,
+    stopCapture,
+    convertThenPreview,
+    applyPreviewBlob,
+    abortPrepare,
   ]);
 
   const discardRecording = useCallback(async () => {
+    abortPrepare();
     clearTimers();
-    stopMirror();
+    stopCapture();
     recorderRef.current = null;
     resetPreview();
     stopStream();
     setError(null);
     setStatus("idle");
     await prepareCamera();
-  }, [clearTimers, prepareCamera, resetPreview, stopMirror, stopStream]);
+  }, [abortPrepare, clearTimers, prepareCamera, resetPreview, stopCapture, stopStream]);
 
   const loadFromFile = useCallback(
     (file: File) => {
+      abortPrepare();
       clearTimers();
-      stopMirror();
+      stopCapture();
       recorderRef.current = null;
       stopStream();
       resetPreview();
-
-      const nextPreviewUrl = URL.createObjectURL(file);
       setError(null);
-      setBlob(file);
-      setPreviewUrl(nextPreviewUrl);
-      setMimeType(file.type || "video/mp4");
-      setPixelsMirrored(false);
-      setCapturedAt(new Date());
-      setStatus("preview");
+
+      const generation = prepareGenerationRef.current;
+      const controller = new AbortController();
+      prepareAbortRef.current = controller;
+      setStatus("preparing");
+      void convertThenPreview(file, generation, controller.signal);
     },
-    [clearTimers, resetPreview, stopMirror, stopStream],
+    [abortPrepare, clearTimers, convertThenPreview, resetPreview, stopCapture, stopStream],
   );
 
   const flipCamera = useCallback(async () => {
-    if (status === "recording") {
+    if (status === "recording" || status === "preparing") {
       return;
     }
 
@@ -376,7 +444,8 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
   useEffect(() => {
     return () => {
       clearTimers();
-      stopMirror();
+      stopCapture();
+      abortPrepare();
       stopStream();
       setPreviewUrl((current) => {
         if (current) {
@@ -385,7 +454,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
         return null;
       });
     };
-  }, [clearTimers, stopMirror, stopStream]);
+  }, [abortPrepare, clearTimers, stopCapture, stopStream]);
 
   return {
     videoRef: bindVideoElement,
@@ -397,7 +466,6 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     previewUrl,
     mimeType,
     facingMode,
-    pixelsMirrored,
     capturedAt,
     prepareCamera,
     startRecording,

@@ -1,14 +1,13 @@
 import type { RecorderStatus } from "@/hooks/useVideoRecorder";
 
+/** CSS-mirror the live selfie preview only. Recorded/preview/upload pixels are not flipped. */
 export function shouldMirrorVideo(
   facingMode: "user" | "environment",
   status: RecorderStatus,
-  pixelsMirrored: boolean,
 ): boolean {
   if (facingMode !== "user") {
     return false;
   }
 
-  const isLive = status === "requesting" || status === "ready" || status === "recording";
-  return isLive || !pixelsMirrored;
+  return status === "requesting" || status === "ready" || status === "recording";
 }

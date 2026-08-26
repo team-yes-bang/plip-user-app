@@ -1,14 +1,11 @@
 import { CAPTURE_FRAME_RATE, CAPTURE_HEIGHT, CAPTURE_WIDTH } from "@/lib/video/constants";
+import { drawCoverCrop } from "@/lib/video/coverCrop";
 
-export type MirroredCapture = {
+export type CaptureCanvas = {
   stream: MediaStream;
   stop: () => void;
 };
 
-/**
- * Front-camera pixels are opposite of the mirrored live view.
- * Draw a flipped canvas so the recorded blob matches what the user saw.
- */
 export async function waitForVideoFrame(sourceVideo: HTMLVideoElement, timeoutMs = 400): Promise<void> {
   if (sourceVideo.videoWidth > 0) {
     return;
@@ -21,17 +18,16 @@ export async function waitForVideoFrame(sourceVideo: HTMLVideoElement, timeoutMs
   });
 }
 
-export function startMirroredCapture(sourceVideo: HTMLVideoElement): MirroredCapture | null {
-  const width = sourceVideo.videoWidth || CAPTURE_WIDTH;
-  const height = sourceVideo.videoHeight || CAPTURE_HEIGHT;
-  if (width < 2 || height < 2) {
+/** Fixed 720×1280 cover-crop canvas. Front and rear cameras are treated the same (no flip). */
+export function startCaptureCanvas(sourceVideo: HTMLVideoElement): CaptureCanvas | null {
+  if (sourceVideo.videoWidth < 2 || sourceVideo.videoHeight < 2) {
     return null;
   }
 
   const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext("2d");
+  canvas.width = CAPTURE_WIDTH;
+  canvas.height = CAPTURE_HEIGHT;
+  const context = canvas.getContext("2d", { alpha: false });
   if (!context || typeof canvas.captureStream !== "function") {
     return null;
   }
@@ -44,11 +40,14 @@ export function startMirroredCapture(sourceVideo: HTMLVideoElement): MirroredCap
       return;
     }
 
-    context.save();
-    context.translate(width, 0);
-    context.scale(-1, 1);
-    context.drawImage(sourceVideo, 0, 0, width, height);
-    context.restore();
+    drawCoverCrop(
+      context,
+      sourceVideo,
+      sourceVideo.videoWidth,
+      sourceVideo.videoHeight,
+      CAPTURE_WIDTH,
+      CAPTURE_HEIGHT,
+    );
     frameId = window.requestAnimationFrame(draw);
   };
 

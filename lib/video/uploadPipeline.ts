@@ -6,6 +6,7 @@ import {
 import { extractActionError } from "@/lib/video/actionPayload";
 import { pollDownloadUrl } from "@/lib/video/downloadUrlPoll";
 import { resolvePlaybackSource, type PlaybackSource } from "@/lib/video/playback";
+import { preparePlaybackMp4IfNeeded } from "@/lib/video/preparePlaybackMp4";
 import { putPresignedUpload } from "@/lib/video/putPresigned";
 import { resolveUploadContentType } from "@/lib/video/recorderMime";
 import { assertUploadSize } from "@/lib/video/uploadLimits";
@@ -32,18 +33,19 @@ export async function uploadRecordedVideo(
   blob: Blob,
   options?: { caption?: string; recorderMimeType?: string },
 ): Promise<VideoUploadPipelineResult> {
-  assertUploadSize(blob);
+  const prepared = await preparePlaybackMp4IfNeeded(blob);
+  assertUploadSize(prepared);
 
-  const contentType = resolveUploadContentType(options?.recorderMimeType ?? blob.type);
+  const contentType = resolveUploadContentType(prepared.type || options?.recorderMimeType);
 
-  const uploadUrlResult = await issueUploadUrlAction(contentType, blob.size);
+  const uploadUrlResult = await issueUploadUrlAction(contentType, prepared.size);
   const uploadUrlError = extractActionError(uploadUrlResult);
   if (uploadUrlError || !uploadUrlResult.ok) {
     throw new Error(uploadUrlError ?? "upload-url failed");
   }
 
   const { videoUuid, uploadUrl } = uploadUrlResult.data;
-  const putResult = await putPresignedUpload(uploadUrl, blob, contentType);
+  const putResult = await putPresignedUpload(uploadUrl, prepared, contentType);
 
   const completeResult = await completeVideoAction(videoUuid, options?.caption);
   const completeError = extractActionError(completeResult);
