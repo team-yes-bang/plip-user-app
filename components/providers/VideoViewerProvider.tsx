@@ -6,6 +6,7 @@ export type VideoViewerItem = {
   clipId: string;
   videoUuid?: string;
   title?: string;
+  caption?: string;
   authorName?: string;
   authorProfileUrl?: string;
   uploadedAt?: string;

@@ -97,6 +97,7 @@ export function TopicGallerySection({
       clipId: v.id,
       videoUuid: v.id,
       title: v.caption || "토픽 클립",
+      caption: v.caption,
       authorName: v.profileNickname,
       authorProfileUrl: v.profileImageSrc,
       uploadedAt: v.uploadedAt,
