@@ -3,7 +3,7 @@ import {
   FORWARDED_REFRESH_TOKEN_HEADER,
   FORWARDED_USER_UUID_HEADER,
 } from "@/lib/auth/forwarded-auth-headers";
-import { getRetryAuthHeaders } from "@/lib/auth/request-token-cache";
+import { getRetryAuthHeaders, getRetryRefreshToken } from "@/lib/auth/request-token-cache";
 import { headers } from "next/headers";
 import { getToken } from "next-auth/jwt";
 import type { JWT } from "next-auth/jwt";
@@ -70,6 +70,11 @@ export async function getServerAccessToken(): Promise<string | undefined> {
 }
 
 export async function getServerRefreshToken(): Promise<string | undefined> {
+  const retryRefreshToken = getRetryRefreshToken();
+  if (retryRefreshToken) {
+    return retryRefreshToken;
+  }
+
   const jwt = await getServerAuthJwtSafe();
   const token = jwt?.refreshToken;
   return typeof token === "string" && token.length > 0 ? token : undefined;

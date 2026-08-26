@@ -1,4 +1,5 @@
 import { ApiError } from "@/lib/api/apiFetch";
+import { persistSessionTokens } from "@/lib/auth/persist-session-tokens";
 import {
   applyRetryAuthHeaders,
   reissueTokensOncePerRequest,
@@ -24,6 +25,7 @@ export async function withAuthRetry<T>(request: () => Promise<T>): Promise<T> {
       }
 
       applyRetryAuthHeaders(refreshed);
+      await persistSessionTokens(refreshed);
       return await request();
     }
   });

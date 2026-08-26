@@ -2,7 +2,7 @@
 
 import { signOut } from "@/auth";
 import { ApiError } from "@/lib/api/apiFetch";
-import { getApiErrorCode } from "@/lib/auth/auth-errors";
+import { getApiErrorCode, AUTH_ERROR_CODES } from "@/lib/auth/auth-errors";
 import * as authService from "@/services/authService";
 import { getServerRefreshToken } from "@/lib/auth/server-token";
 import {
@@ -29,7 +29,16 @@ export async function logoutAction(): Promise<ActionResult<void>> {
   try {
     const refreshToken = await getServerRefreshToken();
     if (refreshToken) {
-      await authService.logout(refreshToken);
+      try {
+        await authService.logout(refreshToken);
+      } catch (error) {
+        const invalidRefresh =
+          error instanceof ApiError &&
+          getApiErrorCode(error.body) === AUTH_ERROR_CODES.REFRESH_TOKEN_INVALID;
+        if (!invalidRefresh) {
+          throw error;
+        }
+      }
     }
     await signOut({ redirect: false });
     return actionSuccess(undefined);
