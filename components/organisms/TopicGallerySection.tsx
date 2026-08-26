@@ -26,6 +26,7 @@ type TopicGallerySectionProps = {
   topicTitle?: string;
   agitName?: string;
   onSelectVideo?: (videoId: string) => void;
+  playbackEnabled?: boolean;
 };
 
 export function TopicGallerySection({
@@ -35,6 +36,7 @@ export function TopicGallerySection({
   topicTitle,
   agitName,
   onSelectVideo,
+  playbackEnabled = true,
 }: TopicGallerySectionProps) {
   const items = useMemo<GalleryPageItem[]>(
     () => (showCaptureSlot ? [...videos, CAPTURE_SLOT] : videos),
@@ -85,6 +87,7 @@ export function TopicGallerySection({
   }
 
   const { isOpen, activeClipId, videoList, openViewer, closeViewer } = useVideoViewer();
+  const galleryPlaybackEnabled = playbackEnabled && !isOpen;
 
   function handleSelectVideo(videoId: string) {
     if (onSelectVideo) {
@@ -105,7 +108,7 @@ export function TopicGallerySection({
     openViewer(videoId, formattedList, "agit");
   }
 
-  function renderPage(pageItems: GalleryPageItem[], key: string) {
+  function renderPage(pageItems: GalleryPageItem[], key: string, pageActive: boolean) {
     const pageVideos = pageItems.filter((item): item is UiTopicVideo => !isCaptureSlot(item));
     return (
       <TopicClipPage
@@ -114,6 +117,7 @@ export function TopicGallerySection({
         captureHref={captureHref}
         showCaptureSlot={pageItems.some(isCaptureSlot)}
         onSelectVideo={handleSelectVideo}
+        playbackEnabled={galleryPlaybackEnabled && pageActive}
       />
     );
   }
@@ -131,7 +135,7 @@ export function TopicGallerySection({
     >
       {pageCount <= 1 ? (
         <div className="flex h-full min-h-0 flex-col">
-          {renderPage(pages[0] ?? [], "topic-page-0")}
+          {renderPage(pages[0] ?? [], "topic-page-0", true)}
         </div>
       ) : (
         pages.map((pageItems, index) => (
@@ -140,7 +144,7 @@ export function TopicGallerySection({
             className="absolute inset-0 flex flex-col"
             style={{ transform: `translate3d(${(index - safeIndex) * 100}%, 0, 0)` }}
           >
-            {renderPage(pageItems, `topic-page-${index}`)}
+            {renderPage(pageItems, `topic-page-${index}`, index === safeIndex)}
           </div>
         ))
       )}
