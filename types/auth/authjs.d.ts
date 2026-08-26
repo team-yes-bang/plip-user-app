@@ -6,6 +6,7 @@ declare module "next-auth" {
     isLoggedIn: boolean;
     accessToken?: string;
     refreshToken?: string;
+    userUuid?: string;
     user?: DefaultSession["user"];
   }
 
