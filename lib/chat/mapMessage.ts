@@ -31,6 +31,10 @@ function mapMessage(
     isMine,
     timeLabel: formatChatMessageTime(message.createdAt),
     profileImageSrc: message.type === "TALK" && !isMine ? profile.profileImageSrc : undefined,
+    unreadMemberCount:
+      message.unreadMemberCount === null || message.unreadMemberCount === undefined
+        ? undefined
+        : message.unreadMemberCount,
   };
 }
 

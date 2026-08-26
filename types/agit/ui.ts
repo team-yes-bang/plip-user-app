@@ -41,6 +41,7 @@ export type UiAgit = {
   inviteCode?: string;
   joined?: boolean;
   hasNewChat?: boolean;
+  chatUnreadCount?: number;
   hasTodayTopic?: boolean;
   myRole?: UiAgitRole;
 };

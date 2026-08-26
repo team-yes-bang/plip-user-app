@@ -14,7 +14,7 @@ export class ApiError extends Error {
 
 type ApiFetchOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
-  searchParams?: Record<string, string | undefined>;
+  searchParams?: Record<string, string | string[] | undefined>;
   /** 생략 시 API_URL (gateway base) */
   baseUrl?: string;
   /** false면 세션 토큰을 붙이지 않음. 로그인/재발급 등 공개 API용. 기본 true */
@@ -23,7 +23,7 @@ type ApiFetchOptions = Omit<RequestInit, "body"> & {
 
 function buildUrl(
   path: string,
-  searchParams?: Record<string, string | undefined>,
+  searchParams?: Record<string, string | string[] | undefined>,
   baseUrl?: string,
 ): string {
   const base = (baseUrl ?? getApiUrl()).replace(/\/$/, "");
@@ -32,9 +32,18 @@ function buildUrl(
 
   if (searchParams) {
     for (const [key, value] of Object.entries(searchParams)) {
-      if (value !== undefined && value !== "") {
-        url.searchParams.set(key, value);
+      if (value === undefined || value === "") {
+        continue;
       }
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          if (item !== undefined && item !== "") {
+            url.searchParams.append(key, item);
+          }
+        }
+        continue;
+      }
+      url.searchParams.set(key, value);
     }
   }
 

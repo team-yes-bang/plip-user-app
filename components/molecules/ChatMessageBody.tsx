@@ -5,7 +5,7 @@ import { CHAT_BUBBLE_COLLAPSED_MAX_HEIGHT } from "@/lib/chat/limits";
 import { cacheChatMessage } from "@/lib/chat/messageCache";
 import type { UiChatMessage } from "@/types/chat/ui";
 import { useRouter } from "next/navigation";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 type ChatMessageBodyProps = {
   agitId: string;
@@ -13,6 +13,8 @@ type ChatMessageBodyProps = {
   bubbleClassName: string;
   textClassName: string;
   timeLabel?: string;
+  bubbleLeading?: ReactNode;
+  bubbleTrailing?: ReactNode;
   actionClassName?: string;
 };
 
@@ -22,6 +24,8 @@ export function ChatMessageBody({
   bubbleClassName,
   textClassName,
   timeLabel,
+  bubbleLeading,
+  bubbleTrailing,
   actionClassName = "text-[var(--dl-color-text-brand)]",
 }: ChatMessageBodyProps) {
   const router = useRouter();
@@ -67,14 +71,18 @@ export function ChatMessageBody({
 
   return (
     <div className={`flex max-w-full flex-col gap-1 ${message.isMine ? "items-end" : "items-start"}`}>
-      <div ref={bubbleRef} className={bubbleClassName}>
-        <div
-          ref={bodyRef}
-          className={`overflow-hidden whitespace-pre-wrap break-words ${textClassName}`}
-          style={{ maxHeight: CHAT_BUBBLE_COLLAPSED_MAX_HEIGHT }}
-        >
-          {message.content}
+      <div className={`flex max-w-full items-end gap-1 ${message.isMine ? "justify-end" : ""}`}>
+        {bubbleLeading}
+        <div ref={bubbleRef} className={bubbleClassName}>
+          <div
+            ref={bodyRef}
+            className={`overflow-hidden whitespace-pre-wrap break-words ${textClassName}`}
+            style={{ maxHeight: CHAT_BUBBLE_COLLAPSED_MAX_HEIGHT }}
+          >
+            {message.content}
+          </div>
         </div>
+        {bubbleTrailing}
       </div>
       {showMetaRow ? (
         showSplitMetaRow ? (

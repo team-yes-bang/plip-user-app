@@ -1,20 +1,30 @@
 "use client";
 import leftoverStyles from "@/components/styles/leftover.module.css";
 
-import { DailyIcon, IconButton, IconLink, TextLink } from "@/components/atoms";
+import { IconButton, TextLink } from "@/components/atoms";
 import { AgitListRow, HeaderSearchLink, PageContainer, ScreenHeader } from "@/components/molecules";
 import { ROUTES } from "@/config/routes";
+import { useAgitListChatSync } from "@/hooks/useAgitListChatSync";
 import { Plus } from "lucide-react";
 import type { UiAgit } from "@/types/agit/ui";
 
 type AgitListSectionProps = {
   items: UiAgit[];
   error?: string;
+  currentUserUuid?: string;
+  enableRemoteChat?: boolean;
 };
 
-export function AgitListSection({ items, error }: AgitListSectionProps) {
+export function AgitListSection({
+  items,
+  error,
+  currentUserUuid,
+  enableRemoteChat = false,
+}: AgitListSectionProps) {
   const rooms = items;
   const totalVideos = rooms.reduce((sum, room) => sum + (room.todayVideoCount ?? 0), 0);
+
+  useAgitListChatSync({ items: rooms, currentUserUuid, enabled: enableRemoteChat });
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">

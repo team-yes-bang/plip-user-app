@@ -8,6 +8,21 @@ export type ApiChatMessage = {
   content: string;
   payload?: Record<string, unknown> | null;
   createdAt: string;
+  unreadMemberCount?: number | null;
+};
+
+export type ApiChatReceiptPayload = {
+  messageId: string;
+  unreadMemberCount: number;
+};
+
+export type ApiAgitChatUnreadItem = {
+  agitUuid: string;
+  unreadMessageCount: number;
+};
+
+export type ApiMyAgitsChatUnreadResponse = {
+  items: ApiAgitChatUnreadItem[];
 };
 
 export type ApiChatCursor = {

@@ -3,7 +3,7 @@ import { getActorUserHeaders } from "@/lib/api/actorHeaders";
 import { apiFetch } from "@/lib/api/apiFetch";
 import { getApiUrl } from "@/lib/api/env";
 import { withAuthRetry } from "@/lib/api/withAuthRetry";
-import type { ApiChatHistory, ApiChatWsTicket } from "@/types/chat/api";
+import type { ApiChatHistory, ApiChatWsTicket, ApiMyAgitsChatUnreadResponse } from "@/types/chat/api";
 
 type ChatHistoryQuery = {
   cursorCreatedAt?: string;
@@ -29,12 +29,28 @@ export async function getChatHistory(
   );
 }
 
-export async function markChatRead(agitUuid: string): Promise<void> {
+export async function markChatRead(agitUuid: string, readAt?: string): Promise<void> {
   await withAuthRetry(async () =>
     apiFetch<void>(API_ENDPOINTS.chat.read(agitUuid), {
       method: "POST",
       baseUrl: getApiUrl(),
       headers: await getActorUserHeaders(),
+      body: readAt ? { readAt } : {},
+    }),
+  );
+}
+
+export async function getMyAgitsChatUnread(
+  agitUuids: string[],
+): Promise<ApiMyAgitsChatUnreadResponse> {
+  return withAuthRetry(async () =>
+    apiFetch<ApiMyAgitsChatUnreadResponse>(API_ENDPOINTS.chat.myAgitsUnread, {
+      method: "GET",
+      baseUrl: getApiUrl(),
+      headers: await getActorUserHeaders(),
+      searchParams: {
+        agitUuids: agitUuids.length > 0 ? agitUuids : undefined,
+      },
     }),
   );
 }

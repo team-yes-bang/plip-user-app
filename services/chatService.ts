@@ -34,8 +34,18 @@ export async function getChatHistory(
   };
 }
 
-export async function markChatRead(agitUuid: string): Promise<void> {
-  await chatApi.markChatRead(agitUuid);
+export async function markChatRead(agitUuid: string, readAt?: string): Promise<void> {
+  await chatApi.markChatRead(agitUuid, readAt);
+}
+
+export async function getMyAgitsChatUnread(
+  agitUuids: string[],
+): Promise<Map<string, number>> {
+  if (agitUuids.length === 0) {
+    return new Map();
+  }
+  const response = await chatApi.getMyAgitsChatUnread(agitUuids);
+  return new Map(response.items.map((item) => [item.agitUuid, item.unreadMessageCount]));
 }
 
 export async function issueWsTicket(): Promise<{ ticket: string; expiresInSeconds: number }> {
