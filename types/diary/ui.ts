@@ -7,9 +7,13 @@ export type UiDiaryTheme = {
 
 export type UiDiaryClip = {
   id: string;
+  /** video-service UUID — 재생 API용 */
+  videoUuid: string;
   themeId: string;
   date: string;
   thumbnailSrc?: string;
+  caption?: string;
+  createdAt?: string;
 };
 
 export type UiDiaryDateEntry = {
