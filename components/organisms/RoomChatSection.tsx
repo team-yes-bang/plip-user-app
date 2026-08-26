@@ -18,8 +18,10 @@ import {
   readRoomHistoryCache,
   writeRoomHistoryCache,
 } from "@/lib/chat/roomHistoryCache";
+import { setAgitChatUnread } from "@/lib/chat/chatUnreadStore";
 import type { ApiAgitDetailMember } from "@/types/agit/api";
 import type { UiAgit } from "@/types/agit/ui";
+import type { ApiChatReceiptPayload } from "@/types/chat/api";
 import type { UiChatHistory, UiChatMessage } from "@/types/chat/ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -33,25 +35,6 @@ type RoomChatSectionProps = {
 
 function mergeMessages(existing: UiChatMessage[], incoming: UiChatMessage[]): UiChatMessage[] {
   return mergeChatMessages(existing, incoming);
-}
-
-function resolveInitialHistory(
-  agitId: string,
-  initialHistory: UiChatHistory,
-  enableRemoteChat: boolean,
-): UiChatHistory {
-  if (!enableRemoteChat) {
-    return initialHistory;
-  }
-  const cached = readRoomHistoryCache(agitId);
-  if (!cached) {
-    return initialHistory;
-  }
-  return {
-    messages: mergeMessages(initialHistory.messages, cached.messages),
-    nextCursor: cached.nextCursor ?? initialHistory.nextCursor,
-    hasNext: cached.hasNext ?? initialHistory.hasNext,
-  };
 }
 
 function scrollToBottom(container: HTMLDivElement | null) {
@@ -68,18 +51,18 @@ export function RoomChatSection({
   currentUserUuid,
   enableRemoteChat = false,
 }: RoomChatSectionProps) {
-  const resolvedInitialHistory = resolveInitialHistory(agit.id, initialHistory, enableRemoteChat);
   const [notify, setNotify] = useState(true);
   const [draft, setDraft] = useState("");
-  const [messages, setMessages] = useState(resolvedInitialHistory.messages);
-  const [nextCursor, setNextCursor] = useState(resolvedInitialHistory.nextCursor);
-  const [hasNext, setHasNext] = useState(resolvedInitialHistory.hasNext);
+  const [messages, setMessages] = useState(initialHistory.messages);
+  const [nextCursor, setNextCursor] = useState(initialHistory.nextCursor);
+  const [hasNext, setHasNext] = useState(initialHistory.hasNext);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const shouldStickToBottomRef = useRef(true);
   const messagesRef = useRef(messages);
   const nextCursorRef = useRef(nextCursor);
   const hasNextRef = useRef(hasNext);
+  const lastMarkedMessageIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     messagesRef.current = messages;
@@ -90,25 +73,89 @@ export function RoomChatSection({
   const handleIncomingMessage = useCallback(
     (payload: Parameters<typeof mapApiChatMessage>[0]) => {
       const mapped = mapApiChatMessage(payload, members, currentUserUuid);
-      setMessages((current) => mergeMessages(current, [mapped]));
+      const withUnreadCount =
+        mapped.type === "TALK" && mapped.unreadMemberCount === undefined
+          ? {
+              ...mapped,
+              unreadMemberCount: Math.max(0, members.length - 1),
+            }
+          : mapped;
+      setMessages((current) => mergeMessages(current, [withUnreadCount]));
     },
     [currentUserUuid, members],
   );
+
+  const handleIncomingReceipt = useCallback((payload: ApiChatReceiptPayload) => {
+    const receiptMessageId = payload.messageId.toLowerCase();
+    setMessages((current) =>
+      current.map((message) =>
+        message.id.toLowerCase() === receiptMessageId
+          ? { ...message, unreadMemberCount: payload.unreadMemberCount }
+          : message,
+      ),
+    );
+  }, []);
 
   const { sendMessage: sendRemoteMessage } = useAgitChatSocket({
     agitUuid: agit.id,
     enabled: enableRemoteChat && Boolean(currentUserUuid),
     onMessage: handleIncomingMessage,
+    onReceipt: handleIncomingReceipt,
   });
+
+  const markReadUpToLatest = useCallback(() => {
+    const latest = messagesRef.current.at(-1);
+    if (!latest) {
+      return;
+    }
+    if (lastMarkedMessageIdRef.current === latest.id) {
+      return;
+    }
+    lastMarkedMessageIdRef.current = latest.id;
+    void markChatReadAction(agit.id, new Date().toISOString()).then((result) => {
+      if (result.ok) {
+        setAgitChatUnread(agit.id, 0);
+      }
+    });
+  }, [agit.id]);
+
+  useEffect(() => {
+    if (!enableRemoteChat || messages.length === 0) {
+      return;
+    }
+    markReadUpToLatest();
+  }, [enableRemoteChat, markReadUpToLatest, messages]);
 
   useEffect(() => {
     if (!enableRemoteChat) {
       return;
     }
-    void markChatReadAction(agit.id);
     return () => {
-      void markChatReadAction(agit.id);
+      const latest = messagesRef.current.at(-1);
+      if (!latest) {
+        return;
+      }
+      void markChatReadAction(agit.id, new Date().toISOString()).then((result) => {
+        if (result.ok) {
+          setAgitChatUnread(agit.id, 0);
+        }
+      });
     };
+  }, [agit.id, enableRemoteChat]);
+
+  useEffect(() => {
+    if (!enableRemoteChat) {
+      return;
+    }
+    const cached = readRoomHistoryCache(agit.id);
+    if (!cached) {
+      return;
+    }
+    // SSR 초기값 이후 sessionStorage 캐시 병합
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 마운트 1회 클라이언트 캐시 반영
+    setMessages((current) => mergeMessages(current, cached.messages));
+    setNextCursor((current) => cached.nextCursor ?? current);
+    setHasNext((current) => cached.hasNext ?? current);
   }, [agit.id, enableRemoteChat]);
 
   useEffect(() => {

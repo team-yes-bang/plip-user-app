@@ -12,6 +12,7 @@ export type UiChatMessage = {
   isMine: boolean;
   timeLabel: string;
   profileImageSrc?: string;
+  unreadMemberCount?: number;
 };
 
 export type UiChatHistory = {

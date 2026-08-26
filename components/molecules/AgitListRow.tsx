@@ -1,11 +1,28 @@
+"use client";
+
 import { DailyIcon, Pill, TextLink } from "@/components/atoms";
 import { ROUTES } from "@/config/routes";
+import { useAgitChatUnread } from "@/hooks/useAgitChatUnread";
 import type { UiAgit } from "@/types/agit/ui";
 import Image from "next/image";
 
 type AgitListRowProps = {
   agit: UiAgit;
 };
+
+function formatChatUnreadBadge(count: number): string {
+  if (count > 99) {
+    return "99+";
+  }
+  return String(count);
+}
+
+function resolveChatUnreadCount(agit: UiAgit): number {
+  if (typeof agit.chatUnreadCount === "number") {
+    return agit.chatUnreadCount;
+  }
+  return agit.hasNewChat ? 1 : 0;
+}
 
 function topicBadgeLabel(topicSummary: string) {
   return topicSummary.startsWith("#")
@@ -17,6 +34,9 @@ const ACTION_CLASS =
   "relative grid h-[40px] w-[40px] place-items-center rounded-[12px] border border-[var(--dl-color-border-default)] bg-[var(--dl-color-bg-elevated)] text-[var(--dl-color-text-primary)] no-underline transition-all duration-300 hover:border-[var(--dl-color-border-brand)]/40 hover:bg-gradient-to-b hover:from-[var(--dl-color-bg-brand-subtle)]/60 hover:to-[var(--dl-color-bg-elevated)] hover:text-[var(--dl-color-text-brand)] hover:shadow-[0_2px_12px_rgba(79,70,229,0.12)]";
 
 export function AgitListRow({ agit }: AgitListRowProps) {
+  const initialUnreadCount = resolveChatUnreadCount(agit);
+  const chatUnreadCount = useAgitChatUnread(agit.id, initialUnreadCount);
+
   return (
     <article className="overflow-hidden rounded-[18px] border border-[var(--dl-color-border-default)] bg-[var(--dl-color-bg-elevated)] shadow-[0_8px_24px_rgba(23,_23,_28,_0.04)]">
       <div className="relative">
@@ -54,11 +74,13 @@ export function AgitListRow({ agit }: AgitListRowProps) {
         <div className="absolute top-[8px] right-[8px] z-[2] flex flex-col gap-[8px]">
           <TextLink href={ROUTES.agit.chat(agit.id)} className={ACTION_CLASS} aria-label={`${agit.name} 채팅`}>
             <DailyIcon name="message" size={20} />
-            {agit.hasNewChat ? (
+            {chatUnreadCount > 0 ? (
               <span
-                className="absolute top-[7px] right-[7px] h-[7px] w-[7px] rounded-[999px] border border-[#fff] bg-[var(--dl-color-bg-brand)]"
-                aria-hidden
-              />
+                className="absolute top-[2px] right-[2px] grid min-h-[16px] min-w-[16px] place-items-center rounded-[999px] border border-[#fff] bg-[var(--dl-color-bg-brand)] px-[4px] text-[10px] font-semibold leading-none text-[var(--dl-color-text-inverse)]"
+                aria-label={`미읽음 ${chatUnreadCount}개`}
+              >
+                {formatChatUnreadBadge(chatUnreadCount)}
+              </span>
             ) : null}
           </TextLink>
           <TextLink href={ROUTES.agit.upload(agit.id)} className={ACTION_CLASS} aria-label={`${agit.name} 촬영`}>

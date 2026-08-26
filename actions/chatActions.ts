@@ -63,14 +63,17 @@ export async function getChatHistoryAction(
   }
 }
 
-export async function markChatReadAction(agitId: string): Promise<ActionResult<void>> {
+export async function markChatReadAction(
+  agitId: string,
+  readAt?: string,
+): Promise<ActionResult<void>> {
   const loginError = await requireLogin();
   if (loginError) {
     return actionFailure(loginError);
   }
 
   try {
-    await chatService.markChatRead(agitId);
+    await chatService.markChatRead(agitId, readAt);
     return actionSuccess(undefined);
   } catch (error) {
     return toActionError(error);

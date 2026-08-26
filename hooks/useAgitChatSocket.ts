@@ -1,7 +1,7 @@
 "use client";
 
 import { issueChatWsTicketAction } from "@/actions/chatActions";
-import type { ApiChatMessage } from "@/types/chat/api";
+import type { ApiChatMessage, ApiChatReceiptPayload } from "@/types/chat/api";
 import { Client } from "@stomp/stompjs";
 import { useEffect, useRef } from "react";
 import SockJS from "sockjs-client";
@@ -10,20 +10,27 @@ type UseAgitChatSocketOptions = {
   agitUuid: string;
   enabled?: boolean;
   onMessage: (message: ApiChatMessage) => void;
+  onReceipt?: (receipt: ApiChatReceiptPayload) => void;
 };
 
 export function useAgitChatSocket({
   agitUuid,
   enabled = true,
   onMessage,
+  onReceipt,
 }: UseAgitChatSocketOptions) {
   const clientRef = useRef<Client | null>(null);
   const onMessageRef = useRef(onMessage);
+  const onReceiptRef = useRef(onReceipt);
   const wsUrlRef = useRef("");
 
   useEffect(() => {
     onMessageRef.current = onMessage;
   }, [onMessage]);
+
+  useEffect(() => {
+    onReceiptRef.current = onReceipt;
+  }, [onReceipt]);
 
   useEffect(() => {
     if (!enabled || !agitUuid) {
@@ -47,6 +54,14 @@ export function useAgitChatSocket({
             onMessageRef.current(payload);
           } catch {
             // 수신 payload 파싱 실패는 무시
+          }
+        });
+        client.subscribe(`/sub/agits/${agitUuid}/receipts`, (frame) => {
+          try {
+            const payload = JSON.parse(frame.body) as ApiChatReceiptPayload;
+            onReceiptRef.current?.(payload);
+          } catch {
+            // receipt payload 파싱 실패는 무시
           }
         });
       },

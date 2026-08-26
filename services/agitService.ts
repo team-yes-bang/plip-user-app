@@ -1,4 +1,6 @@
 import * as agitApi from "@/lib/api/agitApi";
+import { isEnableRemoteChatEnabled } from "@/lib/api/env";
+import * as chatService from "@/services/chatService";
 import type {
   ApiAgitDetail,
   ApiAgitLanding,
@@ -66,7 +68,25 @@ function mapAgitDetail(item: ApiAgitDetail): UiAgit {
 
 export async function listMyAgits(): Promise<UiAgit[]> {
   const items = await agitApi.getMyAgits();
-  return items.map(mapMyAgit);
+  const agits = items.map(mapMyAgit);
+
+  if (!isEnableRemoteChatEnabled() || agits.length === 0) {
+    return agits;
+  }
+
+  try {
+    const unreadMap = await chatService.getMyAgitsChatUnread(agits.map((agit) => agit.id));
+    return agits.map((agit) => {
+      const chatUnreadCount = unreadMap.get(agit.id) ?? 0;
+      return {
+        ...agit,
+        chatUnreadCount,
+        hasNewChat: chatUnreadCount > 0,
+      };
+    });
+  } catch {
+    return agits;
+  }
 }
 
 export async function getAgitAndMembers(agitId: string): Promise<{

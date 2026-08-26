@@ -16,13 +16,22 @@ import type { UiTopicGallery } from "@/types/topic/ui";
 export function AgitListTemplate({
   items,
   error,
+  currentUserUuid,
+  enableRemoteChat = false,
 }: {
   items: UiAgit[];
   error?: string;
+  currentUserUuid?: string;
+  enableRemoteChat?: boolean;
 }) {
   return (
     <AppChromeTemplate activeTab="agit" variant="light">
-      <AgitListSection items={items} error={error} />
+      <AgitListSection
+        items={items}
+        error={error}
+        currentUserUuid={currentUserUuid}
+        enableRemoteChat={enableRemoteChat}
+      />
     </AppChromeTemplate>
   );
 }
