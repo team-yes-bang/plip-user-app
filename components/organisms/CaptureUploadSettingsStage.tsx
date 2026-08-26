@@ -4,7 +4,7 @@ import { SubmitButton } from "@/components/atoms";
 import { CaptureDestinationEmptyPanel } from "@/components/molecules/CaptureDestinationEmptyPanel";
 import { CaptureInlineCreateField } from "@/components/molecules/CaptureInlineCreateField";
 import { DestinationToggle, type DestinationId } from "@/components/molecules/DestinationToggle";
-import { HeaderBackButton, ScreenHeader } from "@/components/molecules";
+import { HeaderBackButton, PageContainer, ScreenHeader } from "@/components/molecules";
 import { TopicChip } from "@/components/molecules/TopicChip";
 import type { UiAgit } from "@/types/agit/ui";
 import type { UiDiaryTheme } from "@/types/diary/ui";
@@ -74,17 +74,17 @@ export function CaptureUploadSettingsStage({
   const isPublishRetry = Boolean(pendingPublishVideoUuid);
 
   return (
-    <section
-      className="flex h-full min-h-0 flex-col gap-[14px] overflow-y-auto bg-[var(--dl-color-bg-elevated)] px-[23px] pt-3 pb-8 text-[var(--dl-color-text-primary)]"
+    <div
+      className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[var(--dl-color-bg-elevated)] text-[var(--dl-color-text-primary)]"
       aria-label="업로드 설정"
       aria-busy={destinationsLoading || uploading || creatingInline}
     >
       <ScreenHeader
-        tone="plain"
         leading={<HeaderBackButton onClick={onBack} />}
         title="업로드 설정"
       />
 
+      <PageContainer aria-label="업로드 설정" className="flex-1">
       {isPublishRetry ? (
         <div className="rounded-[16px] bg-[var(--dl-color-bg-brand-subtle)] px-4 py-3.5">
           <p className="m-0 text-[13px] leading-5 text-[var(--dl-color-text-brand)]">
@@ -154,15 +154,23 @@ export function CaptureUploadSettingsStage({
             ) : (
               <div className="flex flex-col gap-3">
                 <div className="flex flex-wrap gap-2">
-                  {topics.map((topic) => (
+                  {topics.map((topic) => {
+                    const uploadedToday = topic.uploadedByMe === true;
+                    return (
                     <TopicChip
                       key={topic.id}
                       selected={selectedTopicUuid === topic.id}
-                      onClick={() => onTopicChange(topic.id)}
+                      disabled={uploadedToday}
+                      onClick={() => {
+                        if (!uploadedToday) {
+                          onTopicChange(topic.id);
+                        }
+                      }}
                     >
-                      {topic.title || "제목 없음"}
+                      {uploadedToday ? `${topic.title || "제목 없음"} · 오늘 완료` : topic.title || "제목 없음"}
                     </TopicChip>
-                  ))}
+                    );
+                  })}
                 </div>
                 <CaptureInlineCreateField
                   key={`topic-create-${topics.length}`}
@@ -238,6 +246,7 @@ export function CaptureUploadSettingsStage({
       <p className="m-0 text-center text-[11px] text-[var(--dl-color-text-tertiary)]">
         내 영상은 업로드 후 언제든 다운로드할 수 있어요.
       </p>
-    </section>
+      </PageContainer>
+    </div>
   );
 }

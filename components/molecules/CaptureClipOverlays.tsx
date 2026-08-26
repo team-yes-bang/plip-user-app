@@ -1,20 +1,13 @@
 import { formatOverlayClock } from "@/lib/video/formatOverlayClock";
-import { OVERLAY_CAPTION_GAP_PX, OVERLAY_CAPTION_PX } from "@/lib/video/constants";
 
 type CaptureClipOverlaysProps = {
   capturedAt: Date | null;
   caption: string;
-  /** 1 = fullscreen/capture size. Preview passes frameHeight / viewportHeight. */
-  scale?: number;
 };
 
-export function CaptureClipOverlays({ capturedAt, caption, scale = 1 }: CaptureClipOverlaysProps) {
+export function CaptureClipOverlays({ capturedAt, caption }: CaptureClipOverlaysProps) {
   const overlayTime = capturedAt ? formatOverlayClock(capturedAt) : "";
   const trimmedCaption = caption.trim();
-  const safeScale = scale > 0 ? scale : 1;
-  const captionSize = OVERLAY_CAPTION_PX * safeScale;
-  const gap = OVERLAY_CAPTION_GAP_PX * safeScale;
-  const inset = 24 * safeScale;
 
   if (!overlayTime && !trimmedCaption) {
     return null;
@@ -22,33 +15,21 @@ export function CaptureClipOverlays({ capturedAt, caption, scale = 1 }: CaptureC
 
   return (
     <div className="pointer-events-none absolute inset-0 z-[1] [container-type:size]">
-      <div
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center"
-        style={{ width: `min(100% - ${inset * 2}px, ${352 * safeScale}px)` }}
-      >
-        {trimmedCaption ? (
-          <>
-            {overlayTime ? (
-              <p
-                className="absolute inset-x-0 m-0 font-black leading-none text-white [text-shadow:0_1px_4px_rgba(0,0,0,0.55)] whitespace-nowrap"
-                style={{ bottom: `calc(100% + ${gap}px)`, fontSize: "clamp(32px, 15cqmin, 72px)" }}
-              >
-                {overlayTime}
-              </p>
-            ) : null}
-            <p
-              className="absolute left-1/2 top-full -translate-x-1/2 mt-1 m-0 font-light text-white/80 opacity-80 [text-shadow:0_1px_3px_rgba(0,0,0,0.55)] whitespace-nowrap pointer-events-none"
-              style={{ fontSize: Math.min(captionSize, 13), lineHeight: 1.2 }}
-            >
-              {trimmedCaption}
-            </p>
-          </>
-        ) : overlayTime ? (
-          <p
-            className="m-0 font-black leading-none text-white [text-shadow:0_1px_4px_rgba(0,0,0,0.55)] whitespace-nowrap"
-            style={{ fontSize: "clamp(32px, 15cqmin, 72px)" }}
-          >
+      <div className="absolute left-1/2 top-1/2 w-[min(88cqw,100%)] -translate-x-1/2 -translate-y-1/2 text-center">
+        {overlayTime ? (
+          <p className="relative z-[1] m-0 font-black leading-none text-white [font-size:clamp(1.15rem,15cqmin,4.5rem)] [text-shadow:0_1px_4px_rgba(0,0,0,0.55)] whitespace-nowrap">
             {overlayTime}
+          </p>
+        ) : null}
+        {trimmedCaption ? (
+          <p
+            className={
+              overlayTime
+                ? "absolute left-1/2 top-full m-0 mt-[0.35em] w-full -translate-x-1/2 font-light text-white/80 [font-size:clamp(0.65rem,4.2cqmin,0.95rem)] leading-tight [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]"
+                : "m-0 font-light text-white/80 [font-size:clamp(0.65rem,4.2cqmin,0.95rem)] leading-tight [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]"
+            }
+          >
+            {trimmedCaption}
           </p>
         ) : null}
       </div>

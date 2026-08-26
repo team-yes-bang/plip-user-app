@@ -48,7 +48,6 @@ export function TopicVideoTile({
       <CaptureClipOverlays
         capturedAt={parseUploadedAtToDate(video.uploadedAt)}
         caption={video.caption}
-        scale={1}
       />
       <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-end p-6">
         <UserProfileBadge

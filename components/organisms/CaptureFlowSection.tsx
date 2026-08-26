@@ -19,8 +19,6 @@ import { usePreviewFrameMetrics } from "@/hooks/usePreviewFrameMetrics";
 import { useVideoCaptureFlow } from "@/hooks/useVideoCaptureFlow";
 import { extractActionError } from "@/lib/video/actionPayload";
 import { VIDEO_DESTINATION_NOT_WIRED } from "@/lib/video/actionErrors";
-import { OVERLAY_DURATION_PX } from "@/lib/video/constants";
-import { formatRecordCountdown } from "@/lib/video/formatRecordTimer";
 import { playShutterSound } from "@/lib/video/playShutterSound";
 import { shouldMirrorVideo } from "@/lib/video/shouldMirrorVideo";
 import { toKstDateString } from "@/lib/topic/selectAgitTopic";
@@ -44,6 +42,18 @@ function pickId<T extends { id: string }>(items: T[], preferred: string): string
     return preferred;
   }
   return items[0]?.id ?? "";
+}
+
+function isTopicSelectable(topic: UiTopicListItem): boolean {
+  return topic.uploadedByMe !== true;
+}
+
+function pickTopicId(topics: UiTopicListItem[], preferred: string): string {
+  const selectable = topics.filter(isTopicSelectable);
+  if (preferred && selectable.some((topic) => topic.id === preferred)) {
+    return preferred;
+  }
+  return selectable[0]?.id ?? "";
 }
 
 export function CaptureFlowSection({
@@ -97,8 +107,6 @@ export function CaptureFlowSection({
   const containPreview = showConfirm && !originalView;
   const mirrorVideo = shouldMirrorVideo(facingMode, status, pixelsMirrored);
   const frameMetrics = usePreviewFrameMetrics(containPreview, sectionRef, slotRef);
-  const overlayScale = containPreview && frameMetrics.scale > 0 ? frameMetrics.scale : 1;
-
   const loadTopics = useCallback(async (agitUuid: string, preferredTopicId = "") => {
     if (!agitUuid) {
       setTopics([]);
@@ -114,7 +122,7 @@ export function CaptureFlowSection({
     }
 
     setTopics(result.data);
-    setSelectedTopicUuid(pickId(result.data, preferredTopicId));
+    setSelectedTopicUuid(pickTopicId(result.data, preferredTopicId));
   }, []);
 
   const loadDestinations = useCallback(async () => {
@@ -366,19 +374,7 @@ export function CaptureFlowSection({
           }}
         />
         {showConfirm ? (
-          <>
-            <CaptureClipOverlays capturedAt={capturedAt} caption={caption} scale={overlayScale} />
-            <span
-              className="absolute z-[1] font-semibold text-white"
-              style={{
-                right: 16 * overlayScale,
-                bottom: 16 * overlayScale,
-                fontSize: OVERLAY_DURATION_PX * overlayScale,
-              }}
-            >
-              {formatRecordCountdown(0, maxDurationMs)}
-            </span>
-          </>
+          <CaptureClipOverlays capturedAt={capturedAt} caption={caption} />
         ) : null}
       </div>
     </div>

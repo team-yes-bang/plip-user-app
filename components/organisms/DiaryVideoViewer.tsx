@@ -52,7 +52,6 @@ export function DiaryVideoViewer({
             <CaptureClipOverlays
               capturedAt={parseUploadedAtToDate(item.uploadedAt)}
               caption={item.caption || currentDetail?.caption || ""}
-              scale={1}
             />
 
             {/* 하단 우측: 날짜 */}
