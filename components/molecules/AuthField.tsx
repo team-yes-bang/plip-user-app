@@ -16,6 +16,7 @@ type AuthFieldProps = {
   maxLength?: number;
   pattern?: string;
   title?: string;
+  disabled?: boolean;
 };
 
 export function AuthField({
@@ -32,6 +33,7 @@ export function AuthField({
   maxLength,
   pattern,
   title,
+  disabled,
 }: AuthFieldProps) {
   return (
     <div className={ui.field}>
@@ -50,6 +52,7 @@ export function AuthField({
         maxLength={maxLength}
         pattern={pattern}
         title={title}
+        disabled={disabled}
         variant="daily"
       />
       {hint ? <p className={ui.hint}>{hint}</p> : null}

@@ -63,7 +63,7 @@ export function AgitProfileEditForm({ agitId, nickname }: AgitProfileEditFormPro
         name="nickname"
         label="닉네임"
         hint={`영문·숫자·한글 ${AGIT_NICKNAME_MIN_LENGTH}~${AGIT_NICKNAME_MAX_LENGTH}자`}
-        placeholder="보드왕"
+        placeholder="닉네임"
         defaultValue={nickname}
         maxLength={AGIT_NICKNAME_MAX_LENGTH}
         pattern="[0-9A-Za-z가-힣]{2,12}"

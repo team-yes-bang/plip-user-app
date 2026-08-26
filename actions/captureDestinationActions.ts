@@ -6,7 +6,7 @@
  */
 import { listMyAgitsAction } from "@/actions/agitActions";
 import { createThemeAction, listDiaryThemesAction } from "@/actions/diaryActions";
-import { createTopicAction, listAgitTopicsAction } from "@/actions/topicActions";
+import { createTopicAction, listTopicsByStatusAction } from "@/actions/topicActions";
 import { actionFailure, actionSuccess, type ActionResult } from "@/types/action-result";
 import type { UiAgit } from "@/types/agit/ui";
 import type { UiDiaryTheme } from "@/types/diary/ui";
@@ -23,7 +23,7 @@ export async function listCaptureThemesAction(): Promise<ActionResult<UiDiaryThe
 export async function listCaptureTopicsAction(
   agitUuid: string,
 ): Promise<ActionResult<UiTopicListItem[]>> {
-  return listAgitTopicsAction(agitUuid);
+  return listTopicsByStatusAction(agitUuid, "ONGOING", 50);
 }
 
 export async function createCaptureThemeAction(

@@ -1,6 +1,7 @@
 "use client";
 
 import { createAgitAction } from "@/actions/agitActions";
+import { getMyProfileAction } from "@/actions/userActions";
 import { SubmitButton } from "@/components/atoms";
 import { AuthField } from "@/components/molecules";
 import { AgreementRow } from "@/components/molecules/AgreementRow";
@@ -14,17 +15,31 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export function CreateRoomAccessForm() {
+type CreateRoomAccessFormProps = {
+  defaultNickname?: string;
+};
+
+export function CreateRoomAccessForm({
+  defaultNickname: initialNickname = "",
+}: CreateRoomAccessFormProps) {
   const router = useRouter();
   const [agreed, setAgreed] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [defaultNickname, setDefaultNickname] = useState(initialNickname);
 
   useEffect(() => {
     if (!readCreateRoomDraft()) {
       router.replace(ROUTES.agit.create);
     }
-  }, [router]);
+    if (!initialNickname) {
+      void getMyProfileAction().then((res) => {
+        if (res.ok && res.data?.nickname) {
+          setDefaultNickname(res.data.nickname);
+        }
+      });
+    }
+  }, [initialNickname, router]);
 
   async function handleSubmit(formData: FormData) {
     if (!agreed || pending) {
@@ -78,11 +93,13 @@ export function CreateRoomAccessForm() {
       </div>
 
       <AuthField
+        key={defaultNickname}
         id="room-nickname"
         name="nickname"
         label="닉네임"
+        defaultValue={defaultNickname}
         hint={`영문·숫자·한글 ${AGIT_NICKNAME_MIN_LENGTH}~${AGIT_NICKNAME_MAX_LENGTH}자`}
-        placeholder="보드왕"
+        placeholder="닉네임"
         maxLength={AGIT_NICKNAME_MAX_LENGTH}
         pattern="[0-9A-Za-z가-힣]{2,12}"
         title="영문·숫자·한글 2~12자, 특수문자와 공백 불가"

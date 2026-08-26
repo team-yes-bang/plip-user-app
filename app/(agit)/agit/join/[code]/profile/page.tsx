@@ -1,6 +1,7 @@
 import { InviteJoinProfileTemplate } from "@/components/templates";
 import { ROUTES } from "@/config/routes";
 import { getServerUserUuid } from "@/lib/auth/server-token";
+import * as userService from "@/services/userService";
 import { redirect } from "next/navigation";
 
 type PageProps = {
@@ -15,5 +16,13 @@ export default async function AgitInviteJoinProfilePage({ params }: PageProps) {
     redirect(`${ROUTES.login}?callbackUrl=${encodeURIComponent(ROUTES.agit.joinProfile(inviteCode))}`);
   }
 
-  return <InviteJoinProfileTemplate code={inviteCode} />;
+  let defaultNickname = "";
+  try {
+    const profile = await userService.getMyProfile();
+    defaultNickname = profile.nickname || "";
+  } catch {
+    defaultNickname = "";
+  }
+
+  return <InviteJoinProfileTemplate code={inviteCode} defaultNickname={defaultNickname} />;
 }

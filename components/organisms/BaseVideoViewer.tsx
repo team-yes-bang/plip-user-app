@@ -190,8 +190,7 @@ export function BaseVideoViewer({
         />
       )}
 
-      <div className="pointer-events-none absolute inset-0 bg-black/20" aria-hidden />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />
 
       <ScreenHeader
         tone="overlay"

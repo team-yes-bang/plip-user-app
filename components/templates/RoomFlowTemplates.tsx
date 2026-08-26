@@ -60,11 +60,15 @@ export function CreateRoomBasicTemplate() {
   );
 }
 
-export function CreateRoomAccessTemplate() {
+export function CreateRoomAccessTemplate({
+  defaultNickname,
+}: {
+  defaultNickname?: string;
+} = {}) {
   return (
     <AgitFlowChrome>
       <AuthTopBar title="아지트 만들기" backHref={ROUTES.agit.create} step="2 / 2 · 프로필" />
-      <CreateRoomAccessForm />
+      <CreateRoomAccessForm defaultNickname={defaultNickname} />
     </AgitFlowChrome>
   );
 }
@@ -146,14 +150,20 @@ export function InviteJoinLandingTemplate({
   );
 }
 
-export function InviteJoinProfileTemplate({ code }: { code: string }) {
+export function InviteJoinProfileTemplate({
+  code,
+  defaultNickname,
+}: {
+  code: string;
+  defaultNickname?: string;
+}) {
   return (
     <DailyLoopAuthTemplate>
       <p className="m-0 text-xs font-semibold leading-[17px] text-[var(--dl-color-text-brand)]">INVITE · PROFILE</p>
       <AuthTopBar title="이 방에서 사용할 프로필" backHref={ROUTES.agit.join(code)} />
       <h2 className="m-0 text-[28px] font-bold leading-[34px] text-[var(--dl-color-text-primary)] text-[24px] leading-[35px] m-dlTitleSection">닉네임을 입력해주세요</h2>
       <p className="m-0 text-sm font-normal leading-5 text-[var(--dl-color-text-secondary)]">아지트에서 사용할 이름입니다. 한 유저는 한 방에서 하나의 프로필만 사용합니다.</p>
-      <InviteJoinProfileForm code={code} />
+      <InviteJoinProfileForm code={code} defaultNickname={defaultNickname} />
     </DailyLoopAuthTemplate>
   );
 }

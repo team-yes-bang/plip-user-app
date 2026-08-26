@@ -52,7 +52,7 @@ export function AgitVideoViewer({
             {/* 비디오 중앙 대형 시각 + 캡션 오버레이 (CaptureClipOverlays) */}
             <CaptureClipOverlays
               capturedAt={parseUploadedAtToDate(item.uploadedAt)}
-              caption={currentDetail?.caption || ""}
+              caption={item.caption || currentDetail?.caption || ""}
               scale={1}
             />
 
