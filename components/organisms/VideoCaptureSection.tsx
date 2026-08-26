@@ -19,7 +19,6 @@ export function VideoCaptureSection() {
     blob,
     mimeType,
     facingMode,
-    pixelsMirrored,
     flowPhase,
     flowError,
     uploadResult,
@@ -38,7 +37,7 @@ export function VideoCaptureSection() {
   const progressPct = Math.min(100, Math.round((elapsedMs / maxDurationMs) * 100));
   const canUploadBlob = blob !== null && isWithinUploadLimit(blob.size);
   const blobOverLimit = blob !== null && blob.size > MAX_UPLOAD_BYTES;
-  const mirrorFrontCamera = shouldMirrorVideo(facingMode, status, pixelsMirrored);
+  const mirrorFrontCamera = shouldMirrorVideo(facingMode, status);
 
   return (
     <section className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-6 font-mono text-sm">

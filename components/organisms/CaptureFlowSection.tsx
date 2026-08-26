@@ -60,7 +60,6 @@ export function CaptureFlowSection({
     elapsedMs,
     maxDurationMs,
     facingMode,
-    pixelsMirrored,
     capturedAt,
     uploading,
     startRecording,
@@ -95,7 +94,7 @@ export function CaptureFlowSection({
   const showSettings = isPreview && previewStep === "settings";
   const showConfirm = isPreview && previewStep === "confirm";
   const containPreview = showConfirm && !originalView;
-  const mirrorVideo = shouldMirrorVideo(facingMode, status, pixelsMirrored);
+  const mirrorVideo = shouldMirrorVideo(facingMode, status);
   const frameMetrics = usePreviewFrameMetrics(containPreview, sectionRef, slotRef);
   const overlayScale = containPreview && frameMetrics.scale > 0 ? frameMetrics.scale : 1;
 

@@ -7,10 +7,10 @@ import {
   RECORD_VIDEO_BITS_PER_SECOND,
 } from "@/lib/video/constants";
 import {
-  startMirroredCapture,
+  startCaptureCanvas,
   waitForVideoFrame,
-  type MirroredCapture,
-} from "@/lib/video/mirroredCapture";
+  type CaptureCanvas,
+} from "@/lib/video/captureCanvas";
 import { pickRecorderMimeType, requestCameraStream } from "@/lib/video/recorderMime";
 import { isIgnorablePlayError, safeVideoPlay } from "@/lib/video/safeVideoPlay";
 import { useCallback, useEffect, useRef, useState, type RefCallback } from "react";
@@ -70,12 +70,11 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string | undefined>();
   const [liveStream, setLiveStream] = useState<MediaStream | null>(null);
-  const [pixelsMirrored, setPixelsMirrored] = useState(false);
   const [capturedAt, setCapturedAt] = useState<Date | null>(null);
 
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
-  const mirrorRef = useRef<MirroredCapture | null>(null);
+  const captureRef = useRef<CaptureCanvas | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const stopTimerRef = useRef<number | null>(null);
   const tickTimerRef = useRef<number | null>(null);
@@ -130,9 +129,9 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     setLiveStream(null);
   }, []);
 
-  const stopMirror = useCallback(() => {
-    mirrorRef.current?.stop();
-    mirrorRef.current = null;
+  const stopCapture = useCallback(() => {
+    captureRef.current?.stop();
+    captureRef.current = null;
   }, []);
 
   const resetPreview = useCallback(() => {
@@ -144,7 +143,6 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     });
     setBlob(null);
     setElapsedMs(0);
-    setPixelsMirrored(false);
     setCapturedAt(null);
   }, []);
 
@@ -200,6 +198,13 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
       return;
     }
 
+    const previewNode = videoRef.current;
+    if (!previewNode) {
+      setError("미리보기가 아직 준비되지 않았습니다.");
+      setStatus("error");
+      return;
+    }
+
     const selectedMimeType = pickRecorderMimeType();
     if (!selectedMimeType) {
       setError("MediaRecorder is not supported in this browser");
@@ -209,27 +214,25 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
 
     resetPreview();
     chunksRef.current = [];
-    stopMirror();
+    stopCapture();
 
-    let recordStream = stream;
-    let recordedMirrored = false;
-    if (facingMode === "user" && videoRef.current) {
-      await waitForVideoFrame(videoRef.current);
-      const mirrored = startMirroredCapture(videoRef.current);
-      if (mirrored) {
-        mirrorRef.current = mirrored;
-        recordStream = mirrored.stream;
-        recordedMirrored = true;
-      }
+    await waitForVideoFrame(previewNode);
+    const capture = startCaptureCanvas(previewNode);
+    if (!capture) {
+      setError("영상을 720p로 녹화할 수 없습니다.");
+      setStatus("error");
+      return;
     }
 
-    const recorder = new MediaRecorder(recordStream, {
+    captureRef.current = capture;
+
+    const recorder = new MediaRecorder(capture.stream, {
       mimeType: selectedMimeType,
       videoBitsPerSecond: RECORD_VIDEO_BITS_PER_SECOND,
+      bitsPerSecond: RECORD_VIDEO_BITS_PER_SECOND,
     });
     recorderRef.current = recorder;
     setMimeType(selectedMimeType);
-    setPixelsMirrored(recordedMirrored);
 
     recorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
@@ -239,7 +242,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
 
     recorder.onstop = () => {
       clearTimers();
-      stopMirror();
+      stopCapture();
 
       const maxChunks = Math.ceil(maxDurationMs / RECORD_TIMESLICE_MS);
       const trimmedChunks = chunksRef.current.slice(0, maxChunks);
@@ -265,7 +268,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     };
 
     recorder.onerror = () => {
-      stopMirror();
+      stopCapture();
       setError("Recording failed");
       setStatus("error");
     };
@@ -296,25 +299,24 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     resetPreview,
     stopRecording,
     stopStream,
-    stopMirror,
-    facingMode,
+    stopCapture,
   ]);
 
   const discardRecording = useCallback(async () => {
     clearTimers();
-    stopMirror();
+    stopCapture();
     recorderRef.current = null;
     resetPreview();
     stopStream();
     setError(null);
     setStatus("idle");
     await prepareCamera();
-  }, [clearTimers, prepareCamera, resetPreview, stopMirror, stopStream]);
+  }, [clearTimers, prepareCamera, resetPreview, stopCapture, stopStream]);
 
   const loadFromFile = useCallback(
     (file: File) => {
       clearTimers();
-      stopMirror();
+      stopCapture();
       recorderRef.current = null;
       stopStream();
       resetPreview();
@@ -324,11 +326,10 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
       setBlob(file);
       setPreviewUrl(nextPreviewUrl);
       setMimeType(file.type || "video/mp4");
-      setPixelsMirrored(false);
       setCapturedAt(new Date());
       setStatus("preview");
     },
-    [clearTimers, resetPreview, stopMirror, stopStream],
+    [clearTimers, resetPreview, stopCapture, stopStream],
   );
 
   const flipCamera = useCallback(async () => {
@@ -376,7 +377,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
   useEffect(() => {
     return () => {
       clearTimers();
-      stopMirror();
+      stopCapture();
       stopStream();
       setPreviewUrl((current) => {
         if (current) {
@@ -385,7 +386,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
         return null;
       });
     };
-  }, [clearTimers, stopMirror, stopStream]);
+  }, [clearTimers, stopCapture, stopStream]);
 
   return {
     videoRef: bindVideoElement,
@@ -397,7 +398,6 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     previewUrl,
     mimeType,
     facingMode,
-    pixelsMirrored,
     capturedAt,
     prepareCamera,
     startRecording,
