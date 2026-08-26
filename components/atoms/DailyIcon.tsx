@@ -1,5 +1,6 @@
 const ICON_SRC = {
   users: "/plip/daily-loop/icon-users.svg",
+  crownBrand: "/plip/daily-loop/icon-crown-brand.svg",
   video: "/plip/daily-loop/icon-video.svg",
   plus: "/plip/daily-loop/icon-plus.svg",
   minus: "/plip/daily-loop/icon-minus.svg",

@@ -53,7 +53,6 @@ export function AgitVideoViewer({
             <CaptureClipOverlays
               capturedAt={parseUploadedAtToDate(item.uploadedAt)}
               caption={item.caption || currentDetail?.caption || ""}
-              scale={1}
             />
 
             {/* 우측 이모지 리액션 바 */}

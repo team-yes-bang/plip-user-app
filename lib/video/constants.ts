@@ -31,12 +31,6 @@ export const DEFAULT_CAPTURE_CAPTION = "";
 
 export const CAPTION_MAX_LENGTH = 80;
 
-/** Overlay sizes at capture/fullscreen scale. Preview shrinks these by frame/viewport. */
-export const OVERLAY_TIME_PX = 32;
-export const OVERLAY_CAPTION_PX = 20;
-export const OVERLAY_CAPTION_GAP_PX = 8;
-export const OVERLAY_DURATION_PX = 13;
-
 /** Drop sample.mp3 at public/plip/video/sample.mp3. Missing file falls back to a click. */
 export const SHUTTER_SOUND_SRC = "/plip/video/sample.mp3";
 

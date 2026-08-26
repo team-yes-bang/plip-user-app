@@ -1,5 +1,5 @@
 import { DailyIcon, TextLink } from "@/components/atoms";
-import { RoomInfoRow } from "@/components/molecules";
+import { ui } from "@/components/atoms/styles";
 import { ROUTES } from "@/config/routes";
 import type { UiAgit } from "@/types/agit/ui";
 import Image from "next/image";
@@ -27,53 +27,58 @@ function isUsableImageSrc(src?: string): boolean {
 
 export function AgitLandingDetail({ agit, joinHref }: AgitLandingDetailProps) {
   const maxMembers = agit.maxMembers ?? agit.memberCount;
-  const remaining = Math.max(0, maxMembers - agit.memberCount);
   const participateHref = joinHref ?? ROUTES.agit.profile(agit.id);
   const thumbnailSrc = isUsableImageSrc(agit.thumbnailSrc) ? agit.thumbnailSrc : undefined;
 
   return (
     <section className="flex w-full flex-col gap-3.5">
-      <div
-        className="relative w-full h-[190px] overflow-hidden rounded-[18px] [&_img]:w-full [&_img]:h-full [&_img]:object-cover"
-        style={thumbnailSrc ? undefined : { background: agit.coverGradient }}
-      >
-        {thumbnailSrc ? (
-          <Image src={thumbnailSrc} alt="" fill className="object-cover" sizes="350px" />
-        ) : null}
-        <DailyIcon name="video" size={32} className="absolute top-[50%] left-[50%] w-[32px] h-[32px] [transform:translate(-50%,_-50%)]" />
-      </div>
-
-      {agit.category ? (
-        <div className="flex flex-wrap gap-[8px] items-center">
-          <span className="inline-flex items-center border border-[var(--dl-color-border-default)] rounded-[18px] bg-[var(--dl-color-bg-surface)] p-[8px_14px] text-[13px] font-medium leading-[19px] text-[var(--dl-color-text-secondary)] border-[var(--dl-color-border-brand)] bg-[var(--dl-color-bg-brand)] text-[#fff] m-dlPillBrand">
-            {agit.category}
-          </span>
+      <div className="w-full overflow-hidden rounded-[18px] border border-[var(--dl-color-border-default)] bg-[var(--dl-color-bg-elevated)] shadow-[0_8px_24px_rgba(23,_23,_28,_0.04)]">
+        <div
+          className="relative h-[190px] w-full overflow-hidden [&_img]:h-full [&_img]:w-full [&_img]:object-cover"
+          style={thumbnailSrc ? undefined : { background: agit.coverGradient }}
+        >
+          {thumbnailSrc ? (
+            <Image src={thumbnailSrc} alt="" fill className="object-cover" sizes="350px" />
+          ) : null}
         </div>
-      ) : null}
 
-      <h2 className="m-0 text-[28px] font-bold leading-[34px] text-[var(--dl-color-text-primary)]">{agit.name}</h2>
-      <p className="m-0 text-sm font-normal leading-5 text-[var(--dl-color-text-secondary)]">{agit.description}</p>
+        <div className="flex flex-col gap-3.5 p-4">
+          {agit.category ? (
+            <span className="inline-flex w-fit items-center rounded-[18px] border-0 bg-[var(--dl-color-bg-brand)] p-[8px_14px] text-[13px] font-medium leading-[19px] text-[#fff]">
+              {agit.category}
+            </span>
+          ) : null}
 
-      <div className="w-full rounded-[var(--dl-radius-lg)] bg-[var(--dl-color-bg-elevated)] p-[16px_14px] flex flex-col gap-[10px] m-dlPanelStack">
-        <RoomInfoRow
-          icon="users"
-          title={`${agit.memberCount} / ${maxMembers}명`}
-          description={remaining > 0 ? `현재 ${remaining}자리 남음` : "정원이 가득 찼어요"}
-        />
-        <RoomInfoRow
-          icon="video"
-          title={`오늘 영상 ${agit.todayVideoCount ?? 0}개`}
-          description={`토픽: ${agit.topicSummary ?? "자유"}`}
-        />
+          <h2 className={`${ui.title} font-[family-name:var(--font-title)]`}>{agit.name}</h2>
+          {agit.description ? (
+            <p className={ui.subtitle}>{agit.description}</p>
+          ) : null}
+
+          <div className="flex flex-col gap-2.5">
+            <div className="flex items-center gap-2.5">
+              <DailyIcon name="users" size={20} />
+              <span className="text-sm font-medium leading-5 text-[var(--dl-color-text-primary)]">
+                {agit.memberCount}/{maxMembers}
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <DailyIcon name="crownBrand" size={20} />
+              <span className="min-w-0 truncate text-sm font-medium leading-5 text-[var(--dl-color-text-primary)]">
+                {agit.ownerName ?? "방장"}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <p className="m-0 text-sm font-normal leading-5 text-[var(--dl-color-text-secondary)] text-[12px] leading-[17px]">
-        방장은 {agit.ownerName ?? "방장"}입니다.
-      </p>
-
-      <div className="flex w-full flex-col gap-[14px] mt-auto">
-        <TextLink href={participateHref} className="inline-flex h-[44px] w-full items-center justify-center gap-[8px] rounded-[var(--dl-radius-md)] p-[12px_20px] text-sm font-medium leading-5 !no-underline border-0 bg-[var(--dl-color-bg-brand-subtle)] border-0 bg-[var(--dl-color-bg-brand)] !text-[var(--dl-color-text-inverse)] shadow-[none] [backdrop-filter:none] m-dlBtnPrimary no-underline">
-          이 아지트에 참여하기
+      <div className="mt-auto flex w-full flex-col gap-[14px] pt-2">
+        <TextLink
+          href={participateHref}
+          className="group relative inline-flex h-14 w-full items-center justify-center overflow-visible rounded-full bg-[linear-gradient(145deg,var(--dl-color-bg-brand),#3b82f6)] text-[17px] font-bold !text-white !no-underline ring-4 ring-white/20 shadow-[0_8px_24px_rgba(79,70,229,0.45)] transition-all duration-200 hover:scale-[1.03] hover:ring-white/40 hover:shadow-[0_12px_32px_rgba(79,70,229,0.6)] active:scale-95"
+        >
+          <span className="font-[family-name:var(--font-title)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
+            입장
+          </span>
         </TextLink>
       </div>
     </section>

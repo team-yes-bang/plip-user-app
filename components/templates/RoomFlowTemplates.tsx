@@ -143,7 +143,6 @@ export function InviteJoinLandingTemplate({
 
   return (
     <DailyLoopAuthTemplate>
-      <p className="m-0 text-xs font-semibold leading-[17px] text-[var(--dl-color-text-brand)]">INVITE · LANDING</p>
       <AuthTopBar title="아지트 정보" backHref={ROUTES.agit.root} />
       <AgitLandingDetail agit={agit} joinHref={ROUTES.agit.joinProfile(agit.inviteCode ?? agit.id)} />
     </DailyLoopAuthTemplate>

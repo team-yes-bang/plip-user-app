@@ -1,8 +1,8 @@
 "use client";
 
-import { DailyIcon, Input, Label, SubmitButton } from "@/components/atoms";
+import { Input, Label, SubmitButton } from "@/components/atoms";
 import { ui } from "@/components/atoms/styles";
-import { HeaderBackButton, ScreenHeader } from "@/components/molecules";
+import { HeaderBackButton, PageContainer, ScreenHeader } from "@/components/molecules";
 import { CAPTION_MAX_LENGTH } from "@/lib/video/constants";
 
 type CapturePreviewStageProps = {
@@ -28,27 +28,29 @@ export function CapturePreviewStage({
 }: CapturePreviewStageProps) {
   if (originalView) {
     return (
-      <button
-        type="button"
-        className="absolute top-3 left-[15px] z-40 grid h-11 w-11 place-items-center rounded-full border-0 bg-[var(--dl-color-bg-surface)]"
-        aria-label="원본 크기 닫기"
-        onClick={onCloseOriginal}
-      >
-        <DailyIcon name="x" size={20} />
-      </button>
+      <div className="absolute inset-x-0 top-0 z-40">
+        <ScreenHeader
+          tone="overlay"
+          leading={<HeaderBackButton onClick={onCloseOriginal} label="원본 크기 닫기" />}
+        />
+      </div>
     );
   }
 
   return (
     <>
-      <div className="order-1 shrink-0 px-[23px] pt-3">
+      <div className="order-1 shrink-0">
         <ScreenHeader
-          tone="plain"
           leading={<HeaderBackButton onClick={onBack} label="다시 촬영" />}
           title="영상 확인"
         />
       </div>
-      <div className="order-3 flex shrink-0 flex-col gap-3 px-[23px] pt-3 pb-8">
+      <PageContainer
+        as="div"
+        gap="tight"
+        aria-label="영상 확인"
+        className="order-3 flex-none overflow-visible"
+      >
         <div className={ui.field}>
           <Label htmlFor="capture-caption" className={ui.fieldLabel}>
             캡션
@@ -71,7 +73,7 @@ export function CapturePreviewStage({
             업로드 설정
           </SubmitButton>
         </div>
-      </div>
+      </PageContainer>
     </>
   );
 }

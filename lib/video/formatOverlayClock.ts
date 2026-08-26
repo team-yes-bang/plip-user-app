@@ -1,24 +1,37 @@
+const KST = "Asia/Seoul";
+
+function formatKstClock(date: Date): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: KST,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+}
+
+function formatKstDotDate(date: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: KST,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .format(date)
+    .replaceAll("-", ".");
+}
+
 export function formatOverlayClock(date: Date = new Date()): string {
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  return `${hours}:${minutes}`;
+  return formatKstClock(date);
 }
 
 export function extractDate(uploadedAt?: string): string {
   if (!uploadedAt) {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = (now.getMonth() + 1).toString().padStart(2, "0");
-    const d = now.getDate().toString().padStart(2, "0");
-    return `${y}.${m}.${d}`;
+    return formatKstDotDate(new Date());
   }
 
-  const parsedDate = new Date(uploadedAt);
+  const parsedDate = parseUploadedAtToDate(uploadedAt);
   if (!Number.isNaN(parsedDate.getTime())) {
-    const y = parsedDate.getFullYear();
-    const m = (parsedDate.getMonth() + 1).toString().padStart(2, "0");
-    const d = parsedDate.getDate().toString().padStart(2, "0");
-    return `${y}.${m}.${d}`;
+    return formatKstDotDate(parsedDate);
   }
 
   const trimmed = uploadedAt.trim();
@@ -36,25 +49,15 @@ export function extractDate(uploadedAt?: string): string {
 }
 
 export function extractTime(uploadedAt?: string): string {
-  if (!uploadedAt) return "14:30";
-  const trimmed = uploadedAt.trim();
-
-  const spaceSplit = trimmed.split(/\s+/);
-  if (spaceSplit.length >= 2 && spaceSplit[1]) {
-    return spaceSplit[1].slice(0, 5);
-  }
-
-  if (trimmed.includes("T")) {
-    const timePart = trimmed.split("T")[1];
-    return timePart ? timePart.slice(0, 5) : "14:30";
-  }
-
-  return "14:30";
+  if (!uploadedAt) return formatKstClock(new Date());
+  return formatKstClock(parseUploadedAtToDate(uploadedAt));
 }
 
 export function parseUploadedAtToDate(uploadedAt?: string): Date {
   if (!uploadedAt) return new Date();
-  const parsed = new Date(uploadedAt);
+  const trimmed = uploadedAt.trim();
+  const naiveIso = /^\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/.test(trimmed);
+  const parsed = new Date(naiveIso ? `${trimmed.replace(" ", "T")}Z` : trimmed);
   if (!Number.isNaN(parsed.getTime())) {
     return parsed;
   }
