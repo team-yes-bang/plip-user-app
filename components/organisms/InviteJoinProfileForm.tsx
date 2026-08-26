@@ -53,7 +53,7 @@ export function InviteJoinProfileForm({
       return;
     }
 
-    router.push(ROUTES.agit.joined(result.data.agitUuid));
+    router.push(ROUTES.agit.detail(result.data.agitUuid));
     router.refresh();
   }
 
