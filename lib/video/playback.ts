@@ -1,6 +1,28 @@
+import type { VideoHTMLAttributes } from "react";
+
 export function isStubPlaybackUrl(url: string): boolean {
   return url.includes("/stub-presigned-get/") || url.startsWith("/stub-media/");
 }
+
+/** Returns a browser-playable remote URL, filtering stub / empty values. */
+export function resolveRemotePlaybackUrl(
+  rawPlaybackUrl: string | null | undefined,
+): string | null {
+  if (!rawPlaybackUrl?.trim() || isStubPlaybackUrl(rawPlaybackUrl)) {
+    return null;
+  }
+  return rawPlaybackUrl.trim();
+}
+
+export type VideoPlaybackMode = "feed" | "viewer";
+
+export const VIDEO_PLAYBACK_ATTRS: Record<
+  VideoPlaybackMode,
+  Pick<VideoHTMLAttributes<HTMLVideoElement>, "muted" | "loop" | "playsInline" | "autoPlay">
+> = {
+  feed: { muted: true, loop: true, playsInline: true, autoPlay: true },
+  viewer: { muted: false, loop: true, playsInline: true, autoPlay: true },
+};
 
 export type PlaybackSource = {
   kind: "local" | "remote" | "none";
@@ -20,10 +42,11 @@ export function resolvePlaybackSource(
     };
   }
 
-  if (rawPlaybackUrl && !isStubPlaybackUrl(rawPlaybackUrl)) {
+  const remoteUrl = resolveRemotePlaybackUrl(rawPlaybackUrl);
+  if (remoteUrl) {
     return {
       kind: "remote",
-      url: rawPlaybackUrl,
+      url: remoteUrl,
       note: null,
     };
   }

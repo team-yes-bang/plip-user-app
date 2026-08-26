@@ -24,6 +24,7 @@ export function DiaryVideoViewer({
 
   return (
     <BaseVideoViewer
+      key={initialClipId}
       initialClipId={initialClipId}
       videoList={videoList}
       onClose={onClose}

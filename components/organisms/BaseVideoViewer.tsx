@@ -5,6 +5,8 @@ import { DailyIcon, FeedPillIconButton } from "@/components/atoms";
 import { ScreenHeader } from "@/components/molecules";
 import type { VideoViewerItem } from "@/components/providers/VideoViewerProvider";
 import { extractDate } from "@/lib/video/formatOverlayClock";
+import { resolveRemotePlaybackUrl, VIDEO_PLAYBACK_ATTRS } from "@/lib/video/playback";
+import { safeVideoPlay } from "@/lib/video/safeVideoPlay";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
@@ -36,43 +38,67 @@ export function BaseVideoViewer({
 }: BaseVideoViewerProps) {
   const list = useMemo(
     () => (videoList.length > 0 ? videoList : [{ clipId: initialClipId }]),
-    [videoList, initialClipId]
+    [videoList, initialClipId],
   );
   const initialIndex = Math.max(
     0,
-    list.findIndex((item) => item.clipId === initialClipId)
+    list.findIndex((item) => item.clipId === initialClipId),
   );
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [videoDetails, setVideoDetails] = useState<
     Record<string, { playbackUrl?: string; thumbnailUrl?: string; caption?: string }>
   >({});
+  const [failedUuids, setFailedUuids] = useState<Record<string, true>>({});
   const [isPlaying, setIsPlaying] = useState(true);
 
   const currentItem = list[currentIndex] ?? list[0];
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const fetchingRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const item = list[currentIndex];
-    if (!item) return;
+    if (!item) {
+      return;
+    }
 
     const uuid = item.videoUuid || item.clipId;
-    if (uuid && !videoDetails[uuid]) {
-      getVideoAction(uuid)
-        .then((result) => {
-          if (!result.ok) return;
-          setVideoDetails((prev) => ({
-            ...prev,
-            [uuid]: {
-              playbackUrl: result.data.rawPlaybackUrl,
-              thumbnailUrl: result.data.thumbnailUrl ?? undefined,
-              caption: result.data.caption ?? undefined,
-            },
-          }));
-        })
-        .catch(() => {});
+    const hasInlineUrl = resolveRemotePlaybackUrl(item.rawPlaybackUrl);
+    if (!uuid || hasInlineUrl || videoDetails[uuid] || failedUuids[uuid] || fetchingRef.current.has(uuid)) {
+      return;
     }
-  }, [currentIndex, list, videoDetails]);
+
+    fetchingRef.current.add(uuid);
+
+    getVideoAction(uuid)
+      .then((result) => {
+        if (!result.ok) {
+          setFailedUuids((prev) => ({ ...prev, [uuid]: true }));
+          return;
+        }
+
+        const playbackUrl = resolveRemotePlaybackUrl(result.data.rawPlaybackUrl);
+        if (!playbackUrl) {
+          setFailedUuids((prev) => ({ ...prev, [uuid]: true }));
+          return;
+        }
+
+        setVideoDetails((prev) => ({
+          ...prev,
+          [uuid]: {
+            playbackUrl,
+            thumbnailUrl: result.data.thumbnailUrl ?? undefined,
+            caption: result.data.caption ?? undefined,
+          },
+        }));
+      })
+      .catch(() => {
+        setFailedUuids((prev) => ({ ...prev, [uuid]: true }));
+      })
+      .finally(() => {
+        fetchingRef.current.delete(uuid);
+      });
+  }, [currentIndex, failedUuids, list, videoDetails]);
 
   const touchStartY = useRef<number | null>(null);
 
@@ -87,30 +113,52 @@ export function BaseVideoViewer({
 
     if (diff > 50 && currentIndex < list.length - 1) {
       setCurrentIndex((prev) => prev + 1);
+      setIsPlaying(true);
     } else if (diff < -50 && currentIndex > 0) {
       setCurrentIndex((prev) => prev - 1);
+      setIsPlaying(true);
     }
     touchStartY.current = null;
   };
 
   const activeUuid = currentItem.videoUuid || currentItem.clipId;
   const currentDetail = videoDetails[activeUuid];
-  const playbackUrl = currentItem.rawPlaybackUrl || currentDetail?.playbackUrl;
+  const playbackUrl =
+    resolveRemotePlaybackUrl(currentItem.rawPlaybackUrl) ??
+    resolveRemotePlaybackUrl(currentDetail?.playbackUrl);
   const coverSrc =
     currentItem.thumbnailUrl ||
     currentDetail?.thumbnailUrl ||
     "/plip/v13/runner-preview.png";
+  const fetchFailed = Boolean(activeUuid && failedUuids[activeUuid]);
+
+  useEffect(() => {
+    const node = videoRef.current;
+    if (!node || !playbackUrl || !isPlaying) {
+      node?.pause();
+      return;
+    }
+
+    safeVideoPlay(node);
+  }, [playbackUrl, isPlaying, currentIndex]);
 
   const togglePlay = useCallback(() => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play().catch(() => {});
-      }
-      setIsPlaying(!isPlaying);
+    const node = videoRef.current;
+    if (!node) {
+      return;
     }
+
+    if (isPlaying) {
+      node.pause();
+      setIsPlaying(false);
+      return;
+    }
+
+    safeVideoPlay(node);
+    setIsPlaying(true);
   }, [isPlaying]);
+
+  const viewerVideoProps = VIDEO_PLAYBACK_ATTRS.viewer;
 
   return (
     <section
@@ -124,11 +172,11 @@ export function BaseVideoViewer({
           ref={videoRef}
           src={playbackUrl}
           poster={coverSrc}
-          autoPlay
-          loop
-          playsInline
+          {...viewerVideoProps}
           className="absolute inset-0 h-full w-full object-cover"
           onClick={togglePlay}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
         />
       ) : (
         <Image
@@ -145,7 +193,6 @@ export function BaseVideoViewer({
       <div className="pointer-events-none absolute inset-0 bg-black/20" aria-hidden />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
 
-      {/* Header Overlay */}
       <ScreenHeader
         tone="overlay"
         titleAlign="center"
@@ -159,8 +206,7 @@ export function BaseVideoViewer({
         trailing={headerTrailing}
       />
 
-      {/* Play/Pause Indicator */}
-      {!isPlaying && (
+      {!isPlaying && playbackUrl ? (
         <div
           className="pointer-events-auto absolute inset-0 z-10 flex items-center justify-center bg-black/30"
           onClick={togglePlay}
@@ -169,9 +215,14 @@ export function BaseVideoViewer({
             ▶
           </div>
         </div>
-      )}
+      ) : null}
 
-      {/* Custom Overlay (Side reactions, Bottom info, Center clock & caption overlay etc.) */}
+      {!playbackUrl && fetchFailed ? (
+        <div className="pointer-events-none absolute inset-x-0 bottom-28 z-10 px-6 text-center text-xs font-medium text-white/70">
+          재생 URL을 불러오지 못했습니다.
+        </div>
+      ) : null}
+
       {typeof overlayChildren === "function"
         ? overlayChildren({ currentItem, currentDetail, currentIndex, totalCount: list.length })
         : overlayChildren}

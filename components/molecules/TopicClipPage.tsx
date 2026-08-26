@@ -7,6 +7,7 @@ type TopicClipPageProps = {
   captureHref: string;
   showCaptureSlot?: boolean;
   onSelectVideo?: (videoId: string) => void;
+  playbackEnabled?: boolean;
 };
 
 export function TopicClipPage({
@@ -14,6 +15,7 @@ export function TopicClipPage({
   captureHref,
   showCaptureSlot = false,
   onSelectVideo,
+  playbackEnabled = true,
 }: TopicClipPageProps) {
   if (videos.length === 0 && !showCaptureSlot) {
     return <div className="flex h-full min-h-0 w-full flex-col" />;
@@ -22,7 +24,12 @@ export function TopicClipPage({
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
       {videos.map((video) => (
-        <TopicVideoTile key={video.id} video={video} onSelect={onSelectVideo} />
+        <TopicVideoTile
+          key={video.id}
+          video={video}
+          onSelect={onSelectVideo}
+          playbackEnabled={playbackEnabled}
+        />
       ))}
       {showCaptureSlot ? <TopicEmptySlot captureHref={captureHref} /> : null}
     </div>

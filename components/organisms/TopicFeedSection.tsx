@@ -295,6 +295,7 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
                   showCaptureSlot={shouldShowTopicCaptureSlot(topic)}
                   topicTitle={topic.title}
                   agitName={resolvedAgit?.name}
+                  playbackEnabled={!isAtCoverSlide && topicIndex === effectiveIndex}
                 />
               ) : null}
             </div>

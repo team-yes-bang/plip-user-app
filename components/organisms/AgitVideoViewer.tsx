@@ -32,6 +32,7 @@ export function AgitVideoViewer({
   return (
     <>
       <BaseVideoViewer
+        key={initialClipId}
         initialClipId={initialClipId}
         videoList={videoList}
         onClose={onClose}

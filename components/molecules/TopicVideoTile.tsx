@@ -1,30 +1,43 @@
+"use client";
+
 import { CaptureClipOverlays } from "@/components/molecules/CaptureClipOverlays";
 import { UserProfileBadge } from "@/components/molecules/UserProfileBadge";
 import { VideoClipThumbnail } from "@/components/molecules/VideoClipThumbnail";
+import { useVideoPlayback } from "@/hooks/useVideoPlayback";
 import { parseUploadedAtToDate } from "@/lib/video/formatOverlayClock";
 import type { UiTopicVideo } from "@/types/topic/ui";
 
 type TopicVideoTileProps = {
   video: UiTopicVideo;
   onSelect?: (videoId: string) => void;
+  playbackEnabled?: boolean;
 };
 
-export function TopicVideoTile({ video, onSelect }: TopicVideoTileProps) {
+export function TopicVideoTile({
+  video,
+  onSelect,
+  playbackEnabled = true,
+}: TopicVideoTileProps) {
+  const { containerRef, videoRef, shouldRenderVideo, posterUrl, videoProps } = useVideoPlayback({
+    videoUuid: video.id,
+    rawPlaybackUrl: video.rawPlaybackUrl,
+    thumbnailUrl: video.thumbnailSrc,
+    mode: "feed",
+    enabled: playbackEnabled,
+    fetchIfMissing: true,
+  });
+
   const body = (
     <>
-      {video.rawPlaybackUrl ? (
+      {shouldRenderVideo ? (
         <video
-          src={video.rawPlaybackUrl}
-          poster={video.thumbnailSrc}
-          autoPlay
-          loop
-          muted
-          playsInline
+          ref={videoRef}
+          {...videoProps}
           className="absolute inset-0 size-full object-cover"
         />
       ) : (
         <VideoClipThumbnail
-          src={video.thumbnailSrc}
+          src={posterUrl}
           className="absolute inset-0 size-full object-cover"
         />
       )}
@@ -49,19 +62,21 @@ export function TopicVideoTile({ video, onSelect }: TopicVideoTileProps) {
   );
 
   const className =
-    "relative flex min-h-0 min-h-[40%] flex-1 overflow-hidden rounded-none border-0 bg-[var(--dl-color-bg-surface)] p-0 shadow-none";
+    "relative flex min-h-0 min-h-[40%] flex-1 overflow-hidden rounded-none bg-[var(--dl-color-bg-surface)]";
 
-  if (onSelect) {
-    return (
-      <button
-        type="button"
-        className={className}
-        onClick={() => onSelect(video.id)}
-      >
-        {body}
-      </button>
-    );
-  }
-
-  return <div className={className}>{body}</div>;
+  return (
+    <div ref={containerRef} className={className}>
+      {onSelect ? (
+        <button
+          type="button"
+          className="relative flex h-full min-h-0 w-full flex-1 overflow-hidden rounded-none border-0 bg-[var(--dl-color-bg-surface)] p-0 shadow-none"
+          onClick={() => onSelect(video.id)}
+        >
+          {body}
+        </button>
+      ) : (
+        body
+      )}
+    </div>
+  );
 }
