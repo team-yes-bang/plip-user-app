@@ -5,8 +5,16 @@ type PageProps = {
     agitUuid?: string;
     topicUuid?: string;
     themeId?: string;
+    destination?: string;
   }>;
 };
+
+function parseDestinationKind(value?: string): "diary" | "agit" | undefined {
+  if (value === "diary" || value === "agit") {
+    return value;
+  }
+  return undefined;
+}
 
 export default async function CaptureVideoPage({ searchParams }: PageProps) {
   const query = await searchParams;
@@ -15,6 +23,7 @@ export default async function CaptureVideoPage({ searchParams }: PageProps) {
       initialAgitUuid={query.agitUuid}
       initialTopicUuid={query.topicUuid}
       initialThemeId={query.themeId}
+      initialDestinationKind={parseDestinationKind(query.destination)}
     />
   );
 }

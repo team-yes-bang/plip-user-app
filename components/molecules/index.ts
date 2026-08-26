@@ -91,6 +91,7 @@ export { VideoBottomInfo } from "./VideoBottomInfo";
 export { VideoReactionBar } from "./VideoReactionBar";
 export { VideoThumbnailGrid } from "./VideoThumbnailGrid";
 export { CaptureClipOverlays } from "./CaptureClipOverlays";
+export { CaptureCreateForm } from "./CaptureCreateForm";
 export { ThumbnailUpload } from "./ThumbnailUpload";
 
 // --- 7. Chat, Social & Member Molecules ---

@@ -1,6 +1,7 @@
 "use client";
 
 import { DailyIcon } from "@/components/atoms";
+import { toast } from "@/components/ui/toast";
 import type { RecorderStatus } from "@/hooks/useVideoRecorder";
 import { formatRecordCountdown } from "@/lib/video/formatRecordTimer";
 import { unlockShutterAudio } from "@/lib/video/playShutterSound";
@@ -43,6 +44,22 @@ export function CaptureCameraStage({
     };
   }, []);
 
+  useEffect(() => {
+    if (!isPreparing) {
+      return;
+    }
+
+    const toastId = toast.add({
+      type: "loading",
+      title: "영상 변환 중…",
+      timeout: 0,
+    });
+
+    return () => {
+      toast.close(toastId);
+    };
+  }, [isPreparing]);
+
   return (
     <div className="absolute inset-0 z-10">
       <button
@@ -60,15 +77,6 @@ export function CaptureCameraStage({
           role="alert"
         >
           {error}
-        </p>
-      ) : null}
-
-      {isPreparing ? (
-        <p
-          className="absolute inset-x-4 top-20 rounded bg-black/70 px-3 py-2 text-center text-xs text-white"
-          role="status"
-        >
-          영상 변환 중…
         </p>
       ) : null}
 
