@@ -1,79 +1,93 @@
 "use client";
 
-import { Input, SubmitButton } from "@/components/atoms";
+import { DailyIcon, IconButton } from "@/components/atoms";
+import { ui } from "@/components/atoms/styles";
+import { AnimatedBottomSheet } from "@/components/molecules/AnimatedOverlays";
+import { CaptureCreateForm } from "@/components/molecules/CaptureCreateForm";
 import { useState } from "react";
 
 type CaptureInlineCreateFieldProps = {
   label: string;
+  title: string;
+  idPrefix: string;
+  nameLabel: string;
   placeholder: string;
+  hint: string;
   actionLabel: string;
-  maxLength?: number;
+  maxLength: number;
   busy?: boolean;
   error?: string | null;
+  noticeTitle?: string;
+  noticeBody?: string;
   onSubmit: (value: string) => void | Promise<void>;
 };
 
 export function CaptureInlineCreateField({
   label,
+  title,
+  idPrefix,
+  nameLabel,
   placeholder,
+  hint,
   actionLabel,
   maxLength,
   busy = false,
   error = null,
+  noticeTitle,
+  noticeBody,
   onSubmit,
 }: CaptureInlineCreateFieldProps) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("");
+  const titleId = `${idPrefix}-sheet-title`;
 
-  if (!open) {
-    return (
+  function handleClose() {
+    if (busy) {
+      return;
+    }
+    setOpen(false);
+  }
+
+  return (
+    <>
       <button
         type="button"
-        className="self-start border-0 bg-transparent p-0 text-[13px] font-medium text-[var(--dl-color-text-brand)]"
+        className={`${ui.link} cursor-pointer border-0 bg-transparent p-0 text-left`}
         onClick={() => setOpen(true)}
       >
         + {label}
       </button>
-    );
-  }
 
-  return (
-    <div className="flex flex-col gap-2 rounded-[12px] border border-[var(--dl-color-border-default)] bg-[var(--dl-color-bg-surface)] p-3">
-      <Input
-        value={value}
-        maxLength={maxLength}
-        placeholder={placeholder}
-        variant="daily"
-        disabled={busy}
-        onChange={(event) => setValue(event.target.value)}
-      />
-      <div className="flex flex-wrap gap-2">
-        <SubmitButton
-          type="button"
-          variant="brand"
-          className="!w-auto shrink-0 px-4"
-          disabled={busy || !value.trim()}
-          onClick={() => void onSubmit(value.trim())}
-        >
-          {busy ? "만드는 중…" : actionLabel}
-        </SubmitButton>
-        <button
-          type="button"
-          className="min-h-11 rounded-[var(--dl-radius-md)] px-3 text-[13px] font-medium text-[var(--dl-color-text-secondary)]"
-          disabled={busy}
-          onClick={() => {
-            setOpen(false);
-            setValue("");
-          }}
-        >
-          취소
-        </button>
-      </div>
-      {error ? (
-        <p className="m-0 text-[12px] text-[#d84545]" role="alert">
-          {error}
-        </p>
-      ) : null}
-    </div>
+      <AnimatedBottomSheet
+        open={open}
+        onClose={handleClose}
+        labelledBy={titleId}
+        aria-label={title}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h2
+            id={titleId}
+            className="m-0 text-lg font-bold font-[family-name:var(--font-title)] text-[var(--dl-color-text-primary)]"
+          >
+            {title}
+          </h2>
+          <IconButton variant="surface" label="닫기" disabled={busy} onClick={handleClose}>
+            <DailyIcon name="x" size={18} />
+          </IconButton>
+        </div>
+        <CaptureCreateForm
+          idPrefix={idPrefix}
+          nameLabel={nameLabel}
+          placeholder={placeholder}
+          hint={hint}
+          maxLength={maxLength}
+          submitLabel={actionLabel}
+          busy={busy}
+          error={error}
+          noticeTitle={noticeTitle}
+          noticeBody={noticeBody}
+          onSubmit={onSubmit}
+        />
+      </AnimatedBottomSheet>
+    </>
   );
 }

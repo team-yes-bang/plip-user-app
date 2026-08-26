@@ -1,12 +1,14 @@
 "use client";
 
 import { SubmitButton } from "@/components/atoms";
+import { CAPTURE_TOPIC_CREATE_NOTICE } from "@/components/molecules/CaptureCreateForm";
 import { CaptureDestinationEmptyPanel } from "@/components/molecules/CaptureDestinationEmptyPanel";
 import { CaptureInlineCreateField } from "@/components/molecules/CaptureInlineCreateField";
 import { DestinationToggle, type DestinationId } from "@/components/molecules/DestinationToggle";
 import { HeaderBackButton, PageContainer, ScreenHeader } from "@/components/molecules";
 import { TopicChip } from "@/components/molecules/TopicChip";
 import type { UiAgit } from "@/types/agit/ui";
+import { DIARY_THEME_NAME_MAX_LENGTH } from "@/types/diary/schema";
 import type { UiDiaryTheme } from "@/types/diary/ui";
 import type { UiTopicListItem } from "@/types/topic/ui";
 import { TOPIC_TITLE_MAX_LENGTH } from "@/types/topic/schema";
@@ -175,11 +177,17 @@ export function CaptureUploadSettingsStage({
                 <CaptureInlineCreateField
                   key={`topic-create-${topics.length}`}
                   label="새 토픽 만들기"
-                  placeholder="토픽 이름"
+                  title="토픽 만들기"
+                  idPrefix="capture-topic-create"
+                  nameLabel="토픽 이름"
+                  placeholder="점심 메뉴"
+                  hint={`최대 ${TOPIC_TITLE_MAX_LENGTH}자`}
                   actionLabel="토픽 만들기"
                   maxLength={TOPIC_TITLE_MAX_LENGTH}
                   busy={creatingInline}
                   error={inlineCreateError}
+                  noticeTitle={CAPTURE_TOPIC_CREATE_NOTICE.title}
+                  noticeBody={CAPTURE_TOPIC_CREATE_NOTICE.body}
                   onSubmit={onCreateTopic}
                 />
               </div>
@@ -209,8 +217,13 @@ export function CaptureUploadSettingsStage({
           <CaptureInlineCreateField
             key={`theme-create-${themes.length}`}
             label="새 테마 만들기"
-            placeholder="테마 이름"
+            title="테마 생성"
+            idPrefix="capture-theme-create"
+            nameLabel="테마 이름"
+            placeholder="예: 맛집 탐방, 운동 기록"
+            hint={`최대 ${DIARY_THEME_NAME_MAX_LENGTH}자`}
             actionLabel="테마 만들기"
+            maxLength={DIARY_THEME_NAME_MAX_LENGTH}
             busy={creatingInline}
             error={inlineCreateError}
             onSubmit={onCreateTheme}
@@ -219,12 +232,12 @@ export function CaptureUploadSettingsStage({
       )}
 
       {destinationError ? (
-        <p className="m-0 text-[12px] text-[#d84545]" role="alert">
+          <p className="m-0 text-[12px] font-semibold text-[var(--dl-color-text-danger)]" role="alert">
           {destinationError}
         </p>
       ) : null}
       {saveError ? (
-        <p className="m-0 text-[12px] text-[#d84545]" role="alert">
+        <p className="m-0 text-[12px] font-semibold text-[var(--dl-color-text-danger)]" role="alert">
           {saveError}
         </p>
       ) : null}
