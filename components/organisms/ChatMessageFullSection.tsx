@@ -1,7 +1,7 @@
 "use client";
 
+import { UserAvatar } from "@/components/atoms";
 import { PageContainer, ScreenHeader } from "@/components/molecules";
-import { UserAvatar } from "@/components/atoms/UserAvatar";
 import { ROUTES } from "@/config/routes";
 import { readCachedChatMessage } from "@/lib/chat/messageCache";
 import { useRouter } from "next/navigation";
@@ -35,13 +35,14 @@ export function ChatMessageFullSection({ agitId, messageId }: ChatMessageFullSec
   }
 
   return (
-    <PageContainer aria-label="메시지 전체보기">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       <ScreenHeader
         backHref={ROUTES.agit.chat(agitId)}
-        title="메시지"
+        title="전체보기"
       />
 
-      <article className="mt-6 flex flex-col gap-3">
+      <PageContainer aria-label="메시지 전체보기" className="flex-1">
+      <article className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
           {!message.isMine && message.profileImageSrc ? (
             <UserAvatar src={message.profileImageSrc} size={40} className="border-0 bg-[var(--dl-color-bg-surface)]" />
@@ -64,6 +65,7 @@ export function ChatMessageFullSection({ agitId, messageId }: ChatMessageFullSec
           {message.content}
         </p>
       </article>
-    </PageContainer>
+      </PageContainer>
+    </div>
   );
 }

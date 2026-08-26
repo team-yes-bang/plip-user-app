@@ -4,9 +4,10 @@ import { getChatHistoryAction, markChatReadAction } from "@/actions/chatActions"
 import {
   ChatComposer,
   ChatRoomMessage,
+  NotificationIconToggle,
+  PageContainer,
   ScreenHeader,
 } from "@/components/molecules";
-import { NotificationIconToggle } from "@/components/molecules/NotificationIconToggle";
 import { ROUTES } from "@/config/routes";
 import { useAgitChatSocket } from "@/hooks/useAgitChatSocket";
 import { createLocalTalkMessage } from "@/lib/chat/createLocalMessage";
@@ -37,7 +38,7 @@ function mergeMessages(existing: UiChatMessage[], incoming: UiChatMessage[]): Ui
   return mergeChatMessages(existing, incoming);
 }
 
-function scrollToBottom(container: HTMLDivElement | null) {
+function scrollToBottom(container: HTMLElement | null) {
   if (!container) {
     return;
   }
@@ -57,7 +58,7 @@ export function RoomChatSection({
   const [nextCursor, setNextCursor] = useState(initialHistory.nextCursor);
   const [hasNext, setHasNext] = useState(initialHistory.hasNext);
   const [loadingOlder, setLoadingOlder] = useState(false);
-  const listRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLElement>(null);
   const shouldStickToBottomRef = useRef(true);
   const messagesRef = useRef(messages);
   const nextCursorRef = useRef(nextCursor);
@@ -276,26 +277,23 @@ export function RoomChatSection({
   }, [agit.id, currentUserUuid, draft, enableRemoteChat, sendRemoteMessage]);
 
   return (
-    <section
-      className="flex h-full min-h-0 flex-col overflow-hidden p-[12px_24px_16px]"
-      aria-label="아지트 채팅"
-    >
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       <ScreenHeader
-        className="shrink-0"
         backHref={ROUTES.agit.detail(agit.id)}
         title={agit.name}
-        subtitle="채팅"
         trailing={
           <NotificationIconToggle checked={notify} label="채팅 알림" onChange={setNotify} />
         }
       />
 
-      <div
+      <PageContainer
         ref={listRef}
-        className="mt-[8px] min-h-0 flex-1 overflow-y-auto"
+        as="div"
+        gap="none"
+        aria-label="아지트 채팅"
+        className="flex-1 pb-[12px]"
         onScroll={handleScroll}
       >
-        <div className="flex flex-col">
         {loadingOlder ? (
           <p className="m-0 text-center text-xs text-[var(--dl-color-text-tertiary)]">
             이전 메시지 불러오는 중
@@ -325,12 +323,11 @@ export function RoomChatSection({
             </div>
           ))
         )}
-        </div>
-      </div>
+      </PageContainer>
 
-      <div className="shrink-0 pt-[8px]">
+      <PageContainer as="div" gap="none" className="flex-none overflow-hidden pb-[12px]">
         <ChatComposer value={draft} onChange={setDraft} onSubmit={handleSend} />
-      </div>
-    </section>
+      </PageContainer>
+    </div>
   );
 }
