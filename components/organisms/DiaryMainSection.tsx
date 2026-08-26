@@ -2,16 +2,17 @@
 
 import { PageContainer, ScreenHeader, DiaryDateScrollSection, ThemePreviewStrip } from "@/components/molecules";
 import { DiarySideMenu } from "@/components/organisms/DiarySideMenu";
-import type { UiDiaryDateEntry, UiDiaryTheme } from "@/types/diary/ui";
+import type { UiDiaryDateEntry, UiDiaryMenuNav, UiDiaryTheme } from "@/types/diary/ui";
 import { useState } from "react";
 
 type DiaryMainSectionProps = {
   entries: UiDiaryDateEntry[];
   themes: UiDiaryTheme[];
+  menuNav?: UiDiaryMenuNav | null;
   error?: string;
 };
 
-export function DiaryMainSection({ entries, themes, error }: DiaryMainSectionProps) {
+export function DiaryMainSection({ entries, themes, menuNav, error }: DiaryMainSectionProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -22,7 +23,7 @@ export function DiaryMainSection({ entries, themes, error }: DiaryMainSectionPro
         menuLabel="다이어리 메뉴"
       />
 
-      <DiarySideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <DiarySideMenu open={menuOpen} onClose={() => setMenuOpen(false)} menuNav={menuNav} />
 
       <PageContainer as="div" aria-label="다이어리 컨텐츠" className="flex-1">
         <ThemePreviewStrip themes={themes} />

@@ -4,6 +4,7 @@ import type {
   ApiDiaryDateResponse,
   ApiDiaryDateSection,
   ApiDiaryDateWindowResponse,
+  ApiDiaryHomeResponse,
   ApiDiaryHomeSection,
   ApiDiaryTheme,
   ApiDiaryTimelineSection,
@@ -15,6 +16,7 @@ import type {
   UiDiaryDateGroup,
   UiDiaryDateThemeGroup,
   UiDiaryDateWindow,
+  UiDiaryMenuNav,
   UiDiaryTheme,
   UiDiaryThemeDateGroup,
   UiDiaryThemeTimelinePage,
@@ -112,6 +114,31 @@ function normalizeHomeFeed(entries: UiDiaryDateEntry[]): UiDiaryDateEntry[] {
   return [todayEntry, ...otherEntries].sort((a, b) => b.date.localeCompare(a.date));
 }
 
+function resolveLatestDiaryVideoFromHome(response: ApiDiaryHomeResponse): UiDiaryMenuNav | null {
+  let latest: UiDiaryMenuNav & { createdAt: string } | null = null;
+
+  for (const section of response.sections) {
+    for (const video of section.videos) {
+      if (!latest || video.createdAt > latest.createdAt) {
+        latest = {
+          themeId: String(video.themeId),
+          date: section.date,
+          createdAt: video.createdAt,
+        };
+      }
+    }
+  }
+
+  if (!latest) {
+    return null;
+  }
+
+  return {
+    themeId: latest.themeId,
+    date: latest.date,
+  };
+}
+
 function mapHomeSection(section: ApiDiaryHomeSection): UiDiaryDateEntry {
   const thumbnailPaths = section.videos
     .map((video) => toOptionalThumbnail(video.thumbnailUrl))
@@ -204,12 +231,19 @@ export async function getDiaryHomeFeed(): Promise<UiDiaryDateEntry[]> {
 export async function getDiaryHomePageData(): Promise<{
   entries: UiDiaryDateEntry[];
   themes: UiDiaryTheme[];
+  menuNav: UiDiaryMenuNav | null;
 }> {
   const response = await diaryApi.getDiaryHome();
   return {
     entries: normalizeHomeFeed(response.sections.map(mapHomeSection)),
     themes: (response.themes ?? []).map(mapTheme),
+    menuNav: resolveLatestDiaryVideoFromHome(response),
   };
+}
+
+export async function getDiaryMenuNavTargets(): Promise<UiDiaryMenuNav | null> {
+  const response = await diaryApi.getDiaryHome();
+  return resolveLatestDiaryVideoFromHome(response);
 }
 
 export async function getDiaryCalendarDates(year: number, month: number): Promise<string[]> {

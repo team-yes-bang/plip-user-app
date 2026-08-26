@@ -1,6 +1,6 @@
 import { DiaryThemeDetailSection } from "@/components/organisms";
 import { DiaryTemplate } from "@/components/templates/DiaryTemplate";
-import type { UiDiaryThemeDateGroup } from "@/types/diary/ui";
+import type { UiDiaryMenuNav, UiDiaryThemeDateGroup } from "@/types/diary/ui";
 
 type DiaryThemeDetailTemplateProps = {
   themeId: string;
@@ -8,6 +8,7 @@ type DiaryThemeDetailTemplateProps = {
   dateGroups: UiDiaryThemeDateGroup[];
   initialNextCursor: string | null;
   initialHasMore: boolean;
+  menuNav?: UiDiaryMenuNav | null;
   error?: string;
 };
 
@@ -17,6 +18,7 @@ export function DiaryThemeDetailTemplate({
   dateGroups,
   initialNextCursor,
   initialHasMore,
+  menuNav,
   error,
 }: DiaryThemeDetailTemplateProps) {
   return (
@@ -27,6 +29,7 @@ export function DiaryThemeDetailTemplate({
         dateGroups={dateGroups}
         initialNextCursor={initialNextCursor}
         initialHasMore={initialHasMore}
+        menuNav={menuNav}
         error={error}
       />
     </DiaryTemplate>

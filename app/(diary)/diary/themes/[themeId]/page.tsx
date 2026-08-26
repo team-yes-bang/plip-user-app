@@ -1,7 +1,7 @@
 import { DiaryThemeDetailTemplate } from "@/components/templates";
 import { ApiError } from "@/lib/api/apiFetch";
-import { getDiaryThemeTimeline } from "@/services/diaryService";
-import type { UiDiaryThemeDateGroup } from "@/types/diary/ui";
+import { getDiaryMenuNavTargets, getDiaryThemeTimeline } from "@/services/diaryService";
+import type { UiDiaryMenuNav, UiDiaryThemeDateGroup } from "@/types/diary/ui";
 import { parseThemeId } from "@/types/diary/schema";
 import { notFound } from "next/navigation";
 
@@ -21,14 +21,19 @@ export default async function DiaryThemePage({ params }: DiaryThemePageProps) {
   let dateGroups: UiDiaryThemeDateGroup[] = [];
   let nextCursor: string | null = null;
   let hasMore = false;
+  let menuNav: UiDiaryMenuNav | null = null;
   let error: string | undefined;
 
   try {
-    const result = await getDiaryThemeTimeline(parsedId.data);
+    const [result, navTargets] = await Promise.all([
+      getDiaryThemeTimeline(parsedId.data),
+      getDiaryMenuNavTargets(),
+    ]);
     themeName = result.theme.name;
     dateGroups = result.dateGroups;
     nextCursor = result.nextCursor;
     hasMore = result.hasMore;
+    menuNav = navTargets;
   } catch (caught) {
     if (caught instanceof ApiError && caught.status === 404) {
       notFound();
@@ -44,6 +49,7 @@ export default async function DiaryThemePage({ params }: DiaryThemePageProps) {
       dateGroups={dateGroups}
       initialNextCursor={nextCursor}
       initialHasMore={hasMore}
+      menuNav={menuNav}
       error={error}
     />
   );

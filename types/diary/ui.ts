@@ -48,3 +48,8 @@ export type UiDiaryDateWindow = {
   focusDate: string;
   days: Record<string, UiDiaryDateThemeGroup[]>;
 };
+
+export type UiDiaryMenuNav = {
+  themeId: string;
+  date: string;
+};

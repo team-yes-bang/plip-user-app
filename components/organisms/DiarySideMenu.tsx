@@ -4,18 +4,25 @@ import { TextLink } from "@/components/atoms";
 import { MenuNavRow, MonthCalendarGrid, SideSheetHeader, buildMonthGridCells } from "@/components/molecules";
 import { AnimatedSideSheet } from "@/components/molecules/AnimatedOverlays";
 import { ROUTES } from "@/config/routes";
+import type { UiDiaryMenuNav } from "@/types/diary/ui";
 import { CalendarDays, ChevronLeft, ChevronRight, FolderKanban, LayoutGrid } from "lucide-react";
 import { useMemo } from "react";
 
 type DiarySideMenuProps = {
   open: boolean;
   onClose: () => void;
+  menuNav?: UiDiaryMenuNav | null;
 };
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"] as const;
 
-export function DiarySideMenu({ open, onClose }: DiarySideMenuProps) {
+export function DiarySideMenu({ open, onClose, menuNav }: DiarySideMenuProps) {
   const cells = useMemo(() => buildMonthGridCells(2026, 7, "adjacent"), []);
+
+  const themeByHref = menuNav?.themeId
+    ? ROUTES.diary.themes.detail(menuNav.themeId)
+    : ROUTES.diary.themes.root;
+  const dateByHref = menuNav?.date ? ROUTES.diary.date(menuNav.date) : ROUTES.diary.root;
 
   return (
     <AnimatedSideSheet
@@ -31,11 +38,11 @@ export function DiarySideMenu({ open, onClose }: DiarySideMenuProps) {
             <FolderKanban className="size-5 shrink-0 text-[var(--dl-color-text-brand)]" strokeWidth={2.2} />
             테마 관리
           </MenuNavRow>
-          <MenuNavRow href={ROUTES.diary.themes.root} onClick={onClose}>
+          <MenuNavRow href={themeByHref} onClick={onClose}>
             <LayoutGrid className="size-5 shrink-0 text-[var(--dl-color-text-brand)]" strokeWidth={2.2} />
             테마별
           </MenuNavRow>
-          <MenuNavRow href={ROUTES.diary.root} onClick={onClose}>
+          <MenuNavRow href={dateByHref} onClick={onClose}>
             <CalendarDays className="size-5 shrink-0 text-[var(--dl-color-text-brand)]" strokeWidth={2.2} />
             날짜별
           </MenuNavRow>

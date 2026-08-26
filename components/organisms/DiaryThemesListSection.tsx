@@ -4,15 +4,16 @@ import { DiaryThemeAddCard, DiaryThemeCard, PageContainer, ScreenHeader } from "
 import { DiarySideMenu } from "@/components/organisms/DiarySideMenu";
 import { ThemeBottomSheet } from "@/components/organisms/ThemeBottomSheet";
 import { ROUTES } from "@/config/routes";
-import type { UiDiaryTheme } from "@/types/diary/ui";
+import type { UiDiaryMenuNav, UiDiaryTheme } from "@/types/diary/ui";
 import { useState } from "react";
 
 type DiaryThemesListSectionProps = {
   themes: UiDiaryTheme[];
+  menuNav?: UiDiaryMenuNav | null;
   error?: string;
 };
 
-export function DiaryThemesListSection({ themes, error: fetchError }: DiaryThemesListSectionProps) {
+export function DiaryThemesListSection({ themes, menuNav, error: fetchError }: DiaryThemesListSectionProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingTheme, setEditingTheme] = useState<UiDiaryTheme | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -41,7 +42,7 @@ export function DiaryThemesListSection({ themes, error: fetchError }: DiaryTheme
         menuLabel="다이어리 메뉴"
       />
 
-      <DiarySideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <DiarySideMenu open={menuOpen} onClose={() => setMenuOpen(false)} menuNav={menuNav} />
 
       <PageContainer aria-label="테마 목록" className="flex-1">
         {fetchError ? (

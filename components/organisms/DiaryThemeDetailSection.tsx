@@ -5,7 +5,7 @@ import { DiaryThemeClipGroup, PageContainer, ScreenHeader } from "@/components/m
 import { DiarySideMenu } from "@/components/organisms/DiarySideMenu";
 import { ROUTES } from "@/config/routes";
 import { mergeThemeDateGroups } from "@/lib/diary/mergeThemeDateGroups";
-import type { UiDiaryThemeDateGroup } from "@/types/diary/ui";
+import type { UiDiaryMenuNav, UiDiaryThemeDateGroup } from "@/types/diary/ui";
 import { useState } from "react";
 
 type DiaryThemeDetailSectionProps = {
@@ -14,6 +14,7 @@ type DiaryThemeDetailSectionProps = {
   dateGroups: UiDiaryThemeDateGroup[];
   initialNextCursor: string | null;
   initialHasMore: boolean;
+  menuNav?: UiDiaryMenuNav | null;
   error?: string;
 };
 
@@ -23,6 +24,7 @@ export function DiaryThemeDetailSection({
   dateGroups: initialDateGroups,
   initialNextCursor,
   initialHasMore,
+  menuNav,
   error: initialError,
 }: DiaryThemeDetailSectionProps) {
   const [dateGroups, setDateGroups] = useState(initialDateGroups);
@@ -61,7 +63,7 @@ export function DiaryThemeDetailSection({
         menuLabel="다이어리 메뉴"
       />
 
-      <DiarySideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <DiarySideMenu open={menuOpen} onClose={() => setMenuOpen(false)} menuNav={menuNav} />
 
       <PageContainer aria-label={`${themeName} 테마 상세`} className="flex-1">
         {error ? <p className="m-0 text-center text-sm text-red-600">{error}</p> : null}
