@@ -1,6 +1,7 @@
 export const AUTH_ERROR_CODES = {
   PENDING_RESTORE: "AUTH_010",
   SOCIAL_SIGNUP_REQUIRED: "SOCIAL_003",
+  REFRESH_TOKEN_INVALID: "AUTH_003",
 } as const;
 
 export function getApiErrorCode(body: unknown): string | undefined {

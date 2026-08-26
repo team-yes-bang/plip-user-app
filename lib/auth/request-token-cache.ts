@@ -5,7 +5,10 @@ import * as authService from "@/services/authService";
 export type RequestAuthTokens = {
   accessToken: string;
   refreshToken: string;
+  accessTokenExpiresAt: number;
 };
+
+const RETRY_REFRESH_TOKEN_KEY = "x-retry-refresh-token";
 
 const retryAuthHeaderStore = new AsyncLocalStorage<Record<string, string>>();
 
@@ -32,8 +35,14 @@ export const reissueTokensOncePerRequest = cache(async (): Promise<RequestAuthTo
   return {
     accessToken: refreshed.accessToken,
     refreshToken: refreshed.refreshToken,
+    accessTokenExpiresAt: refreshed.accessTokenExpiresAt,
   };
 });
+
+export function getRetryRefreshToken(): string | undefined {
+  const token = retryAuthHeaderStore.getStore()?.[RETRY_REFRESH_TOKEN_KEY];
+  return typeof token === "string" && token.length > 0 ? token : undefined;
+}
 
 export function applyRetryAuthHeaders(tokens: RequestAuthTokens): void {
   const store = retryAuthHeaderStore.getStore();
@@ -41,4 +50,5 @@ export function applyRetryAuthHeaders(tokens: RequestAuthTokens): void {
     return;
   }
   store.Authorization = `Bearer ${tokens.accessToken}`;
+  store[RETRY_REFRESH_TOKEN_KEY] = tokens.refreshToken;
 }
