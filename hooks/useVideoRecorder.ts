@@ -311,6 +311,26 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     await prepareCamera();
   }, [clearTimers, prepareCamera, resetPreview, stopMirror, stopStream]);
 
+  const loadFromFile = useCallback(
+    (file: File) => {
+      clearTimers();
+      stopMirror();
+      recorderRef.current = null;
+      stopStream();
+      resetPreview();
+
+      const nextPreviewUrl = URL.createObjectURL(file);
+      setError(null);
+      setBlob(file);
+      setPreviewUrl(nextPreviewUrl);
+      setMimeType(file.type || "video/mp4");
+      setPixelsMirrored(false);
+      setCapturedAt(new Date());
+      setStatus("preview");
+    },
+    [clearTimers, resetPreview, stopMirror, stopStream],
+  );
+
   const flipCamera = useCallback(async () => {
     if (status === "recording") {
       return;
@@ -383,6 +403,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     startRecording,
     stopRecording,
     discardRecording,
+    loadFromFile,
     flipCamera,
   };
 }

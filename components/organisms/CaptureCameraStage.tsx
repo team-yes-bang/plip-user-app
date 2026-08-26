@@ -4,7 +4,7 @@ import { DailyIcon } from "@/components/atoms";
 import type { RecorderStatus } from "@/hooks/useVideoRecorder";
 import { formatRecordCountdown } from "@/lib/video/formatRecordTimer";
 import { unlockShutterAudio } from "@/lib/video/playShutterSound";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 type CaptureCameraStageProps = {
   status: RecorderStatus;
@@ -14,6 +14,7 @@ type CaptureCameraStageProps = {
   onBack: () => void;
   onStartRecording: () => void;
   onFlipCamera: () => void;
+  onFileSelected?: (file: File) => void;
 };
 
 export function CaptureCameraStage({
@@ -24,7 +25,9 @@ export function CaptureCameraStage({
   onBack,
   onStartRecording,
   onFlipCamera,
+  onFileSelected,
 }: CaptureCameraStageProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const isRecording = status === "recording";
   const isBusy = status === "requesting" || isRecording;
 
@@ -66,7 +69,34 @@ export function CaptureCameraStage({
       ) : null}
 
       <div className="absolute inset-x-[23px] bottom-[36px] z-10 grid grid-cols-3 items-end">
-        <span className="grid h-11 w-11" aria-hidden />
+        {process.env.NODE_ENV === "development" ? (
+          <div className="justify-self-start">
+            <button
+              type="button"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-[var(--dl-radius-md)] bg-[var(--dl-color-bg-surface)]"
+              aria-label="파일로 테스트"
+              disabled={isBusy}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <DailyIcon name="upload" size={20} />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/mp4,video/quicktime,.mp4,.mov"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) {
+                  onFileSelected?.(file);
+                }
+              }}
+            />
+          </div>
+        ) : (
+          <span className="grid h-11 w-11" aria-hidden />
+        )}
         <div className="flex flex-col items-center">
           {isRecording ? (
             <p className="mb-3 text-[34px] font-bold leading-none text-white" aria-live="polite">

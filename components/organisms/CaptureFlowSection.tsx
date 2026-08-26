@@ -67,6 +67,7 @@ export function CaptureFlowSection({
     flipCamera,
     retake,
     uploadCapture,
+    loadFromFile,
   } = useVideoCaptureFlow();
   const [previewStep, setPreviewStep] = useState<PreviewStep>("confirm");
   const [caption, setCaption] = useState("");
@@ -459,6 +460,7 @@ export function CaptureFlowSection({
           onBack={() => router.back()}
           onStartRecording={handleStartRecording}
           onFlipCamera={flipCamera}
+          onFileSelected={loadFromFile}
         />
       ) : null}
     </section>
