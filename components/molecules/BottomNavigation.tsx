@@ -60,6 +60,10 @@ export function BottomNavigation({
   active = "diary",
 }: BottomNavigationProps) {
   const [hoveredId, setHoveredId] = useState<BottomNavTab | null>(null);
+  const captureHref =
+    active === "diary"
+      ? ROUTES.capture.videoWith({ destination: "diary" })
+      : ROUTES.capture.video;
 
   return (
     <LayoutGroup id="app-bottom-nav">
@@ -108,7 +112,7 @@ export function BottomNavigation({
                   )}
 
                   <TextLink
-                    href={item.href}
+                    href={captureHref}
                     aria-label={item.label}
                     className="relative z-10 flex items-center justify-center !no-underline overflow-visible group"
                   >

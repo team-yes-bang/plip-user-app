@@ -81,11 +81,13 @@ export const ROUTES = {
       agitUuid?: string;
       topicUuid?: string;
       themeId?: string;
+      destination?: "diary" | "agit";
     }) => {
       const params = new URLSearchParams();
       if (query?.agitUuid) params.set("agitUuid", query.agitUuid);
       if (query?.topicUuid) params.set("topicUuid", query.topicUuid);
       if (query?.themeId) params.set("themeId", query.themeId);
+      if (query?.destination) params.set("destination", query.destination);
       const search = params.toString();
       return search ? (`/video?${search}` as const) : ("/video" as const);
     },

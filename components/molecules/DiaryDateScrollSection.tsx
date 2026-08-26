@@ -18,7 +18,9 @@ export function DiaryDateScrollSection({ entry, className }: DiaryDateScrollSect
   const dateLabel = formatDiaryDate(entry.date);
   const weekday = formatDiaryWeekday(entry.date);
   const isEmpty = entry.isEmpty || !entry.hasClips;
-  const href = isEmpty ? ROUTES.capture.video : ROUTES.diary.date(entry.date);
+  const href = isEmpty
+    ? ROUTES.capture.videoWith({ destination: "diary" })
+    : ROUTES.diary.date(entry.date);
 
   return (
     <article

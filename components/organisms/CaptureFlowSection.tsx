@@ -33,6 +33,7 @@ type CaptureFlowSectionProps = {
   initialAgitUuid?: string;
   initialTopicUuid?: string;
   initialThemeId?: string;
+  initialDestinationKind?: DestinationId;
 };
 
 type PreviewStep = "confirm" | "settings";
@@ -56,10 +57,25 @@ function pickTopicId(topics: UiTopicListItem[], preferred: string): string {
   return selectable[0]?.id ?? "";
 }
 
+function resolveInitialDestinationKind(
+  initialDestinationKind: DestinationId | undefined,
+  initialAgitUuid: string,
+  initialThemeId: string,
+): DestinationId {
+  if (initialAgitUuid) {
+    return "agit";
+  }
+  if (initialDestinationKind === "diary" || initialThemeId) {
+    return "diary";
+  }
+  return "agit";
+}
+
 export function CaptureFlowSection({
   initialAgitUuid = "",
   initialTopicUuid = "",
   initialThemeId = "",
+  initialDestinationKind,
 }: CaptureFlowSectionProps) {
   const router = useRouter();
   const {
@@ -81,7 +97,7 @@ export function CaptureFlowSection({
   const [previewStep, setPreviewStep] = useState<PreviewStep>("confirm");
   const [caption, setCaption] = useState("");
   const [destinationKind, setDestinationKind] = useState<DestinationId>(
-    initialThemeId && !initialAgitUuid ? "diary" : "agit",
+    resolveInitialDestinationKind(initialDestinationKind, initialAgitUuid, initialThemeId),
   );
   const [agits, setAgits] = useState<UiAgit[]>([]);
   const [topics, setTopics] = useState<UiTopicListItem[]>([]);
