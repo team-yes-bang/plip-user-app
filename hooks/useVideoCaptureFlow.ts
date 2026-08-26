@@ -32,6 +32,8 @@ function mapRecorderStatusToFlowPhase(
       return "ready";
     case "recording":
       return "recording";
+    case "preparing":
+      return "initializing";
     case "preview":
       return "preview";
     case "error":

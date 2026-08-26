@@ -38,6 +38,7 @@ export function VideoCaptureSection() {
   const canUploadBlob = blob !== null && isWithinUploadLimit(blob.size);
   const blobOverLimit = blob !== null && blob.size > MAX_UPLOAD_BYTES;
   const mirrorFrontCamera = shouldMirrorVideo(facingMode, status);
+  const recorderBusy = uploading || status === "recording" || status === "preparing";
 
   return (
     <section className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-6 font-mono text-sm">
@@ -87,7 +88,7 @@ export function VideoCaptureSection() {
         <button
           type="button"
           className="rounded border px-3 py-2 disabled:opacity-50"
-          disabled={uploading || status === "recording"}
+          disabled={recorderBusy}
           onClick={() => void prepareCamera()}
         >
           카메라 재시작
@@ -95,7 +96,7 @@ export function VideoCaptureSection() {
         <button
           type="button"
           className="rounded border px-3 py-2 disabled:opacity-50"
-          disabled={uploading || status === "recording"}
+          disabled={recorderBusy}
           onClick={() => void flipCamera()}
         >
           카메라 전환
@@ -106,6 +107,7 @@ export function VideoCaptureSection() {
           disabled={
             uploading ||
             status === "recording" ||
+            status === "preparing" ||
             status === "requesting" ||
             flowPhase === "complete"
           }
@@ -132,7 +134,7 @@ export function VideoCaptureSection() {
         <button
           type="button"
           className="rounded border px-3 py-2 disabled:opacity-50"
-          disabled={uploading}
+          disabled={recorderBusy}
           onClick={() => fileInputRef.current?.click()}
         >
           mp4/mov로 테스트
@@ -140,7 +142,7 @@ export function VideoCaptureSection() {
         <button
           type="button"
           className="rounded border px-3 py-2 disabled:opacity-50"
-          disabled={uploading}
+          disabled={recorderBusy}
           onClick={() => void uploadOversizeTest()}
         >
           8MB 초과 테스트
@@ -161,7 +163,7 @@ export function VideoCaptureSection() {
         <button
           type="button"
           className="rounded border px-3 py-2 disabled:opacity-50"
-          disabled={uploading}
+          disabled={recorderBusy}
           onClick={() => void retake()}
         >
           다시 촬영
@@ -193,12 +195,6 @@ export function VideoCaptureSection() {
           </p>
           <p>download poll attempts: {uploadResult.downloadPollAttempts}</p>
           <p>playback: {uploadResult.playback.kind}</p>
-          {mimeType && !mimeType.toLowerCase().includes("mp4") ? (
-            <p className="text-green-800">
-              녹화 MIME은 {mimeType}입니다. raw 버킷 파일이 webm인 것은 정상입니다. mp4
-              변환은 Day 2 FFmpeg에서 합니다.
-            </p>
-          ) : null}
           {uploadResult.playback.note ? (
             <p className="text-green-800">{uploadResult.playback.note}</p>
           ) : null}

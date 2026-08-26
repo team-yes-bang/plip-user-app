@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  DEFAULT_UPLOAD_CONTENT_TYPE,
   MAX_RECORD_MS,
   RECORD_STOP_MS,
   RECORD_TIMESLICE_MS,
@@ -11,6 +12,7 @@ import {
   waitForVideoFrame,
   type CaptureCanvas,
 } from "@/lib/video/captureCanvas";
+import { needsPlaybackReencode, preparePlaybackMp4 } from "@/lib/video/preparePlaybackMp4";
 import { pickRecorderMimeType, requestCameraStream } from "@/lib/video/recorderMime";
 import { isIgnorablePlayError, safeVideoPlay } from "@/lib/video/safeVideoPlay";
 import { useCallback, useEffect, useRef, useState, type RefCallback } from "react";
@@ -20,6 +22,7 @@ export type RecorderStatus =
   | "requesting"
   | "ready"
   | "recording"
+  | "preparing"
   | "preview"
   | "error";
 
@@ -81,6 +84,8 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
   const startedAtRef = useRef<number>(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const autoPrepareStartedRef = useRef(false);
+  const prepareGenerationRef = useRef(0);
+  const prepareAbortRef = useRef<AbortController | null>(null);
 
   const syncVideoElement = useCallback(
     (node: HTMLVideoElement | null) => {
@@ -134,6 +139,12 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     captureRef.current = null;
   }, []);
 
+  const abortPrepare = useCallback(() => {
+    prepareGenerationRef.current += 1;
+    prepareAbortRef.current?.abort();
+    prepareAbortRef.current = null;
+  }, []);
+
   const resetPreview = useCallback(() => {
     setPreviewUrl((current) => {
       if (current) {
@@ -145,6 +156,20 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     setElapsedMs(0);
     setCapturedAt(null);
   }, []);
+
+  const applyPreviewBlob = useCallback(
+    (nextBlob: Blob, nextMimeType: string) => {
+      const nextPreviewUrl = URL.createObjectURL(nextBlob);
+      setError(null);
+      setBlob(nextBlob);
+      setPreviewUrl(nextPreviewUrl);
+      setMimeType(nextMimeType);
+      setCapturedAt(new Date());
+      setStatus("preview");
+      onRecordingComplete?.();
+    },
+    [onRecordingComplete],
+  );
 
   const prepareCamera = useCallback(async () => {
     if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
@@ -174,6 +199,40 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
       setStatus("error");
     }
   }, [facingMode, resetPreview, stopStream]);
+
+  const restoreLiveCamera = useCallback(async () => {
+    try {
+      stopStream();
+      const stream = await requestCameraStream(facingMode);
+      streamRef.current = stream;
+      setLiveStream(stream);
+    } catch {
+      /* keep conversion error */
+    }
+  }, [facingMode, stopStream]);
+
+  const convertThenPreview = useCallback(
+    async (source: Blob, generation: number, signal: AbortSignal) => {
+      try {
+        const prepared = await preparePlaybackMp4(source, signal);
+        if (generation !== prepareGenerationRef.current) {
+          return;
+        }
+        applyPreviewBlob(prepared, DEFAULT_UPLOAD_CONTENT_TYPE);
+      } catch (cause) {
+        if (generation !== prepareGenerationRef.current) {
+          return;
+        }
+        if (cause instanceof DOMException && cause.name === "AbortError") {
+          return;
+        }
+        setError(cause instanceof Error ? cause.message : "이 파일은 변환할 수 없습니다.");
+        setStatus("error");
+        await restoreLiveCamera();
+      }
+    },
+    [applyPreviewBlob, restoreLiveCamera],
+  );
 
   const stopRecording = useCallback(() => {
     clearTimers();
@@ -215,6 +274,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     resetPreview();
     chunksRef.current = [];
     stopCapture();
+    abortPrepare();
 
     await waitForVideoFrame(previewNode);
     const capture = startCaptureCanvas(previewNode);
@@ -256,15 +316,19 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
         return;
       }
 
-      const nextPreviewUrl = URL.createObjectURL(recordedBlob);
-
       stopStream();
-      setError(null);
-      setBlob(recordedBlob);
-      setPreviewUrl(nextPreviewUrl);
-      setCapturedAt(new Date());
-      setStatus("preview");
-      onRecordingComplete?.();
+
+      if (!needsPlaybackReencode(recordedBlob)) {
+        applyPreviewBlob(recordedBlob, selectedMimeType);
+        return;
+      }
+
+      abortPrepare();
+      const generation = prepareGenerationRef.current;
+      const controller = new AbortController();
+      prepareAbortRef.current = controller;
+      setStatus("preparing");
+      void convertThenPreview(recordedBlob, generation, controller.signal);
     };
 
     recorder.onerror = () => {
@@ -293,16 +357,19 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
   }, [
     clearTimers,
     maxDurationMs,
-    onRecordingComplete,
     prepareCamera,
     recordStopMs,
     resetPreview,
     stopRecording,
     stopStream,
     stopCapture,
+    convertThenPreview,
+    applyPreviewBlob,
+    abortPrepare,
   ]);
 
   const discardRecording = useCallback(async () => {
+    abortPrepare();
     clearTimers();
     stopCapture();
     recorderRef.current = null;
@@ -311,29 +378,29 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     setError(null);
     setStatus("idle");
     await prepareCamera();
-  }, [clearTimers, prepareCamera, resetPreview, stopCapture, stopStream]);
+  }, [abortPrepare, clearTimers, prepareCamera, resetPreview, stopCapture, stopStream]);
 
   const loadFromFile = useCallback(
     (file: File) => {
+      abortPrepare();
       clearTimers();
       stopCapture();
       recorderRef.current = null;
       stopStream();
       resetPreview();
-
-      const nextPreviewUrl = URL.createObjectURL(file);
       setError(null);
-      setBlob(file);
-      setPreviewUrl(nextPreviewUrl);
-      setMimeType(file.type || "video/mp4");
-      setCapturedAt(new Date());
-      setStatus("preview");
+
+      const generation = prepareGenerationRef.current;
+      const controller = new AbortController();
+      prepareAbortRef.current = controller;
+      setStatus("preparing");
+      void convertThenPreview(file, generation, controller.signal);
     },
-    [clearTimers, resetPreview, stopCapture, stopStream],
+    [abortPrepare, clearTimers, convertThenPreview, resetPreview, stopCapture, stopStream],
   );
 
   const flipCamera = useCallback(async () => {
-    if (status === "recording") {
+    if (status === "recording" || status === "preparing") {
       return;
     }
 
@@ -378,6 +445,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     return () => {
       clearTimers();
       stopCapture();
+      abortPrepare();
       stopStream();
       setPreviewUrl((current) => {
         if (current) {
@@ -386,7 +454,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
         return null;
       });
     };
-  }, [clearTimers, stopCapture, stopStream]);
+  }, [abortPrepare, clearTimers, stopCapture, stopStream]);
 
   return {
     videoRef: bindVideoElement,

@@ -29,7 +29,8 @@ export function CaptureCameraStage({
 }: CaptureCameraStageProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isRecording = status === "recording";
-  const isBusy = status === "requesting" || isRecording;
+  const isPreparing = status === "preparing";
+  const isBusy = status === "requesting" || isRecording || isPreparing;
 
   useEffect(() => {
     unlockShutterAudio();
@@ -62,7 +63,16 @@ export function CaptureCameraStage({
         </p>
       ) : null}
 
-      {!isRecording ? (
+      {isPreparing ? (
+        <p
+          className="absolute inset-x-4 top-20 rounded bg-black/70 px-3 py-2 text-center text-xs text-white"
+          role="status"
+        >
+          영상 변환 중…
+        </p>
+      ) : null}
+
+      {!isRecording && !isPreparing ? (
         <p className="absolute inset-x-6 bottom-[168px] m-0 text-center text-xs text-white">
           화면 중앙에 오늘의 장면을 맞춰주세요
         </p>
@@ -106,8 +116,8 @@ export function CaptureCameraStage({
           <button
             type="button"
             className="relative grid h-[84px] w-[84px] place-items-center border-0 bg-transparent p-0"
-            aria-label={isRecording ? "촬영 중" : "촬영"}
-            disabled={status === "requesting"}
+            aria-label={isRecording ? "촬영 중" : isPreparing ? "영상 변환 중" : "촬영"}
+            disabled={status === "requesting" || isPreparing}
             onClick={() => {
               if (!isRecording) {
                 onStartRecording();
