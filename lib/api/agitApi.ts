@@ -107,7 +107,7 @@ export async function getAgitLanding(code: string): Promise<ApiAgitLanding> {
   return apiFetch<ApiAgitLanding>(API_ENDPOINTS.agit.landing(code), {
     method: "GET",
     baseUrl: getApiUrl(),
-    auth: false,
+    headers: await getActorUserHeaders(),
   });
 }
 
