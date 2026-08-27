@@ -215,7 +215,7 @@ export function SignUpForm() {
         return;
       }
 
-      router.push(ROUTES.home);
+      router.push(ROUTES.intro);
       router.refresh();
       return;
     }
@@ -286,7 +286,7 @@ export function SignUpForm() {
           onOpenChange={setRestoreOpen}
           payload={restorePayload}
           onCompleted={() => {
-            router.push(ROUTES.home);
+            router.push(ROUTES.intro);
             router.refresh();
           }}
         />

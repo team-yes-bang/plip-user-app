@@ -12,7 +12,7 @@ export function FeedTopBar({ activeTab = "myAgits" }: FeedTopBarProps) {
   return (
     <header className={`${leftoverStyles.plipTtFeedTop} pointer-events-none absolute inset-x-0 top-0 z-[4] grid grid-cols-[auto_1fr_auto] items-center gap-2 px-[0.85rem] pt-[0.7rem]`}>
       <TextLink
-        href={ROUTES.home}
+        href={ROUTES.intro}
         aria-label="홈"
         className="pointer-events-auto relative z-[3] w-[5.4rem] !no-underline"
       >

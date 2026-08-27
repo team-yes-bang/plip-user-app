@@ -209,7 +209,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const isLoggedIn = session?.isLoggedIn === true;
 
       if (matchesPrefix(pathname, GUEST_ONLY_PREFIXES) && isLoggedIn) {
-        return Response.redirect(new URL(ROUTES.home, request.nextUrl));
+        return Response.redirect(new URL(ROUTES.intro, request.nextUrl));
       }
 
       // 방 가입 랜딩 페이지(/agit/join/[code])는 비로그인 상태에서도 접근 허용

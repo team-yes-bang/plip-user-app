@@ -60,7 +60,7 @@ export function ProfileSetupForm() {
       return;
     }
 
-    router.push(ROUTES.home);
+    router.push(ROUTES.intro);
     router.refresh();
   }
 

@@ -93,7 +93,7 @@ export function MainLandingSection({
       <header className="flex items-center justify-between gap-3">
         {isLoggedIn ? (
           <TextLink
-            href={ROUTES.home}
+            href={ROUTES.intro}
             aria-label="홈"
             className="m-0 text-lg font-bold text-[var(--dl-color-text-primary)] !no-underline"
           >
