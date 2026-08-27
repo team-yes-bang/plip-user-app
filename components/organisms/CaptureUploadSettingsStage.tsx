@@ -27,6 +27,7 @@ type CaptureUploadSettingsStageProps = {
   creatingInline: boolean;
   uploading: boolean;
   saveError: string | null;
+  thumbnailPreviewUrl: string | null;
   pendingPublishVideoUuid: string | null;
   onDestinationKindChange: (value: DestinationId) => void;
   onAgitChange: (agitUuid: string) => void;
@@ -54,6 +55,7 @@ export function CaptureUploadSettingsStage({
   creatingInline,
   uploading,
   saveError,
+  thumbnailPreviewUrl,
   pendingPublishVideoUuid,
   onDestinationKindChange,
   onAgitChange,
@@ -69,11 +71,12 @@ export function CaptureUploadSettingsStage({
   const selectedAgit = agits.find((agit) => agit.id === selectedAgitUuid);
   const selectedTopic = topics.find((topic) => topic.id === selectedTopicUuid);
   const selectedTheme = themes.find((theme) => theme.id === selectedThemeId);
-  const canSave =
+  const canSaveDestination =
     destinationKind === "diary"
       ? Boolean(selectedThemeId && selectedTheme?.themeUuid)
       : Boolean(selectedAgitUuid && selectedTopicUuid);
   const isPublishRetry = Boolean(pendingPublishVideoUuid);
+  const canSave = canSaveDestination && (isPublishRetry || Boolean(thumbnailPreviewUrl));
 
   return (
     <div
@@ -94,6 +97,21 @@ export function CaptureUploadSettingsStage({
           </p>
         </div>
       ) : null}
+
+      {thumbnailPreviewUrl ? (
+        <div className="flex items-center gap-3">
+          <img
+            src={thumbnailPreviewUrl}
+            alt="등록한 썸네일"
+            className="h-[72px] w-[40px] rounded-[8px] object-cover"
+          />
+          <p className="m-0 text-[13px] text-[var(--dl-color-text-secondary)]">썸네일이 함께 업로드됩니다.</p>
+        </div>
+      ) : isPublishRetry ? null : (
+        <p className="m-0 text-[12px] font-semibold text-[var(--dl-color-text-danger)]" role="alert">
+          썸네일을 등록해 주세요. 이전 화면에서 이미지를 고르거나 장면을 담을 수 있어요.
+        </p>
+      )}
 
       <p className="m-0 text-[15px] font-semibold">기록 목적지</p>
       <DestinationToggle value={destinationKind} onChange={onDestinationKindChange} />

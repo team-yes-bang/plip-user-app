@@ -14,6 +14,7 @@ const USER_API_ERROR_MESSAGES: Record<string, string> = {
   TERMS_002: "변경할 약관 항목이 없습니다.",
   NOTIFY_001: "알림 설정을 찾을 수 없습니다.",
   NOTIFY_002: "변경할 알림 설정 항목이 없습니다.",
+  NOTIFY_003: "알림을 찾을 수 없습니다.",
 };
 
 function mapUserApiErrorMessage(error: ApiError): string {

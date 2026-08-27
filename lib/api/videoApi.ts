@@ -12,6 +12,7 @@ import type {
   VideoDownloadUrlProcessingResponse,
   VideoDownloadUrlResponse,
   VideoDownloadUrlResult,
+  VideoThumbnailUploadUrlResponse,
   VideoUploadUrlResponse,
 } from "@/types/video/api";
 
@@ -53,6 +54,23 @@ export async function postUploadUrl(
       contentLengthBytes: String(contentLengthBytes),
     },
   });
+}
+
+export async function postThumbnailUploadUrl(
+  videoUuid: string,
+  contentType: string | undefined,
+  contentLengthBytes: number,
+): Promise<VideoThumbnailUploadUrlResponse> {
+  return videoFetch<VideoThumbnailUploadUrlResponse>(
+    API_ENDPOINTS.video.thumbnailUploadUrl(videoUuid),
+    {
+      method: "POST",
+      searchParams: {
+        contentType,
+        contentLengthBytes: String(contentLengthBytes),
+      },
+    },
+  );
 }
 
 export async function postComplete(

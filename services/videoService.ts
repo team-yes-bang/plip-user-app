@@ -6,12 +6,14 @@ import type {
   VideoDestinationResponse,
   VideoDetailResponse,
   VideoDownloadUrlResult,
+  VideoThumbnailUploadUrlResponse,
   VideoUploadUrlResponse,
 } from "@/types/video/api";
 import type {
   VideoCompleteUi,
   VideoDetailUi,
   VideoDownloadUrlUi,
+  VideoThumbnailUploadUrlUi,
   VideoUploadUrlUi,
 } from "@/types/video/ui";
 
@@ -19,6 +21,15 @@ function mapUploadUrl(api: VideoUploadUrlResponse): VideoUploadUrlUi {
   return {
     videoUuid: api.videoUuid,
     rawS3Key: api.rawS3Key,
+    uploadUrl: api.uploadUrl,
+    expiresAt: new Date(api.expiresAt),
+  };
+}
+
+function mapThumbnailUploadUrl(api: VideoThumbnailUploadUrlResponse): VideoThumbnailUploadUrlUi {
+  return {
+    videoUuid: api.videoUuid,
+    thumbnailS3Key: api.thumbnailS3Key,
     uploadUrl: api.uploadUrl,
     expiresAt: new Date(api.expiresAt),
   };
@@ -71,11 +82,28 @@ export async function issueUploadUrl(
   return mapUploadUrl(response);
 }
 
+export async function issueThumbnailUploadUrl(
+  videoUuid: string,
+  contentType: string | undefined,
+  contentLengthBytes: number,
+): Promise<VideoThumbnailUploadUrlUi> {
+  const response = await videoApi.postThumbnailUploadUrl(
+    videoUuid,
+    contentType,
+    contentLengthBytes,
+  );
+  return mapThumbnailUploadUrl(response);
+}
+
 export async function completeVideo(
   videoUuid: string,
   caption?: string,
+  thumbnailS3Key?: string,
 ): Promise<VideoCompleteUi> {
-  const response = await videoApi.postComplete(videoUuid, { caption });
+  const response = await videoApi.postComplete(videoUuid, {
+    caption,
+    ...(thumbnailS3Key ? { thumbnailS3Key } : {}),
+  });
   return mapComplete(response);
 }
 

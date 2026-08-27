@@ -76,7 +76,12 @@ export function useVideoCaptureFlow() {
   const uploadBlob = useCallback(
     async (
       blob: Blob,
-      options?: { caption?: string; recorderMimeType?: string; localPreviewUrl?: string | null },
+      options?: {
+        caption?: string;
+        recorderMimeType?: string;
+        localPreviewUrl?: string | null;
+        thumbnail?: Blob;
+      },
     ) => {
       setUploading(true);
       setFlowError(null);
@@ -87,6 +92,7 @@ export function useVideoCaptureFlow() {
           caption: options?.caption ?? DEFAULT_CAPTURE_CAPTION,
           recorderMimeType: options?.recorderMimeType ?? blob.type,
           localPreviewUrl: options?.localPreviewUrl,
+          thumbnail: options?.thumbnail,
         });
 
         setUploadResult(result);
@@ -103,7 +109,7 @@ export function useVideoCaptureFlow() {
   );
 
   const uploadCapture = useCallback(
-    async (caption = DEFAULT_CAPTURE_CAPTION) => {
+    async (caption = DEFAULT_CAPTURE_CAPTION, thumbnail?: Blob) => {
       if (!recorder.blob) {
         setFlowError("Recorded blob is missing");
         return null;
@@ -113,17 +119,19 @@ export function useVideoCaptureFlow() {
         caption,
         recorderMimeType: recorder.mimeType,
         localPreviewUrl: recorder.previewUrl,
+        thumbnail,
       });
     },
     [recorder.blob, recorder.mimeType, recorder.previewUrl, uploadBlob],
   );
 
   const uploadFile = useCallback(
-    async (file: File, caption = DEFAULT_CAPTURE_CAPTION) => {
+    async (file: File, caption = DEFAULT_CAPTURE_CAPTION, thumbnail?: Blob) => {
       return uploadBlob(file, {
         caption,
         recorderMimeType: file.type,
         localPreviewUrl: URL.createObjectURL(file),
+        thumbnail,
       });
     },
     [uploadBlob],

@@ -2,14 +2,19 @@
 
 import { Input, Label, SubmitButton } from "@/components/atoms";
 import { ui } from "@/components/atoms/styles";
-import { HeaderBackButton, PageContainer, ScreenHeader } from "@/components/molecules";
+import { CaptureThumbnailField, HeaderBackButton, PageContainer, ScreenHeader } from "@/components/molecules";
 import { CAPTION_MAX_LENGTH } from "@/lib/video/constants";
 
 type CapturePreviewStageProps = {
   caption: string;
   uploading: boolean;
   originalView: boolean;
+  thumbnailPreviewUrl: string | null;
+  thumbnailSource: "file" | "frame" | null;
+  thumbnailError: string | null;
   onCaptionChange: (value: string) => void;
+  onPickThumbnailFile: (file: File) => void;
+  onCaptureThumbnailFrame: () => void;
   onBack: () => void;
   onViewOriginal: () => void;
   onCloseOriginal: () => void;
@@ -20,7 +25,12 @@ export function CapturePreviewStage({
   caption,
   uploading,
   originalView,
+  thumbnailPreviewUrl,
+  thumbnailSource,
+  thumbnailError,
   onCaptionChange,
+  onPickThumbnailFile,
+  onCaptureThumbnailFrame,
   onBack,
   onViewOriginal,
   onCloseOriginal,
@@ -65,11 +75,25 @@ export function CapturePreviewStage({
             onChange={(event) => onCaptionChange(event.target.value)}
           />
         </div>
+        <CaptureThumbnailField
+          previewUrl={thumbnailPreviewUrl}
+          source={thumbnailSource}
+          error={thumbnailError}
+          disabled={uploading}
+          onPickFile={onPickThumbnailFile}
+          onCaptureFrame={onCaptureThumbnailFrame}
+        />
         <div className="flex gap-2">
           <SubmitButton type="button" variant="brandOutline" className="flex-1" onClick={onViewOriginal}>
             원본 크기 보기
           </SubmitButton>
-          <SubmitButton type="button" variant="brand" className="flex-1" disabled={uploading} onClick={onContinue}>
+          <SubmitButton
+            type="button"
+            variant="brand"
+            className="flex-1"
+            disabled={uploading || !thumbnailPreviewUrl}
+            onClick={onContinue}
+          >
             업로드 설정
           </SubmitButton>
         </div>

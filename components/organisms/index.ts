@@ -66,6 +66,8 @@ export { TermsAgreementsForm } from "./TermsAgreementsForm";
 export { AccountSecuritySection } from "./AccountSecuritySection";
 export { WithdrawAccountDialog } from "./WithdrawAccountDialog";
 export { NotificationSettingsForm } from "./NotificationSettingsForm";
+export { NotificationInboxSection } from "./NotificationInboxSection";
+export { NotificationInboxList } from "./NotificationInboxList";
 
 // --- 7. Profile & MyPage Organisms ---
 export { ProfileEditForm } from "./ProfileEditForm";

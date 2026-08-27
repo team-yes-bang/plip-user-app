@@ -7,6 +7,7 @@ import Google from "next-auth/providers/google";
 import Kakao from "next-auth/providers/kakao";
 import type { NextRequest } from "next/server";
 import authConfig from "@/auth.config";
+import { ROUTES } from "@/config/routes";
 import { ApiError } from "@/lib/api/apiFetch";
 import { AUTH_ERROR_CODES, getApiErrorCode } from "@/lib/auth/auth-errors";
 import { saveSocialSignupPendingToken } from "@/lib/auth/social-signup-pending";
@@ -68,6 +69,7 @@ const NaverProvider: Provider = {
 const GUEST_ONLY_PREFIXES = ["/login", "/signup", "/forgot-password", "/reset-password"];
 const PROTECTED_PREFIXES = [
   "/home",
+  "/notifications",
   "/diary",
   "/agit",
   "/mypage",
@@ -207,7 +209,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const isLoggedIn = session?.isLoggedIn === true;
 
       if (matchesPrefix(pathname, GUEST_ONLY_PREFIXES) && isLoggedIn) {
-        return Response.redirect(new URL("/diary", request.nextUrl));
+        return Response.redirect(new URL(ROUTES.home, request.nextUrl));
       }
 
       // 방 가입 랜딩 페이지(/agit/join/[code])는 비로그인 상태에서도 접근 허용

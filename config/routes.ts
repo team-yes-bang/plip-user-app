@@ -66,11 +66,13 @@ export const ROUTES = {
     refund: "/shop/refund",
     refundHistory: "/shop/refund/history",
   },
+  notifications: "/notifications",
   mypage: {
     root: "/mypage",
     profile: "/mypage/profile",
     password: "/mypage/profile/password",
     notifications: "/mypage/notifications",
+    inbox: "/notifications",
     termsAgreements: "/mypage/terms-agreements",
     settings: "/mypage/settings",
   },

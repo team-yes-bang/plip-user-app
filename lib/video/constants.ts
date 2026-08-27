@@ -36,6 +36,11 @@ export const DEFAULT_CAPTURE_CAPTION = "";
 
 export const CAPTION_MAX_LENGTH = 80;
 
+export const THUMBNAIL_CONTENT_TYPE = "image/jpeg";
+export const THUMBNAIL_MAX_BYTES = 2 * 1024 * 1024;
+export const THUMBNAIL_MAX_MB = THUMBNAIL_MAX_BYTES / (1024 * 1024);
+export const THUMBNAIL_JPEG_QUALITY = 0.86;
+
 /** Drop sample.mp3 at public/plip/video/sample.mp3. Missing file falls back to a click. */
 export const SHUTTER_SOUND_SRC = "/plip/video/sample.mp3";
 

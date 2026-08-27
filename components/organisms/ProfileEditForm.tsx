@@ -6,14 +6,18 @@ import { ui } from "@/components/atoms/styles";
 import { toast } from "@/components/ui/toast";
 import { handleClientActionResult } from "@/lib/action/handleClientActionResult";
 import { ROUTES } from "@/config/routes";
+import { prepareProfileImageFile } from "@/lib/user/prepareProfileImage";
+import {
+  PROFILE_IMAGE_ACCEPT,
+  PROFILE_IMAGE_MAX_MB,
+} from "@/lib/user/profileImage";
 import {
   USER_NICKNAME_MAX_LENGTH,
   USER_NICKNAME_MIN_LENGTH,
   type UiUserProfile,
 } from "@/types/user/ui";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 
 type ProfileEditFormProps = {
   profile: UiUserProfile;
@@ -21,8 +25,48 @@ type ProfileEditFormProps = {
 
 export function ProfileEditForm({ profile }: ProfileEditFormProps) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewUrlRef = useRef<string | null>(null);
   const [nickname, setNickname] = useState(profile.nickname);
+  const [previewSrc, setPreviewSrc] = useState(profile.profileImageUrl);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+    };
+  }, []);
+
+  function openFilePicker() {
+    if (pending) return;
+    fileInputRef.current?.click();
+  }
+
+  async function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    try {
+      const prepared = await prepareProfileImageFile(file);
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+      const nextUrl = URL.createObjectURL(prepared);
+      previewUrlRef.current = nextUrl;
+      setPreviewSrc(nextUrl);
+      setImageFile(prepared);
+    } catch (error) {
+      toast.add({
+        type: "error",
+        title: "프로필 사진 선택 실패",
+        description: error instanceof Error ? error.message : "이미지를 불러오지 못했습니다.",
+      });
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -30,7 +74,13 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
 
     setPending(true);
 
-    const result = await updateMyProfileAction(nickname);
+    const formData = new FormData();
+    formData.set("nickname", nickname);
+    if (imageFile) {
+      formData.set("profileImage", imageFile);
+    }
+
+    const result = await updateMyProfileAction(formData);
     setPending(false);
 
     if (!(await handleClientActionResult(result, router, { errorTitle: "프로필 저장 실패" }))) {
@@ -46,8 +96,8 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
     <form className="flex w-full flex-col gap-3.5" onSubmit={handleSubmit}>
       <div className="flex min-h-[84px] w-full items-center gap-[12px] rounded-[14px] border border-[var(--dl-color-border-default)] bg-[var(--dl-color-bg-surface)] p-[14px]">
         <div className="h-[56px] w-[56px] shrink-0 overflow-hidden rounded-[999px]">
-          <Image
-            src={profile.profileImageUrl}
+          <img
+            src={previewSrc}
             alt=""
             width={56}
             height={56}
@@ -59,12 +109,21 @@ export function ProfileEditForm({ profile }: ProfileEditFormProps) {
             프로필 사진
           </p>
           <p className="m-0 text-[13px] leading-[16px] text-[var(--dl-color-text-secondary)]">
-            이미지 업로드는 준비 중입니다
+            JPG, PNG, WEBP · 최대 {PROFILE_IMAGE_MAX_MB}MB
           </p>
         </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={PROFILE_IMAGE_ACCEPT}
+          className="sr-only"
+          onChange={handleImageChange}
+        />
         <button
           type="button"
-          className="inline-flex h-[44px] cursor-pointer items-center gap-[8px] border-0 bg-[transparent] p-[12px_0] text-sm font-medium leading-5 text-[var(--dl-color-text-brand)]"
+          disabled={pending}
+          onClick={openFilePicker}
+          className="inline-flex h-[44px] cursor-pointer items-center gap-[8px] border-0 bg-[transparent] p-[12px_0] text-sm font-medium leading-5 text-[var(--dl-color-text-brand)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <DailyIcon name="camera" size={20} />
           사진 변경

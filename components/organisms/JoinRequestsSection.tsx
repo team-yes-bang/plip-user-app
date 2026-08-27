@@ -7,9 +7,11 @@ import { useState } from "react";
 
 export function JoinRequestsSection({
   agitId,
+  agitName,
   requests,
 }: {
   agitId: string;
+  agitName?: string;
   requests: ApiJoinRequestItem[];
 }) {
   const router = useRouter();
@@ -20,10 +22,15 @@ export function JoinRequestsSection({
     if (pendingId) return;
     setPendingId(ampId);
     setError(null);
+    const request = requests.find((item) => item.ampId === ampId);
+    const notify = {
+      requesterUserUuid: request?.userUuid,
+      agitName,
+    };
     const result =
       action === "approve"
-        ? await approveJoinRequestAction(agitId, ampId)
-        : await rejectJoinRequestAction(agitId, ampId);
+        ? await approveJoinRequestAction(agitId, ampId, notify)
+        : await rejectJoinRequestAction(agitId, ampId, notify);
     setPendingId(null);
     if (!result.ok) {
       setError(result.error);

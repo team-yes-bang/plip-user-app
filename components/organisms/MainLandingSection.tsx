@@ -91,7 +91,17 @@ export function MainLandingSection({
   return (
     <div className="mx-auto flex w-full max-w-[390px] flex-col gap-8 px-5 pb-12 pt-6">
       <header className="flex items-center justify-between gap-3">
-        <p className="m-0 text-lg font-bold text-[var(--dl-color-text-primary)]">PLIP</p>
+        {isLoggedIn ? (
+          <TextLink
+            href={ROUTES.home}
+            aria-label="홈"
+            className="m-0 text-lg font-bold text-[var(--dl-color-text-primary)] !no-underline"
+          >
+            PLIP
+          </TextLink>
+        ) : (
+          <p className="m-0 text-lg font-bold text-[var(--dl-color-text-primary)]">PLIP</p>
+        )}
         {isLoggedIn ? (
           <TextLink href={ROUTES.home} className={cn(ui.link, "text-sm")}>
             피드로

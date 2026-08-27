@@ -68,7 +68,7 @@ export function MyPageProfileSection() {
       <div className="flex flex-col gap-[0.35rem] p-[0.75rem_1rem_1.25rem] [&_a]:rounded-[var(--dc-radius)] [&_a]:border [&_a]:border-[var(--dc-glass-border)] [&_a]:bg-[linear-gradient(180deg,_var(--dc-glass-from),_var(--dc-glass-to))] [&_a]:shadow-[var(--dc-shadow)] [&_a]:backdrop-blur-[20px] [&_a]:p-[0.75rem_0.9rem] [&_a]:text-[0.875rem] [&_a]:font-medium [&_a]:!text-[var(--dc-fg-primary)] [&_a]:!no-underline">
         <TextLink href={ROUTES.shop.root}>상점 · 포인트</TextLink>
         <TextLink href={ROUTES.shop.myItems}>내 아이템</TextLink>
-        <TextLink href={ROUTES.mypage.notifications}>알림</TextLink>
+        <TextLink href={ROUTES.notifications}>알림</TextLink>
         <TextLink href={ROUTES.mypage.settings}>설정 및 개인정보</TextLink>
       </div>
     </section>
@@ -121,7 +121,7 @@ export function MyPageSettingsSection() {
     <section className={`${leftoverStyles.plipTtSettings} flex flex-col gap-0.5 bg-transparent p-4 text-[var(--dc-fg-primary)]`} aria-label="설정">
       <h1>설정 및 개인정보</h1>
       {[
-        { href: ROUTES.mypage.notifications, label: "알림" },
+        { href: ROUTES.notifications, label: "알림" },
         { href: ROUTES.mypage.password, label: "비밀번호" },
         { href: ROUTES.mypage.profile, label: "계정" },
         { href: ROUTES.shop.root, label: "상점 · 포인트" },

@@ -44,7 +44,7 @@ export function RoomManageHubTemplate({
   return (
     <AgitFlowChrome>
       <AuthTopBar title="아지트관리" backHref={ROUTES.agit.detail(agit.id)} />
-      <JoinRequestsSection agitId={agit.id} requests={joinRequests} />
+      <JoinRequestsSection agitId={agit.id} agitName={agit.name} requests={joinRequests} />
       <AgitManageForm agit={agit} />
     </AgitFlowChrome>
   );

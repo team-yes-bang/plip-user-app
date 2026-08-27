@@ -48,3 +48,9 @@ AGENTS.md
 CLAUDE.md
 .cursor/
 .cursorrules
+
+# generated profile photo uploads (seed files stay tracked)
+/public/images/profile/*_*
+
+# local notification inbox fallback
+/.data/

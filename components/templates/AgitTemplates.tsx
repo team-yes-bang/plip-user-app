@@ -19,11 +19,13 @@ export function AgitListTemplate({
   error,
   currentUserUuid,
   enableRemoteChat = false,
+  inboxUnreadCount = 0,
 }: {
   items: UiAgit[];
   error?: string;
   currentUserUuid?: string;
   enableRemoteChat?: boolean;
+  inboxUnreadCount?: number;
 }) {
   return (
     <AppChromeTemplate activeTab="agit" variant="light">
@@ -32,6 +34,7 @@ export function AgitListTemplate({
         error={error}
         currentUserUuid={currentUserUuid}
         enableRemoteChat={enableRemoteChat}
+        inboxUnreadCount={inboxUnreadCount}
       />
     </AppChromeTemplate>
   );

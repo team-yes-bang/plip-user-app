@@ -6,12 +6,14 @@ import type { ReactNode } from "react";
 type MyPageTemplateProps = {
   showBottomNav?: boolean;
   profile: UiUserProfile | null;
+  inboxUnreadCount?: number;
   children?: ReactNode;
 };
 
 export function MyPageTemplate({
   showBottomNav = true,
   profile,
+  inboxUnreadCount = 0,
   children,
 }: MyPageTemplateProps) {
   return (
@@ -21,7 +23,7 @@ export function MyPageTemplate({
       showNav={showBottomNav}
       mainOverflow="hidden"
     >
-      {children ?? <ProfileHubSection profile={profile} />}
+      {children ?? <ProfileHubSection profile={profile} inboxUnreadCount={inboxUnreadCount} />}
     </AppChromeTemplate>
   );
 }

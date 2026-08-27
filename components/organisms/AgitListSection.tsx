@@ -2,7 +2,7 @@
 import leftoverStyles from "@/components/styles/leftover.module.css";
 
 import { IconButton, TextLink } from "@/components/atoms";
-import { AgitListRow, HeaderSearchLink, PageContainer, ScreenHeader } from "@/components/molecules";
+import { AgitListRow, HeaderSearchLink, NotificationBell, PageContainer, ScreenHeader } from "@/components/molecules";
 import { ROUTES } from "@/config/routes";
 import { useAgitListChatSync } from "@/hooks/useAgitListChatSync";
 import { Plus } from "lucide-react";
@@ -13,6 +13,7 @@ type AgitListSectionProps = {
   error?: string;
   currentUserUuid?: string;
   enableRemoteChat?: boolean;
+  inboxUnreadCount?: number;
 };
 
 export function AgitListSection({
@@ -20,6 +21,7 @@ export function AgitListSection({
   error,
   currentUserUuid,
   enableRemoteChat = false,
+  inboxUnreadCount = 0,
 }: AgitListSectionProps) {
   const rooms = items;
   const totalVideos = rooms.reduce((sum, room) => sum + (room.todayVideoCount ?? 0), 0);
@@ -30,7 +32,12 @@ export function AgitListSection({
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       <ScreenHeader
         title="아지트"
-        trailing={<HeaderSearchLink href={ROUTES.agit.search} />}
+        trailing={
+          <>
+            <NotificationBell unreadCount={inboxUnreadCount} />
+            <HeaderSearchLink href={ROUTES.agit.search} />
+          </>
+        }
       />
 
       <PageContainer aria-label="내 아지트" className="flex-1">
