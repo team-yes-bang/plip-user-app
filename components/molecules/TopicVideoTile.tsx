@@ -61,7 +61,7 @@ export function TopicVideoTile({
   );
 
   const className =
-    "relative flex min-h-0 min-h-[40%] flex-1 overflow-hidden rounded-none bg-[var(--dl-color-bg-surface)]";
+    "relative flex min-h-0 flex-1 overflow-hidden rounded-none bg-[var(--dl-color-bg-surface)]";
 
   return (
     <div ref={containerRef} className={className}>
