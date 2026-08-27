@@ -17,7 +17,7 @@ export function CaptureClipOverlays({ capturedAt, caption }: CaptureClipOverlays
     <div className="pointer-events-none absolute inset-0 z-[1] [container-type:size]">
       <div className="absolute left-1/2 top-1/2 w-[min(88cqw,100%)] -translate-x-1/2 -translate-y-1/2 text-center">
         {overlayTime ? (
-          <p className="relative z-[1] m-0 font-black leading-none text-white [font-size:clamp(1.15rem,15cqw,4.5rem)] [text-shadow:0_1px_4px_rgba(0,0,0,0.55)] whitespace-nowrap">
+          <p className="relative z-[1] m-0 font-black leading-none text-white [font-size:clamp(1.15rem,12cqw,4.5rem)] [text-shadow:0_1px_4px_rgba(0,0,0,0.55)] whitespace-nowrap">
             {overlayTime}
           </p>
         ) : null}
