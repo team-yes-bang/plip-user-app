@@ -6,6 +6,7 @@ import { actionFailure, actionSuccess, type ActionResult } from "@/types/action-
 import { getApiErrorCode } from "@/lib/auth/auth-errors";
 import type { ApiJoinAgitResponse } from "@/types/agit/api";
 import { parseAgitNickname, parseCreateAgitInput, parseUpdateAgitInput } from "@/types/agit/schema";
+import type { ApiDiscoverSort } from "@/types/agit/api";
 import type { UiAgit, UiCreateAgitInput } from "@/types/agit/ui";
 
 function joinAgitErrorMessage(error: ApiError): string {
@@ -18,6 +19,9 @@ function joinAgitErrorMessage(error: ApiError): string {
   }
   if (code === "MEMBER_BANNED") {
     return "이 아지트에서 내보내진 상태입니다.";
+  }
+  if (code === "JOIN_REQUEST_PENDING") {
+    return "이미 입장 요청이 대기 중입니다.";
   }
   if (code === "INVALID_INVITE_CODE" || code === "AGIT_NOT_FOUND") {
     return "유효하지 않은 초대 코드입니다.";
@@ -74,6 +78,77 @@ export async function transferAgitHostAction(
 ): Promise<ActionResult<void>> {
   try {
     await agitService.transferAgitHost(agitId, ampId);
+    return actionSuccess(undefined);
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
+export async function searchDiscoverAgitsAction(
+  query: string,
+  sort: ApiDiscoverSort,
+): Promise<ActionResult<UiAgit[]>> {
+  try {
+    const items = await agitService.searchDiscoverAgits({
+      q: query.trim() || undefined,
+      sort,
+    });
+    return actionSuccess(items);
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
+export async function publishSearchMetricAction(
+  type: string,
+  agitUuid: string,
+): Promise<ActionResult<void>> {
+  try {
+    await agitService.publishSearchMetric(type, agitUuid);
+    return actionSuccess(undefined);
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
+export async function requestJoinAgitAction(
+  agitId: string,
+  nickname: unknown,
+): Promise<ActionResult<ApiJoinAgitResponse>> {
+  const parsed = parseAgitNickname(nickname);
+  if (!parsed.ok) {
+    return actionFailure(parsed.error);
+  }
+
+  try {
+    const requested = await agitService.requestJoinAgit(agitId, { nickname: parsed.nickname });
+    return actionSuccess(requested);
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return actionFailure(joinAgitErrorMessage(error));
+    }
+    return toActionError(error);
+  }
+}
+
+export async function approveJoinRequestAction(
+  agitId: string,
+  ampId: number,
+): Promise<ActionResult<void>> {
+  try {
+    await agitService.approveJoinRequest(agitId, ampId);
+    return actionSuccess(undefined);
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
+export async function rejectJoinRequestAction(
+  agitId: string,
+  ampId: number,
+): Promise<ActionResult<void>> {
+  try {
+    await agitService.rejectJoinRequest(agitId, ampId);
     return actionSuccess(undefined);
   } catch (error) {
     return toActionError(error);

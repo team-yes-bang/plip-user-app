@@ -1,5 +1,5 @@
 import { HomeFeedSection } from "@/components/organisms/HomeFeedSection";
-import { BottomNavigation } from "@/components/molecules";
+import { BottomNavigation, FeedTopBar } from "@/components/molecules";
 
 export function HomeFeedTemplate() {
   return (
@@ -9,6 +9,7 @@ export function HomeFeedTemplate() {
           <HomeFeedSection />
         </main>
       </div>
+      <FeedTopBar />
       <BottomNavigation active="feed" variant="feed" />
     </div>
   );

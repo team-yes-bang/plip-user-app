@@ -46,6 +46,17 @@ export const API_ENDPOINTS = {
       gatewayPath("agit", `/api/v1/agits/${encodeURIComponent(code)}/landing`),
     join: (code: string) =>
       gatewayPath("agit", `/api/v1/agits/${encodeURIComponent(code)}/join`),
+    preview: (agitUuid: string) => gatewayPath("agit", `/api/v1/agits/${agitUuid}/preview`),
+    joinRequests: (agitUuid: string) =>
+      gatewayPath("agit", `/api/v1/agits/${agitUuid}/join-requests`),
+    approveJoinRequest: (agitUuid: string, ampId: number) =>
+      gatewayPath("agit", `/api/v1/agits/${agitUuid}/join-requests/${ampId}/approve`),
+    rejectJoinRequest: (agitUuid: string, ampId: number) =>
+      gatewayPath("agit", `/api/v1/agits/${agitUuid}/join-requests/${ampId}/reject`),
+  },
+  analytics: {
+    search: gatewayPath("analytics", "/api/v1/agits/search"),
+    events: gatewayPath("analytics", "/api/v1/events"),
   },
   topic: {
     list: gatewayPath("topic", "/api/v1/topics"),

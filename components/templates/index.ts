@@ -9,6 +9,7 @@ export {
   AgitListTemplate,
   AgitMembersTemplate,
   AgitSearchTemplate,
+  AgitPreviewTemplate,
   AgitTopicsTemplate,
   AgitManageTemplate,
   AgitProfileEditTemplate,

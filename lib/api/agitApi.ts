@@ -12,8 +12,10 @@ import type {
   ApiUpdateAgitResponse,
   ApiReissueInviteCodeResponse,
   ApiAgitLanding,
+  ApiAgitPreview,
   ApiJoinAgitRequest,
   ApiJoinAgitResponse,
+  ApiJoinRequestItem,
   ApiUpdateMyMemberProfileRequest,
   ApiUpdateMyMemberProfileResponse,
 } from "@/types/agit/api";
@@ -109,6 +111,60 @@ export async function getAgitLanding(code: string): Promise<ApiAgitLanding> {
     baseUrl: getApiUrl(),
     headers: await getActorUserHeaders(),
   });
+}
+
+export async function getAgitPreview(agitUuid: string): Promise<ApiAgitPreview> {
+  return withAuthRetry(async () =>
+    apiFetch<ApiAgitPreview>(API_ENDPOINTS.agit.preview(agitUuid), {
+      method: "GET",
+      baseUrl: getApiUrl(),
+      headers: await getActorUserHeaders(),
+    }),
+  );
+}
+
+export async function requestJoinAgit(
+  agitUuid: string,
+  body: ApiJoinAgitRequest,
+): Promise<ApiJoinAgitResponse> {
+  return withAuthRetry(async () =>
+    apiFetch<ApiJoinAgitResponse>(API_ENDPOINTS.agit.joinRequests(agitUuid), {
+      method: "POST",
+      baseUrl: getApiUrl(),
+      headers: await getActorUserHeaders(),
+      body,
+    }),
+  );
+}
+
+export async function listJoinRequests(agitUuid: string): Promise<ApiJoinRequestItem[]> {
+  return withAuthRetry(async () =>
+    apiFetch<ApiJoinRequestItem[]>(API_ENDPOINTS.agit.joinRequests(agitUuid), {
+      method: "GET",
+      baseUrl: getApiUrl(),
+      headers: await getActorUserHeaders(),
+    }),
+  );
+}
+
+export async function approveJoinRequest(agitUuid: string, ampId: number): Promise<ApiJoinAgitResponse> {
+  return withAuthRetry(async () =>
+    apiFetch<ApiJoinAgitResponse>(API_ENDPOINTS.agit.approveJoinRequest(agitUuid, ampId), {
+      method: "POST",
+      baseUrl: getApiUrl(),
+      headers: await getActorUserHeaders(),
+    }),
+  );
+}
+
+export async function rejectJoinRequest(agitUuid: string, ampId: number): Promise<void> {
+  await withAuthRetry(async () =>
+    apiFetch<void>(API_ENDPOINTS.agit.rejectJoinRequest(agitUuid, ampId), {
+      method: "POST",
+      baseUrl: getApiUrl(),
+      headers: await getActorUserHeaders(),
+    }),
+  );
 }
 
 export async function joinAgit(code: string, body: ApiJoinAgitRequest): Promise<ApiJoinAgitResponse> {
