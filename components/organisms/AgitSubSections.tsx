@@ -170,14 +170,12 @@ export function AgitSearchSection({ myAgitIds }: { myAgitIds: string[] }) {
           ))}
         </div>
 
-        {error ? (
-          <p className="m-0 text-[14px] text-[var(--dl-color-text-secondary)]" role="alert">
-            {error}
-          </p>
-        ) : null}
-
         {loading ? (
           <p className="m-0 py-6 text-center text-sm text-[var(--dl-color-text-secondary)]">불러오는 중…</p>
+        ) : error ? (
+          <p className="m-0 py-6 text-center text-sm text-[var(--dl-color-text-secondary)]" role="alert">
+            {error}
+          </p>
         ) : rooms.length > 0 ? (
           <div className="grid grid-cols-2 gap-[12px]">
             {rooms.map((room) => {

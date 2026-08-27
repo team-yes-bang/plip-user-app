@@ -33,6 +33,7 @@ export { IntroTemplate } from "./IntroTemplate";
 export { LoginTemplate } from "./LoginTemplate";
 export { MyPageTemplate } from "./MyPageTemplate";
 export { NotificationSettingsTemplate } from "./NotificationSettingsTemplate";
+export { NotificationInboxTemplate } from "./NotificationInboxTemplate";
 export { TermsAgreementsTemplate } from "./TermsAgreementsTemplate";
 export { PollCreateTemplate, PollEditTemplate } from "./PollTemplates";
 export { RecordCalendarTemplate } from "./RecordCalendarTemplate";

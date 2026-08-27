@@ -5,6 +5,13 @@ export type VideoUploadUrlUi = {
   expiresAt: Date;
 };
 
+export type VideoThumbnailUploadUrlUi = {
+  videoUuid: string;
+  thumbnailS3Key: string;
+  uploadUrl: string;
+  expiresAt: Date;
+};
+
 export type VideoCompleteUi = {
   videoUuid: string;
   caption: string | null;

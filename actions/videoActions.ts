@@ -6,6 +6,7 @@ import type {
   VideoDestinationActionData,
   VideoDetailActionData,
   VideoDownloadUrlActionData,
+  VideoThumbnailUploadUrlActionData,
   VideoUploadUrlActionData,
 } from "@/types/video/action";
 import type { VideoDestinationRequest } from "@/types/video/api";
@@ -22,6 +23,7 @@ import {
   toCompleteActionData,
   toDetailActionData,
   toDownloadUrlActionData,
+  toThumbnailUploadUrlActionData,
   toUploadUrlActionData,
 } from "@/lib/video/actionPayload";
 import * as videoService from "@/services/videoService";
@@ -30,6 +32,8 @@ const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const ALLOWED_CONTENT_TYPES = new Set(["video/mp4", "video/quicktime"]);
+const ALLOWED_THUMBNAIL_CONTENT_TYPES = new Set(["image/jpeg"]);
+const MAX_THUMBNAIL_BYTES = 2 * 1024 * 1024;
 
 async function requireSessionUserUuid(): Promise<
   { ok: true; userUuid: string } | { ok: false; error: string }
@@ -58,6 +62,15 @@ function resolveContentType(contentType?: string): string | undefined {
 
   const normalized = contentType.trim().toLowerCase();
   return ALLOWED_CONTENT_TYPES.has(normalized) ? normalized : undefined;
+}
+
+function resolveThumbnailContentType(contentType?: string): string | undefined {
+  if (!contentType?.trim()) {
+    return "image/jpeg";
+  }
+
+  const normalized = contentType.trim().toLowerCase();
+  return ALLOWED_THUMBNAIL_CONTENT_TYPES.has(normalized) ? normalized : undefined;
 }
 
 function toActionError(error: unknown): ActionResult<never> {
@@ -108,9 +121,50 @@ export async function issueUploadUrlAction(
   }
 }
 
+export async function issueThumbnailUploadUrlAction(
+  videoUuid: string,
+  contentType: string | undefined,
+  contentLengthBytes: number,
+): Promise<ActionResult<VideoThumbnailUploadUrlActionData>> {
+  const resolvedVideoUuid = resolveVideoUuid(videoUuid);
+  if (!resolvedVideoUuid) {
+    return actionFailure("Invalid videoUuid");
+  }
+
+  const session = await requireSessionUserUuid();
+  if (!session.ok) {
+    return actionFailure(session.error);
+  }
+
+  const resolvedContentType = resolveThumbnailContentType(contentType);
+  if (!resolvedContentType) {
+    return actionFailure("contentType must be image/jpeg");
+  }
+
+  if (!Number.isFinite(contentLengthBytes) || contentLengthBytes <= 0) {
+    return actionFailure("contentLengthBytes must be a positive number");
+  }
+
+  if (contentLengthBytes > MAX_THUMBNAIL_BYTES) {
+    return actionFailure("thumbnail must be 2MB or smaller");
+  }
+
+  try {
+    const data = await videoService.issueThumbnailUploadUrl(
+      resolvedVideoUuid,
+      resolvedContentType,
+      contentLengthBytes,
+    );
+    return actionSuccess(toThumbnailUploadUrlActionData(data));
+  } catch (error) {
+    return toActionError(error);
+  }
+}
+
 export async function completeVideoAction(
   videoUuid: string,
   caption?: string,
+  thumbnailS3Key?: string,
 ): Promise<ActionResult<VideoCompleteActionData>> {
   const resolvedVideoUuid = resolveVideoUuid(videoUuid);
   if (!resolvedVideoUuid) {
@@ -123,11 +177,13 @@ export async function completeVideoAction(
   }
 
   const normalizedCaption = caption?.trim() || undefined;
+  const normalizedThumbnailS3Key = thumbnailS3Key?.trim() || undefined;
 
   try {
     const data = await videoService.completeVideo(
       resolvedVideoUuid,
       normalizedCaption,
+      normalizedThumbnailS3Key,
     );
     return actionSuccess(toCompleteActionData(data));
   } catch (error) {

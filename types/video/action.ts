@@ -7,6 +7,13 @@ export type VideoUploadUrlActionData = {
   expiresAt: string;
 };
 
+export type VideoThumbnailUploadUrlActionData = {
+  videoUuid: string;
+  thumbnailS3Key: string;
+  uploadUrl: string;
+  expiresAt: string;
+};
+
 export type VideoCompleteActionData = {
   videoUuid: string;
   caption: string | null;

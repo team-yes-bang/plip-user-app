@@ -11,7 +11,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "npm run typecheck && npm run lint",
     "prebuild": "npm run test",
-    "prepare": "husky || true"
+    "prepare": "husky || true",
+    "seed:discover-agits": "node scripts/seed-discover-agits.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -27,6 +28,7 @@
     "framer-motion": "^13.1.1",
     "lucide-react": "^1.31.0",
     "mp4-muxer": "^5.2.2",
+    "mysql2": "^3.24.2",
     "next": "16.3.0",
     "next-auth": "^5.0.0-beta.32",
     "react": "19.2.8",
@@ -43,6 +45,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/sockjs-client": "^1.5.4",
+    "bcryptjs": "^3.0.3",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
     "husky": "^9.1.7",

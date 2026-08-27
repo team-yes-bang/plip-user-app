@@ -48,7 +48,7 @@ export function SocialAuthButtons({
   disabled,
   className,
 }: SocialAuthButtonsProps) {
-  const targetUrl = getSafeCallbackUrl(callbackUrl ?? ROUTES.diary.root);
+  const targetUrl = getSafeCallbackUrl(callbackUrl ?? ROUTES.home);
 
   function handleSignIn(provider: SocialProvider) {
     void signIn(provider, { callbackUrl: targetUrl });

@@ -2,12 +2,14 @@ import type {
   VideoCompleteActionData,
   VideoDetailActionData,
   VideoDownloadUrlActionData,
+  VideoThumbnailUploadUrlActionData,
   VideoUploadUrlActionData,
 } from "@/types/video/action";
 import type {
   VideoCompleteUi,
   VideoDetailUi,
   VideoDownloadUrlUi,
+  VideoThumbnailUploadUrlUi,
   VideoUploadUrlUi,
 } from "@/types/video/ui";
 
@@ -15,6 +17,17 @@ export function toUploadUrlActionData(data: VideoUploadUrlUi): VideoUploadUrlAct
   return {
     videoUuid: data.videoUuid,
     rawS3Key: data.rawS3Key,
+    uploadUrl: data.uploadUrl,
+    expiresAt: data.expiresAt.toISOString(),
+  };
+}
+
+export function toThumbnailUploadUrlActionData(
+  data: VideoThumbnailUploadUrlUi,
+): VideoThumbnailUploadUrlActionData {
+  return {
+    videoUuid: data.videoUuid,
+    thumbnailS3Key: data.thumbnailS3Key,
     uploadUrl: data.uploadUrl,
     expiresAt: data.expiresAt.toISOString(),
   };

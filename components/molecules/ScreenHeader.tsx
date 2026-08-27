@@ -1,5 +1,6 @@
-import { DailyIcon, IconButton, IconLink, ScreenSubtitle, ScreenTitle } from "@/components/atoms";
+import { DailyIcon, IconButton, IconLink, NavHomeIcon, ScreenSubtitle, ScreenTitle } from "@/components/atoms";
 import { ui } from "@/components/atoms/styles";
+import { ROUTES } from "@/config/routes";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
@@ -120,6 +121,20 @@ export function HeaderSearchButton({ onClick, label = "검색" }: { onClick: () 
   );
 }
 
+export function HeaderHomeLink({
+  href = ROUTES.home,
+  label = "홈",
+}: {
+  href?: string;
+  label?: string;
+}) {
+  return (
+    <IconLink href={href} label={label}>
+      <NavHomeIcon className="size-5" />
+    </IconLink>
+  );
+}
+
 export function HeaderStep({ children }: { children: ReactNode }) {
   return <span className={ui.topbarStep}>{children}</span>;
 }
@@ -168,7 +183,9 @@ export function ScreenHeader({
       <HeaderBackButton onClick={onBack} label={backLabel} />
     ) : backHref ? (
       <HeaderBackLink href={backHref} label={backLabel} />
-    ) : null);
+    ) : (
+      <HeaderHomeLink />
+    ));
 
   const menuButton = onMenuOpen ? (
     <HeaderMenuButton label={menuLabel} onClick={onMenuOpen} />

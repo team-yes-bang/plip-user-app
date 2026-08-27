@@ -7,8 +7,16 @@ export type VideoUploadUrlResponse = {
   expiresAt: string;
 };
 
+export type VideoThumbnailUploadUrlResponse = {
+  videoUuid: string;
+  thumbnailS3Key: string;
+  uploadUrl: string;
+  expiresAt: string;
+};
+
 export type VideoCompleteRequest = {
   caption?: string | null;
+  thumbnailS3Key?: string | null;
 };
 
 export type VideoTopicDestinationRequest = {

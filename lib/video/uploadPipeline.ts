@@ -1,9 +1,11 @@
 import {
   completeVideoAction,
   getVideoAction,
+  issueThumbnailUploadUrlAction,
   issueUploadUrlAction,
 } from "@/actions/videoActions";
 import { extractActionError } from "@/lib/video/actionPayload";
+import { THUMBNAIL_CONTENT_TYPE } from "@/lib/video/constants";
 import { pollDownloadUrl } from "@/lib/video/downloadUrlPoll";
 import { resolvePlaybackSource, type PlaybackSource } from "@/lib/video/playback";
 import { preparePlaybackMp4IfNeeded } from "@/lib/video/preparePlaybackMp4";
@@ -29,9 +31,28 @@ export type Phase0FUploadResult = VideoUploadPipelineResult & {
   playback: PlaybackSource;
 };
 
+async function uploadThumbnail(
+  videoUuid: string,
+  thumbnail: Blob,
+): Promise<string> {
+  const contentType = thumbnail.type || THUMBNAIL_CONTENT_TYPE;
+  const issued = await issueThumbnailUploadUrlAction(videoUuid, contentType, thumbnail.size);
+  const issuedError = extractActionError(issued);
+  if (issuedError || !issued.ok) {
+    throw new Error(
+      issuedError?.includes("[404]")
+        ? "서버가 아직 썸네일 업로드를 지원하지 않습니다. plip-video thumbnail-upload-url을 배포해 주세요."
+        : (issuedError ?? "thumbnail-upload-url failed"),
+    );
+  }
+
+  await putPresignedUpload(issued.data.uploadUrl, thumbnail, contentType);
+  return issued.data.thumbnailS3Key;
+}
+
 export async function uploadRecordedVideo(
   blob: Blob,
-  options?: { caption?: string; recorderMimeType?: string },
+  options?: { caption?: string; recorderMimeType?: string; thumbnail?: Blob },
 ): Promise<VideoUploadPipelineResult> {
   const prepared = await preparePlaybackMp4IfNeeded(blob);
   assertUploadSize(prepared);
@@ -45,9 +66,13 @@ export async function uploadRecordedVideo(
   }
 
   const { videoUuid, uploadUrl } = uploadUrlResult.data;
-  const putResult = await putPresignedUpload(uploadUrl, prepared, contentType);
+  const thumbnail = options?.thumbnail;
+  const [putResult, thumbnailS3Key] = await Promise.all([
+    putPresignedUpload(uploadUrl, prepared, contentType),
+    thumbnail && thumbnail.size > 0 ? uploadThumbnail(videoUuid, thumbnail) : Promise.resolve(undefined),
+  ]);
 
-  const completeResult = await completeVideoAction(videoUuid, options?.caption);
+  const completeResult = await completeVideoAction(videoUuid, options?.caption, thumbnailS3Key);
   const completeError = extractActionError(completeResult);
   if (completeError || !completeResult.ok) {
     throw new Error(completeError ?? "complete failed");
@@ -74,6 +99,7 @@ export async function runPhase0FUpload(
     caption?: string;
     recorderMimeType?: string;
     localPreviewUrl?: string | null;
+    thumbnail?: Blob;
   },
 ): Promise<Phase0FUploadResult> {
   const base = await uploadRecordedVideo(blob, options);

@@ -20,6 +20,7 @@ import { useVideoCaptureFlow } from "@/hooks/useVideoCaptureFlow";
 import { extractActionError } from "@/lib/video/actionPayload";
 import { VIDEO_DESTINATION_NOT_WIRED } from "@/lib/video/actionErrors";
 import { playShutterSound } from "@/lib/video/playShutterSound";
+import { captureVideoFrame, prepareThumbnailImage } from "@/lib/video/prepareThumbnail";
 import { shouldMirrorVideo } from "@/lib/video/shouldMirrorVideo";
 import { toKstDateString } from "@/lib/topic/selectAgitTopic";
 import type { UiAgit } from "@/types/agit/ui";
@@ -37,6 +38,7 @@ type CaptureFlowSectionProps = {
 };
 
 type PreviewStep = "confirm" | "settings";
+type ThumbnailSource = "file" | "frame";
 
 function pickId<T extends { id: string }>(items: T[], preferred: string): string {
   if (preferred && items.some((item) => item.id === preferred)) {
@@ -113,8 +115,13 @@ export function CaptureFlowSection({
   const [publishing, setPublishing] = useState(false);
   const [pendingPublishVideoUuid, setPendingPublishVideoUuid] = useState<string | null>(null);
   const [originalView, setOriginalView] = useState(false);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState<string | null>(null);
+  const [thumbnailSource, setThumbnailSource] = useState<ThumbnailSource | null>(null);
+  const [thumbnailError, setThumbnailError] = useState<string | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const slotRef = useRef<HTMLDivElement>(null);
+  const previewVideoElRef = useRef<HTMLVideoElement | null>(null);
 
   const isPreview = status === "preview" || flowPhase === "uploading" || flowPhase === "complete";
   const showSettings = isPreview && previewStep === "settings";
@@ -179,6 +186,44 @@ export function CaptureFlowSection({
     });
   }, [loadDestinations]);
 
+  const replaceThumbnail = useCallback((file: File, source: ThumbnailSource) => {
+    setThumbnailPreviewUrl((current) => {
+      if (current) {
+        URL.revokeObjectURL(current);
+      }
+      return URL.createObjectURL(file);
+    });
+    setThumbnailFile(file);
+    setThumbnailSource(source);
+    setThumbnailError(null);
+  }, []);
+
+  const clearThumbnail = useCallback(() => {
+    setThumbnailPreviewUrl((current) => {
+      if (current) {
+        URL.revokeObjectURL(current);
+      }
+      return null;
+    });
+    setThumbnailFile(null);
+    setThumbnailSource(null);
+    setThumbnailError(null);
+  }, []);
+
+  const thumbnailPreviewUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    thumbnailPreviewUrlRef.current = thumbnailPreviewUrl;
+  }, [thumbnailPreviewUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (thumbnailPreviewUrlRef.current) {
+        URL.revokeObjectURL(thumbnailPreviewUrlRef.current);
+      }
+    };
+  }, []);
+
   const handleStartRecording = useCallback(() => {
     playShutterSound();
     void startRecording();
@@ -191,8 +236,9 @@ export function CaptureFlowSection({
     setPendingPublishVideoUuid(null);
     setOriginalView(false);
     setPreviewStep("confirm");
+    clearThumbnail();
     void retake();
-  }, [retake]);
+  }, [clearThumbnail, retake]);
 
   const navigateAfterPublish = useCallback(
     (destination: VideoDestination) => {
@@ -271,15 +317,58 @@ export function CaptureFlowSection({
       return;
     }
 
+    if (!thumbnailFile) {
+      setSaveError("썸네일을 등록해 주세요. 이전 화면에서 이미지를 고르거나 장면을 담을 수 있어요.");
+      return;
+    }
+
     setSaveError(null);
-    const uploaded = await uploadCapture(caption.trim() || undefined);
+    const uploaded = await uploadCapture(caption.trim() || undefined, thumbnailFile);
     if (!uploaded) {
       setSaveError("업로드에 실패했습니다.");
       return;
     }
 
     await publishDestination(uploaded.videoUuid, destination);
-  }, [caption, publishDestination, resolveDestination, uploadCapture]);
+  }, [caption, publishDestination, resolveDestination, thumbnailFile, uploadCapture]);
+
+  const handlePickThumbnailFile = useCallback(
+    async (file: File) => {
+      try {
+        const prepared = await prepareThumbnailImage(file);
+        replaceThumbnail(prepared, "file");
+      } catch (error) {
+        setThumbnailError(error instanceof Error ? error.message : "썸네일 이미지를 준비하지 못했습니다.");
+      }
+    },
+    [replaceThumbnail],
+  );
+
+  const handleCaptureThumbnailFrame = useCallback(async () => {
+    const video = previewVideoElRef.current;
+    if (!video) {
+      setThumbnailError("영상을 찾을 수 없습니다.");
+      return;
+    }
+
+    try {
+      const captured = await captureVideoFrame(video);
+      replaceThumbnail(captured, "frame");
+    } catch (error) {
+      setThumbnailError(error instanceof Error ? error.message : "영상 장면을 담지 못했습니다.");
+    }
+  }, [replaceThumbnail]);
+
+  const handleContinueToSettings = useCallback(() => {
+    if (!thumbnailFile) {
+      setThumbnailError("썸네일을 등록해 주세요. 이미지를 고르거나 현재 장면을 담아 주세요.");
+      return;
+    }
+
+    setThumbnailError(null);
+    setOriginalView(false);
+    setPreviewStep("settings");
+  }, [thumbnailFile]);
 
   const handleRetryPublish = useCallback(async () => {
     if (!pendingPublishVideoUuid) {
@@ -369,7 +458,10 @@ export function CaptureFlowSection({
         }
       >
         <video
-          ref={videoRef}
+          ref={(node) => {
+            videoRef(node);
+            previewVideoElRef.current = node;
+          }}
           className={`h-full w-full object-cover ${mirrorVideo ? "-scale-x-100" : ""}`}
           autoPlay
           playsInline
@@ -414,14 +506,16 @@ export function CaptureFlowSection({
           caption={caption}
           uploading={uploading}
           originalView={originalView}
+          thumbnailPreviewUrl={thumbnailPreviewUrl}
+          thumbnailSource={thumbnailSource}
+          thumbnailError={thumbnailError}
           onCaptionChange={setCaption}
+          onPickThumbnailFile={(file) => void handlePickThumbnailFile(file)}
+          onCaptureThumbnailFrame={() => void handleCaptureThumbnailFrame()}
           onBack={handleRetake}
           onViewOriginal={() => setOriginalView(true)}
           onCloseOriginal={() => setOriginalView(false)}
-          onContinue={() => {
-            setOriginalView(false);
-            setPreviewStep("settings");
-          }}
+          onContinue={handleContinueToSettings}
         />
       ) : null}
 
@@ -440,6 +534,7 @@ export function CaptureFlowSection({
           creatingInline={creatingInline}
           uploading={uploading || publishing}
           saveError={saveError ?? (flowError && !pendingPublishVideoUuid ? flowError : null)}
+          thumbnailPreviewUrl={thumbnailPreviewUrl}
           pendingPublishVideoUuid={pendingPublishVideoUuid}
           onDestinationKindChange={(kind) => {
             setInlineCreateError(null);

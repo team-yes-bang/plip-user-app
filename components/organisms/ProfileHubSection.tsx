@@ -2,7 +2,7 @@
 
 import { logoutAction } from "@/actions/authActions";
 import { SubmitButton, TextLink, UserAvatar } from "@/components/atoms";
-import { PageContainer, ScreenHeader, SettingsRow } from "@/components/molecules";
+import { NotificationBell, PageContainer, ScreenHeader, SettingsRow } from "@/components/molecules";
 import { WithdrawAccountDialog } from "@/components/organisms/WithdrawAccountDialog";
 import { toast } from "@/components/ui/toast";
 import { ROUTES } from "@/config/routes";
@@ -12,9 +12,10 @@ import { useState } from "react";
 
 type ProfileHubSectionProps = {
   profile: UiUserProfile | null;
+  inboxUnreadCount?: number;
 };
 
-export function ProfileHubSection({ profile }: ProfileHubSectionProps) {
+export function ProfileHubSection({ profile, inboxUnreadCount = 0 }: ProfileHubSectionProps) {
   const router = useRouter();
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -53,7 +54,9 @@ export function ProfileHubSection({ profile }: ProfileHubSectionProps) {
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       <ScreenHeader
         tone="default"
-        title="설정" />
+        title="설정"
+        trailing={<NotificationBell unreadCount={inboxUnreadCount} />}
+      />
 
       <PageContainer aria-label="마이페이지" className="flex-1">
         <div className="flex w-full items-center gap-[12px] rounded-[18px] bg-[var(--dl-color-bg-brand-subtle)] p-[14px]">
@@ -102,6 +105,12 @@ export function ProfileHubSection({ profile }: ProfileHubSectionProps) {
               description="계정 비밀번호 수정"
             />
           ) : null}
+          <SettingsRow
+            href={ROUTES.notifications}
+            title="알림함"
+            description="채팅·입장 요청·토픽·새 글"
+            icon="bell"
+          />
           <SettingsRow
             href={ROUTES.mypage.notifications}
             title="알림 설정"

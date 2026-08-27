@@ -18,6 +18,7 @@ export {
   AuthTopBar,
   HeaderBackButton,
   HeaderBackLink,
+  HeaderHomeLink,
   HeaderMenuButton,
   HeaderSearchButton,
   HeaderSearchLink,
@@ -56,6 +57,7 @@ export { ExploreNav } from "./ExploreNav";
 export { RoomNav } from "./RoomNav";
 export { FeedActionRail } from "./FeedActionRail";
 export { FeedTopBar } from "./FeedTopBar";
+export { NotificationBell } from "./NotificationBell";
 export { MyPageMenuItem } from "./MyPageMenuItem";
 export { SettingsRow } from "./SettingsRow";
 
@@ -92,6 +94,7 @@ export { VideoReactionBar } from "./VideoReactionBar";
 export { VideoThumbnailGrid } from "./VideoThumbnailGrid";
 export { CaptureClipOverlays } from "./CaptureClipOverlays";
 export { CaptureCreateForm } from "./CaptureCreateForm";
+export { CaptureThumbnailField } from "./CaptureThumbnailField";
 export { ThumbnailUpload } from "./ThumbnailUpload";
 
 // --- 7. Chat, Social & Member Molecules ---

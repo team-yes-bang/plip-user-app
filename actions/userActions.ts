@@ -4,6 +4,8 @@ import { signOut } from "@/auth";
 import * as authService from "@/services/authService";
 import * as userService from "@/services/userService";
 import { toUserActionError } from "@/lib/action/userActionError";
+import { ApiError } from "@/lib/api/apiFetch";
+import { saveProfileImageFile } from "@/lib/user/saveProfileImage";
 import { actionFailure, actionSuccess, type ActionResult } from "@/types/action-result";
 import type { UiAuthTokens } from "@/types/auth/ui";
 import type { UiNotificationSettings, UiTermsAgreementItem, UiUserProfile } from "@/types/user/ui";
@@ -11,7 +13,6 @@ import {
   USER_NICKNAME_MAX_LENGTH,
   USER_NICKNAME_MIN_LENGTH,
 } from "@/types/user/ui";
-import { ApiError } from "@/lib/api/apiFetch";
 
 function parseNickname(value: FormDataEntryValue | null): string | null {
   if (typeof value !== "string") {
@@ -34,20 +35,35 @@ export async function getMyProfileAction(): Promise<ActionResult<UiUserProfile>>
 }
 
 export async function updateMyProfileAction(
-  nickname: FormDataEntryValue | null,
+  formData: FormData,
 ): Promise<ActionResult<UiUserProfile>> {
-  const parsed = parseNickname(nickname);
-  if (!parsed) {
+  const nicknameValue = formData.get("nickname");
+  const imageValue = formData.get("profileImage");
+  const imageFile = imageValue instanceof File && imageValue.size > 0 ? imageValue : null;
+
+  const parsed = parseNickname(nicknameValue);
+  if (nicknameValue != null && String(nicknameValue).trim() !== "" && !parsed) {
+    return actionFailure(`닉네임은 ${USER_NICKNAME_MIN_LENGTH}~${USER_NICKNAME_MAX_LENGTH}자여야 합니다.`);
+  }
+  if (!parsed && !imageFile) {
     return actionFailure(`닉네임은 ${USER_NICKNAME_MIN_LENGTH}~${USER_NICKNAME_MAX_LENGTH}자여야 합니다.`);
   }
 
   try {
     const current = await userService.getMyProfile();
-    if (current.nickname === parsed) {
-      return actionFailure("현재 사용 중인 닉네임과 동일합니다.");
+    const nicknameChanged = Boolean(parsed && parsed !== current.nickname);
+    const profileImagePath = imageFile
+      ? await saveProfileImageFile(current.userUuid, imageFile)
+      : undefined;
+
+    if (!nicknameChanged && !profileImagePath) {
+      return actionFailure("변경 사항이 없습니다.");
     }
 
-    const profile = await userService.updateMyProfile({ nickname: parsed });
+    const profile = await userService.updateMyProfile({
+      ...(nicknameChanged && parsed ? { nickname: parsed } : {}),
+      ...(profileImagePath ? { profileImagePath } : {}),
+    });
     return actionSuccess(profile);
   } catch (error) {
     return toUserActionError(error);

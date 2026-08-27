@@ -2,6 +2,7 @@
 
 import { ApiError } from "@/lib/api/apiFetch";
 import * as agitService from "@/services/agitService";
+import { notifyJoinOutcome } from "@/services/notificationService";
 import { actionFailure, actionSuccess, type ActionResult } from "@/types/action-result";
 import { getApiErrorCode } from "@/lib/auth/auth-errors";
 import type { ApiJoinAgitResponse } from "@/types/agit/api";
@@ -84,6 +85,13 @@ export async function transferAgitHostAction(
   }
 }
 
+const DISCOVER_SEARCH_UNAVAILABLE =
+  "랭킹·검색을 잠시 불러올 수 없어요. 잠시 후 다시 시도해 주세요.";
+
+function toDiscoverSearchError(): ActionResult<never> {
+  return actionFailure(DISCOVER_SEARCH_UNAVAILABLE);
+}
+
 export async function searchDiscoverAgitsAction(
   query: string,
   sort: ApiDiscoverSort,
@@ -94,8 +102,8 @@ export async function searchDiscoverAgitsAction(
       sort,
     });
     return actionSuccess(items);
-  } catch (error) {
-    return toActionError(error);
+  } catch {
+    return toDiscoverSearchError();
   }
 }
 
@@ -131,12 +139,38 @@ export async function requestJoinAgitAction(
   }
 }
 
+type JoinDecisionNotify = {
+  requesterUserUuid?: string;
+  agitName?: string;
+};
+
+async function notifyJoinDecision(
+  agitId: string,
+  approved: boolean,
+  notify?: JoinDecisionNotify,
+): Promise<void> {
+  const requesterUserUuid = notify?.requesterUserUuid?.trim();
+  if (!requesterUserUuid) return;
+  try {
+    await notifyJoinOutcome({
+      requesterUserUuid,
+      agitId,
+      agitName: notify?.agitName?.trim() || "아지트",
+      approved,
+    });
+  } catch {
+    // 승인/거절 자체는 성공. 알림 기록 실패는 무시.
+  }
+}
+
 export async function approveJoinRequestAction(
   agitId: string,
   ampId: number,
+  notify?: JoinDecisionNotify,
 ): Promise<ActionResult<void>> {
   try {
     await agitService.approveJoinRequest(agitId, ampId);
+    await notifyJoinDecision(agitId, true, notify);
     return actionSuccess(undefined);
   } catch (error) {
     return toActionError(error);
@@ -146,9 +180,11 @@ export async function approveJoinRequestAction(
 export async function rejectJoinRequestAction(
   agitId: string,
   ampId: number,
+  notify?: JoinDecisionNotify,
 ): Promise<ActionResult<void>> {
   try {
     await agitService.rejectJoinRequest(agitId, ampId);
+    await notifyJoinDecision(agitId, false, notify);
     return actionSuccess(undefined);
   } catch (error) {
     return toActionError(error);

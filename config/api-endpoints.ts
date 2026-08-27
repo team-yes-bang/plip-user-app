@@ -28,6 +28,12 @@ export const API_ENDPOINTS = {
     profile: gatewayPath("user", "/api/v1/users/me/profile"),
     password: gatewayPath("user", "/api/v1/users/me/password"),
     notificationSettings: gatewayPath("user", "/api/v1/users/me/notification-settings"),
+    notifications: gatewayPath("user", "/api/v1/users/me/notifications"),
+    notificationUnreadCount: gatewayPath("user", "/api/v1/users/me/notifications/unread-count"),
+    notificationRead: (id: number) =>
+      gatewayPath("user", `/api/v1/users/me/notifications/${id}/read`),
+    notificationReadAll: gatewayPath("user", "/api/v1/users/me/notifications/read-all"),
+    notificationSeed: gatewayPath("user", "/api/v1/users/me/notifications/seed"),
     termsAgreements: gatewayPath("user", "/api/v1/users/me/terms-agreements"),
   },
   agit: {
@@ -88,6 +94,8 @@ export const API_ENDPOINTS = {
   },
   video: {
     uploadUrl: gatewayPath("video", "/api/v1/videos/upload-url"),
+    thumbnailUploadUrl: (videoUuid: string) =>
+      gatewayPath("video", `/api/v1/videos/${videoUuid}/thumbnail-upload-url`),
     complete: (videoUuid: string) =>
       gatewayPath("video", `/api/v1/videos/${videoUuid}/complete`),
     detail: (videoUuid: string) => gatewayPath("video", `/api/v1/videos/${videoUuid}`),
