@@ -8,7 +8,7 @@ type ExploreNavProps = {
 };
 
 const TABS: { id: ExploreNavTab; label: string; href: string }[] = [
-  { id: "home", label: "홈", href: ROUTES.home },
+  { id: "home", label: "홈", href: ROUTES.intro },
   { id: "explore", label: "탐색", href: ROUTES.agit.root },
   { id: "rooms", label: "내 방", href: ROUTES.agit.detail("agit-walk") },
   { id: "profile", label: "프로필", href: ROUTES.mypage.root },

@@ -1,6 +1,5 @@
 "use client";
 
-import { ROUTES } from "@/config/routes";
 import { getSafeCallbackUrl } from "@/lib/auth/safe-callback-url";
 import { cn } from "@/lib/utils";
 import type { SocialProvider } from "@/types/auth/ui";
@@ -48,7 +47,7 @@ export function SocialAuthButtons({
   disabled,
   className,
 }: SocialAuthButtonsProps) {
-  const targetUrl = getSafeCallbackUrl(callbackUrl ?? ROUTES.home);
+  const targetUrl = getSafeCallbackUrl(callbackUrl);
 
   function handleSignIn(provider: SocialProvider) {
     void signIn(provider, { callbackUrl: targetUrl });

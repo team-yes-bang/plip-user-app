@@ -122,7 +122,7 @@ export function HeaderSearchButton({ onClick, label = "검색" }: { onClick: () 
 }
 
 export function HeaderHomeLink({
-  href = ROUTES.home,
+  href = ROUTES.intro,
   label = "홈",
 }: {
   href?: string;

@@ -1,9 +1,27 @@
 import { ROUTES } from "@/config/routes";
 
-const DEFAULT_AFTER_AUTH = ROUTES.home;
+const DEFAULT_AFTER_AUTH = ROUTES.intro;
 
 function isLandingPath(path: string): boolean {
-  return path === "/" || path === ROUTES.intro || path === "/intro";
+  const pathname = path.split("?")[0] ?? path;
+  return pathname === "/" || pathname === ROUTES.intro || pathname === "/intro";
+}
+
+function toInternalPath(raw: string): string | null {
+  if (raw.includes("://")) {
+    try {
+      const url = new URL(raw);
+      return `${url.pathname}${url.search}`;
+    } catch {
+      return null;
+    }
+  }
+
+  if (!raw.startsWith("/") || raw.startsWith("//")) {
+    return null;
+  }
+
+  return raw;
 }
 
 export function getSafeCallbackUrl(raw: string | null | undefined): string {
@@ -18,13 +36,10 @@ export function getSafeCallbackUrl(raw: string | null | undefined): string {
     return DEFAULT_AFTER_AUTH;
   }
 
-  if (!decoded.startsWith("/") || decoded.startsWith("//") || decoded.includes("://")) {
+  const path = toInternalPath(decoded);
+  if (!path || isLandingPath(path)) {
     return DEFAULT_AFTER_AUTH;
   }
 
-  if (isLandingPath(decoded)) {
-    return DEFAULT_AFTER_AUTH;
-  }
-
-  return decoded;
+  return path;
 }
