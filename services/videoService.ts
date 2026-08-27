@@ -1,4 +1,5 @@
 import * as videoApi from "@/lib/api/videoApi";
+import { parseUploadedAtToDate } from "@/lib/video/formatOverlayClock";
 import type {
   VideoCompleteResponse,
   VideoDestinationRequest,
@@ -27,7 +28,7 @@ function mapComplete(api: VideoCompleteResponse): VideoCompleteUi {
   return {
     videoUuid: api.videoUuid,
     caption: api.caption,
-    createdAt: new Date(api.createdAt),
+    createdAt: parseUploadedAtToDate(api.createdAt),
     overlayTime: api.overlayTime,
   };
 }
@@ -37,7 +38,7 @@ function mapDetail(api: VideoDetailResponse): VideoDetailUi {
     videoUuid: api.videoUuid,
     userUuid: api.userUuid,
     caption: api.caption,
-    createdAt: new Date(api.createdAt),
+    createdAt: parseUploadedAtToDate(api.createdAt),
     rawPlaybackUrl: api.rawPlaybackUrl,
     thumbnailUrl: api.thumbnailUrl,
     overlayTime: api.overlayTime,
