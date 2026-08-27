@@ -12,7 +12,7 @@ type MobileDeviceFrameProps = {
  */
 export function MobileDeviceFrame({ children }: MobileDeviceFrameProps) {
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden md:items-center md:justify-center md:p-[2rem_1.5rem] md:bg-[#ececf1]">
+    <div className="fixed inset-0 flex flex-col overflow-hidden md:items-center md:justify-center md:p-[2rem_1.5rem] md:bg-[#ececf1] md:bg-[var(--dl-color-bg-brand-subtle)]">
       <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-hidden md:h-[min(874px,_calc(100dvh_-_2.5rem))] md:w-[min(402px,_calc(100vw_-_2rem))] md:flex-none md:p-[2px] md:rounded-[16px] md:bg-[var(--dl-color-border-default)] md:shadow-[0_12px_40px_rgba(23,_23,_28,_0.16)]">
         <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden md:rounded-[14px] md:bg-[var(--dl-color-bg-elevated)] md:[transform:translateZ(0)]">
           <OverlayPortalProvider>
