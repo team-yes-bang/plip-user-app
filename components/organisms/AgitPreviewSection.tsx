@@ -91,7 +91,7 @@ export function AgitPreviewSection({
                     {formError}
                   </p>
                 ) : null}
-                <SubmitButton pending={pending}>입장 요청</SubmitButton>
+                <SubmitButton disabled={pending}>{pending ? "요청 중…" : "입장 요청"}</SubmitButton>
               </form>
             )}
           </>
