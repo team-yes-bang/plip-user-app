@@ -6,6 +6,7 @@ import { AuthSessionProvider } from "@/components/providers/AuthSessionProvider"
 import { VideoViewerProvider } from "@/components/providers/VideoViewerProvider";
 import { AppRouteShell } from "@/components/templates/AppRouteShell";
 import "./globals.css";
+import { DEFAULT_OG_IMAGE_PATH, getMetadataBase } from "@/lib/seo/openGraph";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
@@ -53,8 +54,16 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: getMetadataBase(),
   title: "PLIP",
   description: "PLIP — Personal Clip",
+  openGraph: {
+    type: "website",
+    siteName: "PLIP",
+    title: "PLIP",
+    description: "PLIP — Personal Clip",
+    images: [{ url: DEFAULT_OG_IMAGE_PATH }],
+  },
 };
 
 export default async function RootLayout({
