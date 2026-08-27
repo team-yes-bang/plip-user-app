@@ -1,4 +1,4 @@
-import { DailyIcon, FeedPill, feedPillIconButtonClass, FeedPillIconButton, IconLink } from "@/components/atoms";
+import { DailyIcon, FeedPill, FeedPillIconButton, IconLink } from "@/components/atoms";
 
 type TopicFeedPillHeaderProps = {
   backHref?: string;
