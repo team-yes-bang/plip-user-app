@@ -107,3 +107,39 @@ export type ApiJoinAgitResponse = {
   profileImagePath: string | null;
   role: ApiAgitMemberRole;
 };
+
+export type ApiAgitPreview = {
+  agitUuid: string;
+  agitName: string;
+  description: string | null;
+  currentMemberCount: number;
+  maximumCapacity: number;
+  hostNickname: string;
+  thumbnailPath: string | null;
+  myStatus: "ACTIVE" | "PENDING" | "LEFT" | "BANNED" | null;
+};
+
+export type ApiJoinRequestItem = {
+  ampId: number;
+  userUuid: string;
+  nickname: string;
+  profileImagePath: string | null;
+};
+
+export type ApiDiscoverSort = "new" | "popular" | "rising";
+
+export type ApiDiscoverAgitItem = {
+  agitUuid: string;
+  agitName: string;
+  description: string | null;
+  thumbnailPath: string | null;
+  createdAt: string | null;
+  score: number | null;
+};
+
+export type ApiDiscoverSearchPage = {
+  items: ApiDiscoverAgitItem[];
+  page: number;
+  size: number;
+  total: number;
+};

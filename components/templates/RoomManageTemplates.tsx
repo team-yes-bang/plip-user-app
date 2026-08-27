@@ -1,6 +1,7 @@
 import { TextLink } from "@/components/atoms";
 import { AuthTopBar, PageContainer, ScreenHeader } from "@/components/molecules";
 import { AgitManageForm } from "@/components/organisms/AgitManageForm";
+import { JoinRequestsSection } from "@/components/organisms/JoinRequestsSection";
 import { AgitProfileEditForm } from "@/components/organisms/AgitProfileEditForm";
 import { InvitesSafetySection } from "@/components/organisms/InvitesSafetySection";
 import { MembersPermissionsSection } from "@/components/organisms/MembersPermissionsSection";
@@ -14,7 +15,7 @@ import { DailyLoopAuthTemplate } from "@/components/templates/DailyLoopAuthTempl
 import { getAgitById } from "@/config/agit-mock";
 import { ROUTES } from "@/config/routes";
 import { shouldShowTopicCaptureSlot } from "@/lib/topic/selectAgitTopic";
-import type { ApiAgitDetailMember } from "@/types/agit/api";
+import type { ApiAgitDetailMember, ApiJoinRequestItem } from "@/types/agit/api";
 import type { UiAgit } from "@/types/agit/ui";
 import type { UiTopicDetail, UiTopicFeedWindow, UiTopicListSections, UiTopicVideo } from "@/types/topic/ui";
 
@@ -31,12 +32,19 @@ function RoomMissing() {
   );
 }
 
-export function RoomManageHubTemplate({ agit }: { agit: UiAgit | null }) {
+export function RoomManageHubTemplate({
+  agit,
+  joinRequests = [],
+}: {
+  agit: UiAgit | null;
+  joinRequests?: ApiJoinRequestItem[];
+}) {
   if (!agit) return <RoomMissing />;
 
   return (
     <AgitFlowChrome>
       <AuthTopBar title="아지트관리" backHref={ROUTES.agit.detail(agit.id)} />
+      <JoinRequestsSection agitId={agit.id} requests={joinRequests} />
       <AgitManageForm agit={agit} />
     </AgitFlowChrome>
   );

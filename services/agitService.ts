@@ -4,14 +4,19 @@ import * as chatService from "@/services/chatService";
 import type {
   ApiAgitDetail,
   ApiAgitLanding,
+  ApiAgitPreview,
   ApiCreateAgitRequest,
   ApiCreateAgitResponse,
+  ApiDiscoverSearchPage,
+  ApiDiscoverSort,
   ApiJoinAgitResponse,
+  ApiJoinRequestItem,
   ApiMyAgitItem,
   ApiUpdateAgitRequest,
   ApiUpdateMyMemberProfileRequest,
   ApiUpdateMyMemberProfileResponse,
 } from "@/types/agit/api";
+import * as analyticsApi from "@/lib/api/analyticsApi";
 import type { UiAgit, UiCreateAgitInput } from "@/types/agit/ui";
 
 export { sortAgitMembers } from "@/lib/agit/sortMembers";
@@ -180,6 +185,63 @@ export async function joinAgitByCode(
     nickname: input.nickname,
     ...(input.profileImagePath ? { profileImagePath: input.profileImagePath } : {}),
   });
+}
+
+export async function searchDiscoverAgits(input: {
+  q?: string;
+  sort?: ApiDiscoverSort;
+  size?: number;
+}): Promise<UiAgit[]> {
+  const page: ApiDiscoverSearchPage = await analyticsApi.searchDiscoverAgits({
+    q: input.q,
+    sort: input.sort,
+    page: 0,
+    size: input.size ?? 30,
+  });
+  return page.items.map((item) => ({
+    id: item.agitUuid,
+    name: item.agitName,
+    memberCount: 0,
+    description: item.description ?? "",
+    coverGradient: DEFAULT_COVER_GRADIENT,
+    topicCount: 0,
+    thumbnailSrc: toRenderableThumbnail(item.thumbnailPath),
+    joined: false,
+  }));
+}
+
+export async function publishSearchMetric(type: string, agitUuid: string): Promise<void> {
+  try {
+    await analyticsApi.publishAnalyticsEvent(type, agitUuid);
+  } catch {
+    // 검색은 지표 발행 실패와 무관하게 동작
+  }
+}
+
+export async function getAgitPreview(agitId: string): Promise<ApiAgitPreview> {
+  return agitApi.getAgitPreview(agitId);
+}
+
+export async function requestJoinAgit(
+  agitId: string,
+  input: { nickname: string; profileImagePath?: string },
+): Promise<ApiJoinAgitResponse> {
+  return agitApi.requestJoinAgit(agitId, {
+    nickname: input.nickname,
+    ...(input.profileImagePath ? { profileImagePath: input.profileImagePath } : {}),
+  });
+}
+
+export async function listJoinRequests(agitId: string): Promise<ApiJoinRequestItem[]> {
+  return agitApi.listJoinRequests(agitId);
+}
+
+export async function approveJoinRequest(agitId: string, ampId: number): Promise<void> {
+  await agitApi.approveJoinRequest(agitId, ampId);
+}
+
+export async function rejectJoinRequest(agitId: string, ampId: number): Promise<void> {
+  await agitApi.rejectJoinRequest(agitId, ampId);
 }
 
 export async function createAgit(input: UiCreateAgitInput): Promise<UiAgit> {

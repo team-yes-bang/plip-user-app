@@ -1,4 +1,5 @@
 import { TextLink } from "@/components/atoms";
+import { AgitPreviewSection } from "@/components/organisms/AgitPreviewSection";
 import {
   AgitSearchSection,
 } from "@/components/organisms/AgitSubSections";
@@ -8,7 +9,7 @@ import { AgitListSection } from "@/components/organisms/AgitListSection";
 import { AppChromeTemplate } from "@/components/templates/AppChromeTemplate";
 import { DailyLoopAuthTemplate } from "@/components/templates/DailyLoopAuthTemplate";
 import { ROUTES } from "@/config/routes";
-import type { ApiAgitDetailMember } from "@/types/agit/api";
+import type { ApiAgitDetailMember, ApiAgitPreview } from "@/types/agit/api";
 import type { UiAgit } from "@/types/agit/ui";
 import type { UiChatHistory } from "@/types/chat/ui";
 import type { UiTopicGallery } from "@/types/topic/ui";
@@ -105,10 +106,28 @@ export function AgitChatTemplate({
   );
 }
 
-export function AgitSearchTemplate() {
+export function AgitPreviewTemplate({
+  preview,
+  error,
+}: {
+  preview: ApiAgitPreview | null;
+  error?: string;
+}) {
   return (
     <AppChromeTemplate activeTab="agit" variant="light" showNav={false}>
-      <AgitSearchSection />
+      <AgitPreviewSection preview={preview} error={error} />
+    </AppChromeTemplate>
+  );
+}
+
+export function AgitSearchTemplate({
+  myAgitIds,
+}: {
+  myAgitIds: string[];
+}) {
+  return (
+    <AppChromeTemplate activeTab="agit" variant="light" showNav={false}>
+      <AgitSearchSection myAgitIds={myAgitIds} />
     </AppChromeTemplate>
   );
 }
