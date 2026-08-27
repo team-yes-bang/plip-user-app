@@ -17,6 +17,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const EMPTY_TOPIC_VIDEOS: UiTopicVideo[] = [];
+const FEED_SCROLL_END_DELAY_MS = 120;
 
 type TopicFeedSectionProps = {
   agitId: string;
@@ -92,7 +93,9 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
   const scrollerRef = useRef<HTMLDivElement>(null);
   const loadingVideoIds = useRef(new Set<string>());
   const videosRef = useRef(initialVideos);
+  const scrollEndTimerRef = useRef<number | null>(null);
   const [, setViewportHeight] = useState(0);
+  const [isFeedScrolling, setIsFeedScrolling] = useState(false);
 
   const [actionsOpen, setActionsOpen] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
@@ -136,7 +139,12 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
     }
     updateHeight();
     window.addEventListener("resize", updateHeight);
-    return () => window.removeEventListener("resize", updateHeight);
+    return () => {
+      window.removeEventListener("resize", updateHeight);
+      if (scrollEndTimerRef.current) {
+        window.clearTimeout(scrollEndTimerRef.current);
+      }
+    };
   }, []);
 
   const resolvedAgit = agit ?? getAgitById(agitId) ?? null;
@@ -198,6 +206,16 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
     if (!el) return;
     const h = el.clientHeight;
     if (h <= 0) return;
+
+    setIsFeedScrolling((prev) => (prev ? prev : true));
+    if (scrollEndTimerRef.current) {
+      window.clearTimeout(scrollEndTimerRef.current);
+    }
+    scrollEndTimerRef.current = window.setTimeout(() => {
+      setIsFeedScrolling(false);
+      scrollEndTimerRef.current = null;
+    }, FEED_SCROLL_END_DELAY_MS);
+
     const newIndex = Math.round(el.scrollTop / h);
     if (newIndex !== indexRef.current && newIndex >= 0) {
       setIndex(newIndex);
@@ -295,7 +313,7 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
                   showCaptureSlot={shouldShowTopicCaptureSlot(topic)}
                   topicTitle={topic.title}
                   agitName={resolvedAgit?.name}
-                  playbackEnabled={!isAtCoverSlide && topicIndex === effectiveIndex}
+                  playbackEnabled={!isAtCoverSlide && topicIndex === effectiveIndex && !isFeedScrolling}
                 />
               ) : null}
             </div>
