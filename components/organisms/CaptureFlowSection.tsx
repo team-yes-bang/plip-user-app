@@ -123,6 +123,14 @@ export function CaptureFlowSection({
   const slotRef = useRef<HTMLDivElement>(null);
   const previewVideoElRef = useRef<HTMLVideoElement | null>(null);
 
+  const bindCaptureVideoRef = useCallback(
+    (node: HTMLVideoElement | null) => {
+      videoRef(node);
+      previewVideoElRef.current = node;
+    },
+    [videoRef],
+  );
+
   const isPreview = status === "preview" || flowPhase === "uploading" || flowPhase === "complete";
   const showSettings = isPreview && previewStep === "settings";
   const showConfirm = isPreview && previewStep === "confirm";
@@ -325,7 +333,9 @@ export function CaptureFlowSection({
     setSaveError(null);
     const uploadOutcome = await uploadCapture(caption.trim() || undefined, thumbnailFile);
     if (!uploadOutcome.ok) {
-      setSaveError(uploadOutcome.error);
+      if (!uploadOutcome.sessionExpired) {
+        setSaveError(uploadOutcome.error);
+      }
       return;
     }
 
@@ -458,10 +468,7 @@ export function CaptureFlowSection({
         }
       >
         <video
-          ref={(node) => {
-            videoRef(node);
-            previewVideoElRef.current = node;
-          }}
+          ref={bindCaptureVideoRef}
           className={`h-full w-full object-cover ${mirrorVideo ? "-scale-x-100" : ""}`}
           autoPlay
           playsInline

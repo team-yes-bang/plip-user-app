@@ -36,6 +36,10 @@ export type UseVideoRecorderOptions = {
 };
 
 function attachLiveStream(node: HTMLVideoElement, stream: MediaStream) {
+  if (node.srcObject === stream && !node.paused && !node.ended) {
+    return;
+  }
+
   node.pause();
   node.removeAttribute("src");
   node.srcObject = stream;
@@ -45,6 +49,10 @@ function attachLiveStream(node: HTMLVideoElement, stream: MediaStream) {
 }
 
 function attachPreviewUrl(node: HTMLVideoElement, previewUrl: string) {
+  if (node.src === previewUrl && node.srcObject === null && !node.paused) {
+    return;
+  }
+
   node.pause();
   node.srcObject = null;
   if (node.src !== previewUrl) {

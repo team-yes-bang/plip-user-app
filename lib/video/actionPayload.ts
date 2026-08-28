@@ -117,6 +117,13 @@ export function extractVideoUuidFromActionResult(payload: unknown): string | nul
 }
 
 export function extractActionError(payload: unknown): string | null {
+  const failure = extractActionFailure(payload);
+  return failure?.error ?? null;
+}
+
+export function extractActionFailure(
+  payload: unknown,
+): { error: string; sessionExpired?: boolean } | null {
   if (!payload || typeof payload !== "object") {
     return null;
   }
@@ -125,9 +132,17 @@ export function extractActionError(payload: unknown): string | null {
     return null;
   }
 
-  if (!("error" in payload) || typeof payload.error !== "string") {
-    return "Unknown error";
+  if ("sessionExpired" in payload && payload.sessionExpired === true) {
+    return { error: "", sessionExpired: true };
   }
 
-  return payload.error;
+  if (!("error" in payload) || typeof payload.error !== "string") {
+    return { error: "Unknown error" };
+  }
+
+  return { error: payload.error };
+}
+
+export function isSessionExpiredAction(payload: unknown): boolean {
+  return extractActionFailure(payload)?.sessionExpired === true;
 }

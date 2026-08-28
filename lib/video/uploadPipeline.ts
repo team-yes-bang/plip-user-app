@@ -4,7 +4,7 @@ import {
   issueThumbnailUploadUrlAction,
   issueUploadUrlAction,
 } from "@/actions/videoActions";
-import { extractActionError } from "@/lib/video/actionPayload";
+import { VideoSessionExpiredError } from "@/lib/video/actionErrors";
 import { THUMBNAIL_CONTENT_TYPE } from "@/lib/video/constants";
 import { pollDownloadUrl } from "@/lib/video/downloadUrlPoll";
 import { resolvePlaybackSource, type PlaybackSource } from "@/lib/video/playback";
@@ -31,15 +31,34 @@ export type Phase0FUploadResult = VideoUploadPipelineResult & {
   playback: PlaybackSource;
 };
 
+function assertActionSuccess<T>(
+  payload: { ok: true; data: T } | { ok: false; error: string; sessionExpired?: boolean },
+  fallbackMessage: string,
+): asserts payload is { ok: true; data: T } {
+  if (payload.ok) {
+    return;
+  }
+
+  if (payload.sessionExpired) {
+    throw new VideoSessionExpiredError();
+  }
+
+  throw new Error(payload.error || fallbackMessage);
+}
+
 async function uploadThumbnailBestEffort(
   videoUuid: string,
   thumbnail: Blob,
 ): Promise<string | undefined> {
   const contentType = thumbnail.type || THUMBNAIL_CONTENT_TYPE;
   const issued = await issueThumbnailUploadUrlAction(videoUuid, contentType, thumbnail.size);
-  const issuedError = extractActionError(issued);
-  if (issuedError || !issued.ok) {
-    if (issuedError?.includes("[404]")) {
+  if (!issued.ok) {
+    if (issued.sessionExpired) {
+      throw new VideoSessionExpiredError();
+    }
+
+    const issuedError = issued.error;
+    if (issuedError.includes("[404]")) {
       console.warn(
         "thumbnail-upload-url unavailable; continuing without client thumbnail (Lambda will generate)",
       );
@@ -63,10 +82,7 @@ export async function uploadRecordedVideo(
   const contentType = resolveUploadContentType(prepared.type || options?.recorderMimeType);
 
   const uploadUrlResult = await issueUploadUrlAction(contentType, prepared.size);
-  const uploadUrlError = extractActionError(uploadUrlResult);
-  if (uploadUrlError || !uploadUrlResult.ok) {
-    throw new Error(uploadUrlError ?? "upload-url failed");
-  }
+  assertActionSuccess(uploadUrlResult, "upload-url failed");
 
   const { videoUuid, uploadUrl } = uploadUrlResult.data;
   const thumbnail = options?.thumbnail;
@@ -78,16 +94,10 @@ export async function uploadRecordedVideo(
       : undefined;
 
   const completeResult = await completeVideoAction(videoUuid, options?.caption, thumbnailS3Key);
-  const completeError = extractActionError(completeResult);
-  if (completeError || !completeResult.ok) {
-    throw new Error(completeError ?? "complete failed");
-  }
+  assertActionSuccess(completeResult, "complete failed");
 
   const detailResult = await getVideoAction(videoUuid);
-  const detailError = extractActionError(detailResult);
-  if (detailError || !detailResult.ok) {
-    throw new Error(detailError ?? "get video failed");
-  }
+  assertActionSuccess(detailResult, "get video failed");
 
   return {
     videoUuid,
