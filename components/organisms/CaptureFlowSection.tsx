@@ -333,9 +333,7 @@ export function CaptureFlowSection({
     setSaveError(null);
     const uploadOutcome = await uploadCapture(caption.trim() || undefined, thumbnailFile);
     if (!uploadOutcome.ok) {
-      if (!uploadOutcome.sessionExpired) {
-        setSaveError(uploadOutcome.error);
-      }
+      setSaveError(uploadOutcome.error);
       return;
     }
 

@@ -1,14 +1,10 @@
 "use client";
 
-import { logoutAction } from "@/actions/authActions";
 import { useVideoRecorder } from "@/hooks/useVideoRecorder";
-import { ROUTES } from "@/config/routes";
 import { DEFAULT_CAPTURE_CAPTION } from "@/lib/video/constants";
-import { VideoSessionExpiredError } from "@/lib/video/actionErrors";
 import { createOversizeUploadBlob } from "@/lib/video/uploadLimits";
 import { runPhase0FUpload, type Phase0FUploadResult } from "@/lib/video/uploadPipeline";
 import type { CaptureFlowPhase } from "@/types/video/ui";
-import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 
 function mapRecorderStatusToFlowPhase(
@@ -49,10 +45,9 @@ function mapRecorderStatusToFlowPhase(
 
 export type VideoCaptureUploadOutcome =
   | { ok: true; result: Phase0FUploadResult }
-  | { ok: false; error: string; sessionExpired?: boolean };
+  | { ok: false; error: string };
 
 export function useVideoCaptureFlow() {
-  const router = useRouter();
   const recorder = useVideoRecorder({ autoPrepare: true });
   const [uploading, setUploading] = useState(false);
   const [flowError, setFlowError] = useState<string | null>(null);
@@ -107,13 +102,6 @@ export function useVideoCaptureFlow() {
         setUploadResult(result);
         return { ok: true, result };
       } catch (error) {
-        if (error instanceof VideoSessionExpiredError) {
-          await logoutAction().catch(() => undefined);
-          router.push(ROUTES.login);
-          router.refresh();
-          return { ok: false, error: error.message, sessionExpired: true };
-        }
-
         const message = error instanceof Error ? error.message : "Upload failed";
         setFlowError(message);
         return { ok: false, error: message };
@@ -121,7 +109,7 @@ export function useVideoCaptureFlow() {
         setUploading(false);
       }
     },
-    [router],
+    [],
   );
 
   const uploadCapture = useCallback(
