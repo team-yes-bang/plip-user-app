@@ -1,6 +1,6 @@
 "use server";
 
-import { actionFailure, actionSuccess, type ActionResult } from "@/types/action-result";
+import { actionFailure, actionSessionExpired, actionSuccess, type ActionResult } from "@/types/action-result";
 import type {
   VideoCompleteActionData,
   VideoDestinationActionData,
@@ -13,7 +13,12 @@ import type { VideoDestinationRequest } from "@/types/video/api";
 import type { VideoDestination } from "@/types/video/destination";
 import { getApiUrl, isVideoDestinationNotWiredFallbackEnabled } from "@/lib/api/env";
 import { ApiError } from "@/lib/api/apiFetch";
-import { getServerUserUuid } from "@/lib/auth/server-token";
+import { persistSessionTokens } from "@/lib/auth/persist-session-tokens";
+import {
+  applyRetryAuthHeaders,
+  reissueTokensOncePerRequest,
+} from "@/lib/auth/request-token-cache";
+import { getServerAccessToken, getServerUserUuid } from "@/lib/auth/server-token";
 import {
   VIDEO_DESTINATION_INVALID,
   VIDEO_LOGIN_REQUIRED,
@@ -36,7 +41,7 @@ const ALLOWED_THUMBNAIL_CONTENT_TYPES = new Set(["image/jpeg"]);
 const MAX_THUMBNAIL_BYTES = 2 * 1024 * 1024;
 
 async function requireSessionUserUuid(): Promise<
-  { ok: true; userUuid: string } | { ok: false; error: string }
+  { ok: true; userUuid: string } | { ok: false; error: string; sessionExpired?: boolean }
 > {
   const userUuid = await getServerUserUuid();
   if (!userUuid) {
@@ -45,6 +50,17 @@ async function requireSessionUserUuid(): Promise<
 
   if (!UUID_PATTERN.test(userUuid)) {
     return { ok: false, error: VIDEO_SESSION_INVALID };
+  }
+
+  const accessToken = await getServerAccessToken();
+  if (!accessToken) {
+    const refreshed = await reissueTokensOncePerRequest();
+    if (!refreshed) {
+      return { ok: false, error: "", sessionExpired: true };
+    }
+
+    applyRetryAuthHeaders(refreshed);
+    await persistSessionTokens(refreshed);
   }
 
   return { ok: true, userUuid };
@@ -75,6 +91,9 @@ function resolveThumbnailContentType(contentType?: string): string | undefined {
 
 function toActionError(error: unknown): ActionResult<never> {
   if (error instanceof ApiError) {
+    if (error.status === 401) {
+      return actionSessionExpired();
+    }
     return actionFailure(`[${error.status}] ${error.message}`);
   }
 
@@ -98,7 +117,7 @@ export async function issueUploadUrlAction(
 ): Promise<ActionResult<VideoUploadUrlActionData>> {
   const session = await requireSessionUserUuid();
   if (!session.ok) {
-    return actionFailure(session.error);
+    return session.sessionExpired ? actionSessionExpired() : actionFailure(session.error);
   }
 
   const resolvedContentType = resolveContentType(contentType);
@@ -133,7 +152,7 @@ export async function issueThumbnailUploadUrlAction(
 
   const session = await requireSessionUserUuid();
   if (!session.ok) {
-    return actionFailure(session.error);
+    return session.sessionExpired ? actionSessionExpired() : actionFailure(session.error);
   }
 
   const resolvedContentType = resolveThumbnailContentType(contentType);
@@ -173,7 +192,7 @@ export async function completeVideoAction(
 
   const session = await requireSessionUserUuid();
   if (!session.ok) {
-    return actionFailure(session.error);
+    return session.sessionExpired ? actionSessionExpired() : actionFailure(session.error);
   }
 
   const normalizedCaption = caption?.trim() || undefined;
@@ -196,7 +215,7 @@ export async function getVideoAction(
 ): Promise<ActionResult<VideoDetailActionData>> {
   const session = await requireSessionUserUuid();
   if (!session.ok) {
-    return actionFailure(session.error);
+    return session.sessionExpired ? actionSessionExpired() : actionFailure(session.error);
   }
 
   const resolvedVideoUuid = resolveVideoUuid(videoUuid);
@@ -242,7 +261,7 @@ export async function publishVideoDestinationAction(
 
   const session = await requireSessionUserUuid();
   if (!session.ok) {
-    return actionFailure(session.error);
+    return session.sessionExpired ? actionSessionExpired() : actionFailure(session.error);
   }
 
   const payload = toDestinationPayload(destination);
@@ -281,7 +300,7 @@ export async function getDownloadUrlAction(
 ): Promise<ActionResult<VideoDownloadUrlActionData>> {
   const session = await requireSessionUserUuid();
   if (!session.ok) {
-    return actionFailure(session.error);
+    return session.sessionExpired ? actionSessionExpired() : actionFailure(session.error);
   }
 
   const resolvedVideoUuid = resolveVideoUuid(videoUuid);

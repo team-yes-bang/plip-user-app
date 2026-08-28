@@ -1,5 +1,5 @@
 import { getDownloadUrlAction } from "@/actions/videoActions";
-import { extractActionError } from "@/lib/video/actionPayload";
+import { VideoSessionExpiredError } from "@/lib/video/actionErrors";
 import { DOWNLOAD_URL_MAX_ATTEMPTS } from "@/lib/video/constants";
 import type { VideoDownloadUrlActionData } from "@/types/video/action";
 
@@ -22,10 +22,13 @@ export async function pollDownloadUrl(
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const response = await getDownloadUrlAction(videoUuid);
-    const error = extractActionError(response);
 
-    if (error || !response.ok) {
-      throw new Error(error ?? "download-url failed");
+    if (!response.ok) {
+      if (response.sessionExpired) {
+        throw new VideoSessionExpiredError();
+      }
+
+      throw new Error(response.error || "download-url failed");
     }
 
     lastResult = response.data;
