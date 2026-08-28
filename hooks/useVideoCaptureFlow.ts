@@ -43,6 +43,10 @@ function mapRecorderStatusToFlowPhase(
   }
 }
 
+export type VideoCaptureUploadOutcome =
+  | { ok: true; result: Phase0FUploadResult }
+  | { ok: false; error: string };
+
 export function useVideoCaptureFlow() {
   const recorder = useVideoRecorder({ autoPrepare: true });
   const [uploading, setUploading] = useState(false);
@@ -82,7 +86,7 @@ export function useVideoCaptureFlow() {
         localPreviewUrl?: string | null;
         thumbnail?: Blob;
       },
-    ) => {
+    ): Promise<VideoCaptureUploadOutcome> => {
       setUploading(true);
       setFlowError(null);
       setUploadResult(null);
@@ -96,11 +100,11 @@ export function useVideoCaptureFlow() {
         });
 
         setUploadResult(result);
-        return result;
+        return { ok: true, result };
       } catch (error) {
         const message = error instanceof Error ? error.message : "Upload failed";
         setFlowError(message);
-        return null;
+        return { ok: false, error: message };
       } finally {
         setUploading(false);
       }
@@ -109,10 +113,14 @@ export function useVideoCaptureFlow() {
   );
 
   const uploadCapture = useCallback(
-    async (caption = DEFAULT_CAPTURE_CAPTION, thumbnail?: Blob) => {
+    async (
+      caption = DEFAULT_CAPTURE_CAPTION,
+      thumbnail?: Blob,
+    ): Promise<VideoCaptureUploadOutcome> => {
       if (!recorder.blob) {
-        setFlowError("Recorded blob is missing");
-        return null;
+        const message = "Recorded blob is missing";
+        setFlowError(message);
+        return { ok: false, error: message };
       }
 
       return uploadBlob(recorder.blob, {
@@ -126,7 +134,11 @@ export function useVideoCaptureFlow() {
   );
 
   const uploadFile = useCallback(
-    async (file: File, caption = DEFAULT_CAPTURE_CAPTION, thumbnail?: Blob) => {
+    async (
+      file: File,
+      caption = DEFAULT_CAPTURE_CAPTION,
+      thumbnail?: Blob,
+    ): Promise<VideoCaptureUploadOutcome> => {
       return uploadBlob(file, {
         caption,
         recorderMimeType: file.type,
@@ -137,7 +149,7 @@ export function useVideoCaptureFlow() {
     [uploadBlob],
   );
 
-  const uploadOversizeTest = useCallback(async () => {
+  const uploadOversizeTest = useCallback(async (): Promise<VideoCaptureUploadOutcome> => {
     return uploadBlob(createOversizeUploadBlob(), {
       caption: "oversize-limit-test",
       recorderMimeType: "video/mp4",

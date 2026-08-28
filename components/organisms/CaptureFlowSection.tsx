@@ -323,13 +323,13 @@ export function CaptureFlowSection({
     }
 
     setSaveError(null);
-    const uploaded = await uploadCapture(caption.trim() || undefined, thumbnailFile);
-    if (!uploaded) {
-      setSaveError("업로드에 실패했습니다.");
+    const uploadOutcome = await uploadCapture(caption.trim() || undefined, thumbnailFile);
+    if (!uploadOutcome.ok) {
+      setSaveError(uploadOutcome.error);
       return;
     }
 
-    await publishDestination(uploaded.videoUuid, destination);
+    await publishDestination(uploadOutcome.result.videoUuid, destination);
   }, [caption, publishDestination, resolveDestination, thumbnailFile, uploadCapture]);
 
   const handlePickThumbnailFile = useCallback(

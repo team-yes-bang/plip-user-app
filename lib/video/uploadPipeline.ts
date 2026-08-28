@@ -31,19 +31,22 @@ export type Phase0FUploadResult = VideoUploadPipelineResult & {
   playback: PlaybackSource;
 };
 
-async function uploadThumbnail(
+async function uploadThumbnailBestEffort(
   videoUuid: string,
   thumbnail: Blob,
-): Promise<string> {
+): Promise<string | undefined> {
   const contentType = thumbnail.type || THUMBNAIL_CONTENT_TYPE;
   const issued = await issueThumbnailUploadUrlAction(videoUuid, contentType, thumbnail.size);
   const issuedError = extractActionError(issued);
   if (issuedError || !issued.ok) {
-    throw new Error(
-      issuedError?.includes("[404]")
-        ? "서버가 아직 썸네일 업로드를 지원하지 않습니다. plip-video thumbnail-upload-url을 배포해 주세요."
-        : (issuedError ?? "thumbnail-upload-url failed"),
-    );
+    if (issuedError?.includes("[404]")) {
+      console.warn(
+        "thumbnail-upload-url unavailable; continuing without client thumbnail (Lambda will generate)",
+      );
+      return undefined;
+    }
+
+    throw new Error(issuedError ?? "thumbnail-upload-url failed");
   }
 
   await putPresignedUpload(issued.data.uploadUrl, thumbnail, contentType);
@@ -67,10 +70,12 @@ export async function uploadRecordedVideo(
 
   const { videoUuid, uploadUrl } = uploadUrlResult.data;
   const thumbnail = options?.thumbnail;
-  const [putResult, thumbnailS3Key] = await Promise.all([
-    putPresignedUpload(uploadUrl, prepared, contentType),
-    thumbnail && thumbnail.size > 0 ? uploadThumbnail(videoUuid, thumbnail) : Promise.resolve(undefined),
-  ]);
+
+  const putResult = await putPresignedUpload(uploadUrl, prepared, contentType);
+  const thumbnailS3Key =
+    thumbnail && thumbnail.size > 0
+      ? await uploadThumbnailBestEffort(videoUuid, thumbnail)
+      : undefined;
 
   const completeResult = await completeVideoAction(videoUuid, options?.caption, thumbnailS3Key);
   const completeError = extractActionError(completeResult);
