@@ -4,7 +4,6 @@ import {
   issueThumbnailUploadUrlAction,
   issueUploadUrlAction,
 } from "@/actions/videoActions";
-import { extractActionFailure } from "@/lib/video/actionPayload";
 import { VideoSessionExpiredError } from "@/lib/video/actionErrors";
 import { THUMBNAIL_CONTENT_TYPE } from "@/lib/video/constants";
 import { pollDownloadUrl } from "@/lib/video/downloadUrlPoll";
