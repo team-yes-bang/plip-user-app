@@ -3,7 +3,9 @@
 import { SubmitButton } from "@/components/atoms";
 import { AuthField, CapacityStepper } from "@/components/molecules";
 import { ThumbnailUpload } from "@/components/molecules/ThumbnailUpload";
-import { CREATE_ROOM_DRAFT_KEY } from "@/lib/agit/createRoomDraft";
+import { CREATE_ROOM_DRAFT_KEY, readCreateRoomDraft } from "@/lib/agit/createRoomDraft";
+import { resolveAgitThumbnailUrl } from "@/lib/agit/thumbnailImage";
+import { uploadAgitThumbnailFile } from "@/lib/agit/uploadThumbnail";
 import { ROUTES } from "@/config/routes";
 import {
   AGIT_DEFAULT_MAX_CAPACITY,
@@ -17,20 +19,50 @@ import { useState } from "react";
 export function CreateRoomBasicForm() {
   const router = useRouter();
   const [capacity, setCapacity] = useState(AGIT_DEFAULT_MAX_CAPACITY);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [savedThumbnailPath] = useState<string | undefined>(() => {
+    const draft = readCreateRoomDraft();
+    return draft?.thumbnailPath;
+  });
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(formData: FormData) {
+  const previewSrc = savedThumbnailPath ? resolveAgitThumbnailUrl(savedThumbnailPath) : undefined;
+
+  async function handleSubmit(formData: FormData) {
+    if (pending) return;
+    setError(null);
+    setPending(true);
+
+    let thumbnailPath = savedThumbnailPath;
+    if (thumbnailFile) {
+      try {
+        thumbnailPath = await uploadAgitThumbnailFile(thumbnailFile);
+      } catch (uploadError) {
+        setPending(false);
+        setError(uploadError instanceof Error ? uploadError.message : "썸네일 업로드에 실패했습니다.");
+        return;
+      }
+    }
+
     const draft: UiCreateAgitDraft = {
       title: String(formData.get("title") ?? ""),
       intro: String(formData.get("intro") ?? ""),
       capacity,
+      ...(thumbnailPath ? { thumbnailPath } : {}),
     };
     sessionStorage.setItem(CREATE_ROOM_DRAFT_KEY, JSON.stringify(draft));
+    setPending(false);
     router.push(ROUTES.agit.createSettings);
   }
 
   return (
     <form className="flex w-full flex-col gap-3.5" action={handleSubmit}>
-      <ThumbnailUpload />
+      <ThumbnailUpload
+        previewSrc={previewSrc}
+        onFileSelect={setThumbnailFile}
+        disabled={pending}
+      />
 
       <AuthField
         id="room-title"
@@ -68,8 +100,12 @@ export function CreateRoomBasicForm() {
         기본 정원 {AGIT_DEFAULT_MAX_CAPACITY}명까지 설정할 수 있어요.
       </p>
 
+      {error ? <p className="m-0 text-[12px] text-red-600">{error}</p> : null}
+
       <div className="flex w-full flex-col gap-[14px] mt-auto">
-        <SubmitButton variant="brand">다음</SubmitButton>
+        <SubmitButton variant="brand" disabled={pending}>
+          {pending ? "업로드 중..." : "다음"}
+        </SubmitButton>
       </div>
     </form>
   );

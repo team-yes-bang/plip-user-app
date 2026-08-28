@@ -143,3 +143,10 @@ export type ApiDiscoverSearchPage = {
   size: number;
   total: number;
 };
+
+export type ApiAgitThumbnailUploadUrlResponse = {
+  uploadKey: string;
+  thumbnailPath: string;
+  uploadUrl: string;
+  expiresAt: string;
+};

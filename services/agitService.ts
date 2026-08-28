@@ -1,4 +1,5 @@
 import * as agitApi from "@/lib/api/agitApi";
+import { resolveAgitThumbnailUrl } from "@/lib/agit/thumbnailImage";
 import { isEnableRemoteChatEnabled } from "@/lib/api/env";
 import * as chatService from "@/services/chatService";
 import type {
@@ -23,25 +24,6 @@ export { sortAgitMembers } from "@/lib/agit/sortMembers";
 
 const DEFAULT_COVER_GRADIENT = "linear-gradient(104deg, #2e1f52 0%, #7a5cfa 100%)";
 
-function toRenderableThumbnail(path: string | null | undefined): string | undefined {
-  const trimmed = path?.trim();
-  if (!trimmed) {
-    return undefined;
-  }
-  if (trimmed.startsWith("/")) {
-    return trimmed;
-  }
-  try {
-    const url = new URL(trimmed);
-    if (url.protocol === "http:" || url.protocol === "https:") {
-      return trimmed;
-    }
-  } catch {
-    return undefined;
-  }
-  return undefined;
-}
-
 function mapMyAgit(item: ApiMyAgitItem): UiAgit {
   return {
     id: item.agitUuid,
@@ -64,7 +46,7 @@ function mapAgitDetail(item: ApiAgitDetail): UiAgit {
     topicCount: item.topics.length,
     maxMembers: item.maximumCapacity,
     ownerName: item.hostNickname,
-    thumbnailSrc: toRenderableThumbnail(item.thumbnailPath),
+    thumbnailSrc: resolveAgitThumbnailUrl(item.thumbnailPath),
     inviteCode: item.code,
     joined: true,
     myRole: item.myRole,
@@ -120,7 +102,7 @@ function mapCreatedAgit(item: ApiCreateAgitResponse): UiAgit {
     topicCount: 0,
     maxMembers: item.maximumCapacity,
     ownerName: item.nickname,
-    thumbnailSrc: toRenderableThumbnail(item.thumbnailPath),
+    thumbnailSrc: resolveAgitThumbnailUrl(item.thumbnailPath),
     inviteCode: item.code,
     joined: true,
     myRole: item.role,
@@ -166,7 +148,7 @@ function mapAgitLanding(item: ApiAgitLanding, inviteCode: string): UiAgit {
     topicCount: 0,
     maxMembers: item.maximumCapacity,
     ownerName: item.hostNickname,
-    thumbnailSrc: toRenderableThumbnail(item.thumbnailPath),
+    thumbnailSrc: resolveAgitThumbnailUrl(item.thumbnailPath),
     inviteCode,
     joined: false,
   };
@@ -205,7 +187,7 @@ export async function searchDiscoverAgits(input: {
     description: item.description ?? "",
     coverGradient: DEFAULT_COVER_GRADIENT,
     topicCount: 0,
-    thumbnailSrc: toRenderableThumbnail(item.thumbnailPath),
+    thumbnailSrc: resolveAgitThumbnailUrl(item.thumbnailPath),
     joined: false,
   }));
 }
@@ -220,6 +202,16 @@ export async function publishSearchMetric(type: string, agitUuid: string): Promi
 
 export async function getAgitPreview(agitId: string): Promise<ApiAgitPreview> {
   return agitApi.getAgitPreview(agitId);
+}
+
+export async function issueAgitThumbnailUploadUrl(
+  contentLengthBytes: number,
+  contentType: string,
+  agitUuid?: string,
+): Promise<{ uploadKey: string; thumbnailPath: string; uploadUrl: string; expiresAt: string }> {
+  return agitUuid
+    ? agitApi.postAgitThumbnailUploadUrlForAgit(agitUuid, contentType, contentLengthBytes)
+    : agitApi.postAgitThumbnailUploadUrl(contentType, contentLengthBytes);
 }
 
 export async function requestJoinAgit(

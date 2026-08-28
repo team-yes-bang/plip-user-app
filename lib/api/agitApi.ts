@@ -18,6 +18,7 @@ import type {
   ApiJoinRequestItem,
   ApiUpdateMyMemberProfileRequest,
   ApiUpdateMyMemberProfileResponse,
+  ApiAgitThumbnailUploadUrlResponse,
 } from "@/types/agit/api";
 
 export async function getMyAgits(): Promise<ApiMyAgitItem[]> {
@@ -189,5 +190,46 @@ export async function updateMyMemberProfile(
       headers: await getActorUserHeaders(),
       body,
     }),
+  );
+}
+
+function thumbnailUploadQuery(contentType: string, contentLengthBytes: number): string {
+  const params = new URLSearchParams({
+    contentLengthBytes: String(contentLengthBytes),
+    contentType,
+  });
+  return params.toString();
+}
+
+export async function postAgitThumbnailUploadUrl(
+  contentType: string,
+  contentLengthBytes: number,
+): Promise<ApiAgitThumbnailUploadUrlResponse> {
+  return withAuthRetry(async () =>
+    apiFetch<ApiAgitThumbnailUploadUrlResponse>(
+      `${API_ENDPOINTS.agit.thumbnailUploadUrl}?${thumbnailUploadQuery(contentType, contentLengthBytes)}`,
+      {
+        method: "POST",
+        baseUrl: getApiUrl(),
+        headers: await getActorUserHeaders(),
+      },
+    ),
+  );
+}
+
+export async function postAgitThumbnailUploadUrlForAgit(
+  agitUuid: string,
+  contentType: string,
+  contentLengthBytes: number,
+): Promise<ApiAgitThumbnailUploadUrlResponse> {
+  return withAuthRetry(async () =>
+    apiFetch<ApiAgitThumbnailUploadUrlResponse>(
+      `${API_ENDPOINTS.agit.agitThumbnailUploadUrl(agitUuid)}?${thumbnailUploadQuery(contentType, contentLengthBytes)}`,
+      {
+        method: "POST",
+        baseUrl: getApiUrl(),
+        headers: await getActorUserHeaders(),
+      },
+    ),
   );
 }

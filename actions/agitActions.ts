@@ -5,10 +5,15 @@ import * as agitService from "@/services/agitService";
 import { notifyJoinOutcome } from "@/services/notificationService";
 import { actionFailure, actionSuccess, type ActionResult } from "@/types/action-result";
 import { getApiErrorCode } from "@/lib/auth/auth-errors";
-import type { ApiJoinAgitResponse } from "@/types/agit/api";
+import type { ApiAgitThumbnailUploadUrlResponse, ApiJoinAgitResponse } from "@/types/agit/api";
 import { parseAgitNickname, parseCreateAgitInput, parseUpdateAgitInput } from "@/types/agit/schema";
 import type { ApiDiscoverSort } from "@/types/agit/api";
 import type { UiAgit, UiCreateAgitInput } from "@/types/agit/ui";
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const MAX_THUMBNAIL_BYTES = 2 * 1024 * 1024;
+const ALLOWED_THUMBNAIL_CONTENT_TYPES = new Set(["image/jpeg"]);
 
 function joinAgitErrorMessage(error: ApiError): string {
   const code = getApiErrorCode(error.body);
@@ -207,6 +212,43 @@ export async function joinAgitAction(
     if (error instanceof ApiError) {
       return actionFailure(joinAgitErrorMessage(error));
     }
+    return toActionError(error);
+  }
+}
+
+export async function issueAgitThumbnailUploadUrlAction(
+  contentLengthBytes: number,
+  contentType: string,
+  agitUuid?: string,
+): Promise<ActionResult<ApiAgitThumbnailUploadUrlResponse>> {
+  const resolvedContentType = contentType.trim().toLowerCase();
+  if (!ALLOWED_THUMBNAIL_CONTENT_TYPES.has(resolvedContentType)) {
+    return actionFailure("contentType must be image/jpeg");
+  }
+
+  if (!Number.isFinite(contentLengthBytes) || contentLengthBytes <= 0) {
+    return actionFailure("contentLengthBytes must be a positive number");
+  }
+
+  if (contentLengthBytes > MAX_THUMBNAIL_BYTES) {
+    return actionFailure("thumbnail must be 2MB or smaller");
+  }
+
+  if (agitUuid) {
+    const trimmed = agitUuid.trim();
+    if (!UUID_PATTERN.test(trimmed)) {
+      return actionFailure("Invalid agitUuid");
+    }
+  }
+
+  try {
+    const data = await agitService.issueAgitThumbnailUploadUrl(
+      contentLengthBytes,
+      resolvedContentType,
+      agitUuid?.trim(),
+    );
+    return actionSuccess(data);
+  } catch (error) {
     return toActionError(error);
   }
 }

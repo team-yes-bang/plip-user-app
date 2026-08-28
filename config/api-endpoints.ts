@@ -59,6 +59,9 @@ export const API_ENDPOINTS = {
       gatewayPath("agit", `/api/v1/agits/${agitUuid}/join-requests/${ampId}/approve`),
     rejectJoinRequest: (agitUuid: string, ampId: number) =>
       gatewayPath("agit", `/api/v1/agits/${agitUuid}/join-requests/${ampId}/reject`),
+    thumbnailUploadUrl: gatewayPath("agit", "/api/v1/agits/thumbnail-upload-url"),
+    agitThumbnailUploadUrl: (agitUuid: string) =>
+      gatewayPath("agit", `/api/v1/agits/${agitUuid}/thumbnail-upload-url`),
   },
   analytics: {
     search: gatewayPath("analytics", "/api/v1/agits/search"),

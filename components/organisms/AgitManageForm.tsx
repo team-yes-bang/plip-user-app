@@ -5,6 +5,7 @@ import { SubmitButton } from "@/components/atoms";
 import { AuthField, CapacityStepper } from "@/components/molecules";
 import { ThumbnailUpload } from "@/components/molecules/ThumbnailUpload";
 import { toast } from "@/components/ui/toast";
+import { uploadAgitThumbnailFile } from "@/lib/agit/uploadThumbnail";
 import { ROUTES } from "@/config/routes";
 import {
   AGIT_DEFAULT_MAX_CAPACITY,
@@ -25,6 +26,7 @@ export function AgitManageForm({ agit }: AgitManageFormProps) {
   const [capacity, setCapacity] = useState(
     Math.max(agit.maxMembers ?? minCapacity, minCapacity),
   );
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,12 +35,24 @@ export function AgitManageForm({ agit }: AgitManageFormProps) {
     setError(null);
     setPending(true);
 
+    let thumbnailPath: string | undefined;
+    if (thumbnailFile) {
+      try {
+        thumbnailPath = await uploadAgitThumbnailFile(thumbnailFile, { agitUuid: agit.id });
+      } catch (uploadError) {
+        setPending(false);
+        setError(uploadError instanceof Error ? uploadError.message : "썸네일 업로드에 실패했습니다.");
+        return;
+      }
+    }
+
     const result = await updateAgitAction(
       agit.id,
       {
         agitName: formData.get("title"),
         description: formData.get("intro"),
         maximumCapacity: capacity,
+        ...(thumbnailPath ? { thumbnailPath } : {}),
       },
       minCapacity,
     );
@@ -57,7 +71,11 @@ export function AgitManageForm({ agit }: AgitManageFormProps) {
 
   return (
     <form className="flex w-full flex-col gap-3.5" action={handleSubmit}>
-      <ThumbnailUpload />
+      <ThumbnailUpload
+        previewSrc={agit.thumbnailSrc}
+        onFileSelect={setThumbnailFile}
+        disabled={pending}
+      />
 
       <AuthField
         id="manage-title"
