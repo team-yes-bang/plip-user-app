@@ -98,6 +98,7 @@ export function CaptureFlowSection({
   } = useVideoCaptureFlow();
   const [previewStep, setPreviewStep] = useState<PreviewStep>("confirm");
   const [caption, setCaption] = useState("");
+  const [overlayCaption, setOverlayCaption] = useState("");
   const [destinationKind, setDestinationKind] = useState<DestinationId>(
     resolveInitialDestinationKind(initialDestinationKind, initialAgitUuid, initialThemeId),
   );
@@ -136,7 +137,9 @@ export function CaptureFlowSection({
   const showConfirm = isPreview && previewStep === "confirm";
   const containPreview = showConfirm && !originalView;
   const mirrorVideo = shouldMirrorVideo(facingMode, status);
-  const frameMetrics = usePreviewFrameMetrics(containPreview, sectionRef, slotRef);
+  const frameMetrics = usePreviewFrameMetrics(containPreview, sectionRef, slotRef, {
+    freeze: containPreview,
+  });
   const loadTopics = useCallback(async (agitUuid: string, preferredTopicId = "") => {
     if (!agitUuid) {
       setTopics([]);
@@ -239,6 +242,7 @@ export function CaptureFlowSection({
 
   const handleRetake = useCallback(() => {
     setCaption("");
+    setOverlayCaption("");
     setSaveError(null);
     setInlineCreateError(null);
     setPendingPublishVideoUuid(null);
@@ -367,6 +371,10 @@ export function CaptureFlowSection({
     }
   }, [replaceThumbnail]);
 
+  const commitOverlayCaption = useCallback(() => {
+    setOverlayCaption(caption.trim());
+  }, [caption]);
+
   const handleContinueToSettings = useCallback(() => {
     if (!thumbnailFile) {
       setThumbnailError("썸네일을 등록해 주세요. 이미지를 고르거나 현재 장면을 담아 주세요.");
@@ -374,9 +382,10 @@ export function CaptureFlowSection({
     }
 
     setThumbnailError(null);
+    setOverlayCaption(caption.trim());
     setOriginalView(false);
     setPreviewStep("settings");
-  }, [thumbnailFile]);
+  }, [caption, thumbnailFile]);
 
   const handleRetryPublish = useCallback(async () => {
     if (!pendingPublishVideoUuid) {
@@ -486,7 +495,7 @@ export function CaptureFlowSection({
           }}
         />
         {showConfirm ? (
-          <CaptureClipOverlays capturedAt={capturedAt} caption={caption} />
+          <CaptureClipOverlays capturedAt={capturedAt} caption={overlayCaption} />
         ) : null}
       </div>
     </div>
@@ -515,6 +524,7 @@ export function CaptureFlowSection({
           thumbnailSource={thumbnailSource}
           thumbnailError={thumbnailError}
           onCaptionChange={setCaption}
+          onCaptionCommit={commitOverlayCaption}
           onPickThumbnailFile={(file) => void handlePickThumbnailFile(file)}
           onCaptureThumbnailFrame={() => void handleCaptureThumbnailFrame()}
           onBack={handleRetake}

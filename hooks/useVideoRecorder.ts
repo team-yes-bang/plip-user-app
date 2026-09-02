@@ -91,9 +91,37 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
   const tickTimerRef = useRef<number | null>(null);
   const startedAtRef = useRef<number>(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const feederVideoRef = useRef<HTMLVideoElement | null>(null);
+  const recordingDisplayStreamRef = useRef<MediaStream | null>(null);
   const autoPrepareStartedRef = useRef(false);
   const prepareGenerationRef = useRef(0);
   const prepareAbortRef = useRef<AbortController | null>(null);
+
+  const getFeederVideo = useCallback((): HTMLVideoElement => {
+    if (!feederVideoRef.current) {
+      const feeder = document.createElement("video");
+      feeder.muted = true;
+      feeder.playsInline = true;
+      feeder.setAttribute("playsinline", "");
+      feederVideoRef.current = feeder;
+    }
+    return feederVideoRef.current;
+  }, []);
+
+  const attachFeederStream = useCallback(
+    (stream: MediaStream) => {
+      const feeder = getFeederVideo();
+      if (feeder.srcObject === stream && feeder.videoWidth > 0) {
+        return;
+      }
+
+      feeder.pause();
+      feeder.srcObject = stream;
+      feeder.muted = true;
+      safeVideoPlay(feeder);
+    },
+    [getFeederVideo],
+  );
 
   const syncVideoElement = useCallback(
     (node: HTMLVideoElement | null) => {
@@ -102,10 +130,15 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
         return;
       }
 
-      if (
-        liveStream &&
-        (status === "requesting" || status === "ready" || status === "recording")
-      ) {
+      if (status === "recording") {
+        const recordingStream = recordingDisplayStreamRef.current;
+        if (recordingStream) {
+          attachLiveStream(node, recordingStream);
+        }
+        return;
+      }
+
+      if (liveStream && (status === "requesting" || status === "ready")) {
         attachLiveStream(node, liveStream);
         return;
       }
@@ -195,6 +228,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
 
       const stream = await requestCameraStream(facingMode);
       streamRef.current = stream;
+      attachFeederStream(stream);
       setLiveStream(stream);
       setStatus("ready");
     } catch (cause) {
@@ -206,18 +240,19 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
       setError(message);
       setStatus("error");
     }
-  }, [facingMode, resetPreview, stopStream]);
+  }, [attachFeederStream, facingMode, resetPreview, stopStream]);
 
   const restoreLiveCamera = useCallback(async () => {
     try {
       stopStream();
       const stream = await requestCameraStream(facingMode);
       streamRef.current = stream;
+      attachFeederStream(stream);
       setLiveStream(stream);
     } catch {
       /* keep conversion error */
     }
-  }, [facingMode, stopStream]);
+  }, [attachFeederStream, facingMode, stopStream]);
 
   const convertThenPreview = useCallback(
     async (source: Blob, generation: number, signal: AbortSignal) => {
@@ -283,9 +318,11 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     chunksRef.current = [];
     stopCapture();
     abortPrepare();
+    recordingDisplayStreamRef.current = null;
 
-    await waitForVideoFrame(previewNode);
-    const capture = startCaptureCanvas(previewNode);
+    const feeder = getFeederVideo();
+    await waitForVideoFrame(feeder);
+    const capture = startCaptureCanvas(feeder);
     if (!capture) {
       setError("영상을 720p로 녹화할 수 없습니다.");
       setStatus("error");
@@ -293,6 +330,8 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     }
 
     captureRef.current = capture;
+    recordingDisplayStreamRef.current = capture.stream;
+    attachLiveStream(previewNode, capture.stream);
 
     const recorder = new MediaRecorder(capture.stream, {
       mimeType: selectedMimeType,
@@ -311,6 +350,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
     recorder.onstop = () => {
       clearTimers();
       stopCapture();
+      recordingDisplayStreamRef.current = null;
 
       const maxChunks = Math.ceil(maxDurationMs / RECORD_TIMESLICE_MS);
       const trimmedChunks = chunksRef.current.slice(0, maxChunks);
@@ -363,17 +403,19 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
       stopRecording();
     }, recordStopMs);
   }, [
+    abortPrepare,
+    applyPreviewBlob,
+    attachFeederStream,
     clearTimers,
+    convertThenPreview,
+    getFeederVideo,
     maxDurationMs,
     prepareCamera,
     recordStopMs,
     resetPreview,
+    stopCapture,
     stopRecording,
     stopStream,
-    stopCapture,
-    convertThenPreview,
-    applyPreviewBlob,
-    abortPrepare,
   ]);
 
   const discardRecording = useCallback(async () => {
@@ -423,6 +465,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
 
       const stream = await requestCameraStream(nextFacing);
       streamRef.current = stream;
+      attachFeederStream(stream);
       setLiveStream(stream);
       setStatus("ready");
     } catch (cause) {
@@ -434,7 +477,7 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
       }
       setStatus("error");
     }
-  }, [facingMode, resetPreview, status, stopStream]);
+  }, [attachFeederStream, facingMode, resetPreview, status, stopStream]);
 
   useEffect(() => {
     syncVideoElement(videoRef.current);
@@ -454,6 +497,9 @@ export function useVideoRecorder(options: UseVideoRecorderOptions = {}) {
       clearTimers();
       stopCapture();
       abortPrepare();
+      recordingDisplayStreamRef.current = null;
+      feederVideoRef.current?.pause();
+      feederVideoRef.current = null;
       stopStream();
       setPreviewUrl((current) => {
         if (current) {

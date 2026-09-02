@@ -13,6 +13,7 @@ type CapturePreviewStageProps = {
   thumbnailSource: "file" | "frame" | null;
   thumbnailError: string | null;
   onCaptionChange: (value: string) => void;
+  onCaptionCommit: () => void;
   onPickThumbnailFile: (file: File) => void;
   onCaptureThumbnailFrame: () => void;
   onBack: () => void;
@@ -29,6 +30,7 @@ export function CapturePreviewStage({
   thumbnailSource,
   thumbnailError,
   onCaptionChange,
+  onCaptionCommit,
   onPickThumbnailFile,
   onCaptureThumbnailFrame,
   onBack,
@@ -73,6 +75,7 @@ export function CapturePreviewStage({
             placeholder="영상에 올릴 문구"
             variant="daily"
             onChange={(event) => onCaptionChange(event.target.value)}
+            onBlur={onCaptionCommit}
           />
         </div>
         <CaptureThumbnailField
