@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useState, type RefObject } from "react";
+import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 
 export type PreviewFrameMetrics = {
   width: number;
@@ -10,15 +10,24 @@ export type PreviewFrameMetrics = {
 
 const EMPTY: PreviewFrameMetrics = { width: 0, height: 0, scale: 1 };
 
+type UsePreviewFrameMetricsOptions = {
+  /** First valid metrics snapshot is kept; ResizeObserver disconnects. */
+  freeze?: boolean;
+};
+
 export function usePreviewFrameMetrics(
   enabled: boolean,
   sectionRef: RefObject<HTMLElement | null>,
   slotRef: RefObject<HTMLElement | null>,
+  options: UsePreviewFrameMetricsOptions = {},
 ): PreviewFrameMetrics {
+  const freeze = options.freeze ?? false;
   const [metrics, setMetrics] = useState<PreviewFrameMetrics>(EMPTY);
+  const frozenRef = useRef(false);
 
   useLayoutEffect(() => {
     if (!enabled) {
+      frozenRef.current = false;
       return;
     }
 
@@ -28,7 +37,13 @@ export function usePreviewFrameMetrics(
       return;
     }
 
+    let observer: ResizeObserver | null = null;
+
     const update = () => {
+      if (frozenRef.current) {
+        return;
+      }
+
       const originW = section.clientWidth;
       const originH = section.clientHeight;
       const slotW = slot.clientWidth;
@@ -46,15 +61,23 @@ export function usePreviewFrameMetrics(
         }
         return { width, height, scale };
       });
+
+      if (freeze) {
+        frozenRef.current = true;
+        observer?.disconnect();
+        observer = null;
+      }
     };
 
-    const observer = new ResizeObserver(update);
+    observer = new ResizeObserver(update);
     observer.observe(section);
     observer.observe(slot);
     update();
 
-    return () => observer.disconnect();
-  }, [enabled, sectionRef, slotRef]);
+    return () => {
+      observer?.disconnect();
+    };
+  }, [enabled, freeze, sectionRef, slotRef]);
 
   return metrics;
 }
