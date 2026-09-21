@@ -6,6 +6,7 @@ import {
   VIDEO_PLAYBACK_ATTRS,
   type VideoPlaybackMode,
 } from "@/lib/video/playback";
+import { resolveVideoThumbnail, VIDEO_THUMBNAIL_NOT_LOADED } from "@/lib/video/thumbnail";
 import { safeVideoPlay } from "@/lib/video/safeVideoPlay";
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 
@@ -42,16 +43,27 @@ export function useVideoPlayback({
 }: UseVideoPlaybackOptions): UseVideoPlaybackResult {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [fetchedUrls, setFetchedUrls] = useState<Record<string, string>>({});
+  const [fetchedDetail, setFetchedDetail] = useState<
+    Record<string, { playbackUrl?: string; thumbnailSrc?: string; caption?: string }>
+  >({});
   const [isVisible, setIsVisible] = useState(mode === "viewer");
   const shouldPlayRef = useRef(false);
   const fetchingRef = useRef<Set<string>>(new Set());
 
   const initialUrl = resolveRemotePlaybackUrl(rawPlaybackUrl);
-  const cachedUrl = resolveRemotePlaybackUrl(fetchedUrls[videoUuid]);
+  const cachedDetail = fetchedDetail[videoUuid];
+  const cachedUrl = resolveRemotePlaybackUrl(cachedDetail?.playbackUrl);
   const playbackUrl = initialUrl ?? cachedUrl ?? null;
+  const resolvedPoster =
+    cachedDetail?.thumbnailSrc ??
+    (thumbnailUrl && thumbnailUrl !== VIDEO_THUMBNAIL_NOT_LOADED ? thumbnailUrl : undefined);
 
-  const fetchPlaybackUrl = useCallback(async (uuid: string) => {
+  const needsDetailFetch =
+    fetchIfMissing &&
+    enabled &&
+    (!initialUrl && !cachedUrl || !resolvedPoster || resolvedPoster === VIDEO_THUMBNAIL_NOT_LOADED);
+
+  const fetchVideoDetail = useCallback(async (uuid: string) => {
     if (fetchingRef.current.has(uuid)) {
       return;
     }
@@ -64,11 +76,16 @@ export function useVideoPlayback({
       }
 
       const url = resolveRemotePlaybackUrl(result.data.rawPlaybackUrl);
-      if (!url) {
-        return;
-      }
+      const thumbnailSrc = resolveVideoThumbnail(result.data.thumbnailUrl);
 
-      setFetchedUrls((prev) => ({ ...prev, [uuid]: url }));
+      setFetchedDetail((prev) => ({
+        ...prev,
+        [uuid]: {
+          playbackUrl: url ?? prev[uuid]?.playbackUrl,
+          thumbnailSrc: thumbnailSrc !== VIDEO_THUMBNAIL_NOT_LOADED ? thumbnailSrc : prev[uuid]?.thumbnailSrc,
+          caption: result.data.caption?.trim() ?? prev[uuid]?.caption ?? "",
+        },
+      }));
     } finally {
       fetchingRef.current.delete(uuid);
     }
@@ -89,8 +106,8 @@ export function useVideoPlayback({
         const visible = entry?.isIntersecting ?? false;
         setIsVisible(visible);
 
-        if (visible && fetchIfMissing && enabled && !initialUrl && !cachedUrl) {
-          void fetchPlaybackUrl(videoUuid);
+        if (visible && needsDetailFetch) {
+          void fetchVideoDetail(videoUuid);
         }
       },
       { threshold: VISIBILITY_THRESHOLD },
@@ -98,22 +115,15 @@ export function useVideoPlayback({
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [cachedUrl, enabled, fetchIfMissing, fetchPlaybackUrl, initialUrl, mode, videoUuid]);
+  }, [fetchVideoDetail, mode, needsDetailFetch, videoUuid]);
 
   useEffect(() => {
-    if (
-      mode !== "viewer" ||
-      !fetchIfMissing ||
-      !enabled ||
-      !videoUuid ||
-      initialUrl ||
-      cachedUrl
-    ) {
+    if (mode !== "viewer" || !needsDetailFetch || !videoUuid) {
       return;
     }
 
-    void fetchPlaybackUrl(videoUuid);
-  }, [cachedUrl, enabled, fetchIfMissing, fetchPlaybackUrl, initialUrl, mode, videoUuid]);
+    void fetchVideoDetail(videoUuid);
+  }, [fetchVideoDetail, mode, needsDetailFetch, videoUuid]);
 
   const shouldPlay = enabled && playbackUrl !== null && (mode === "viewer" || isVisible);
 
@@ -148,12 +158,12 @@ export function useVideoPlayback({
     containerRef,
     videoRef,
     playbackUrl,
-    posterUrl: thumbnailUrl,
+    posterUrl: resolvedPoster ?? thumbnailUrl,
     shouldRenderVideo: playbackUrl !== null,
     pause,
     videoProps: {
       src: playbackUrl ?? undefined,
-      poster: thumbnailUrl,
+      poster: resolvedPoster ?? thumbnailUrl,
       ...attrs,
       onCanPlay: handleCanPlay,
     },
