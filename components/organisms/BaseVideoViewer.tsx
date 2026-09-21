@@ -7,7 +7,7 @@ import type { VideoViewerItem } from "@/components/providers/VideoViewerProvider
 import { extractDate } from "@/lib/video/formatOverlayClock";
 import { resolveRemotePlaybackUrl, VIDEO_PLAYBACK_ATTRS } from "@/lib/video/playback";
 import { safeVideoPlay } from "@/lib/video/safeVideoPlay";
-import Image from "next/image";
+import { VideoClipThumbnail } from "@/components/molecules/VideoClipThumbnail";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 export type BaseVideoViewerOverlayProps = {
@@ -179,15 +179,19 @@ export function BaseVideoViewer({
           onPause={() => setIsPlaying(false)}
         />
       ) : (
-        <Image
-          src={coverSrc}
-          alt={currentItem.title || "비디오 썸네일"}
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
+        <button
+          type="button"
+          className="absolute inset-0 block size-full border-0 bg-transparent p-0"
+          aria-label={currentItem.title || "비디오 썸네일"}
           onClick={togglePlay}
-        />
+        >
+          <VideoClipThumbnail
+            src={coverSrc}
+            alt={currentItem.title || "비디오 썸네일"}
+            className="size-full object-cover"
+            fallbackClassName="size-full"
+          />
+        </button>
       )}
 
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/40" />

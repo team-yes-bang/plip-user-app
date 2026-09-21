@@ -1,4 +1,5 @@
 import { TextLink } from "@/components/atoms";
+import { VideoClipThumbnail } from "@/components/molecules/VideoClipThumbnail";
 import { Card } from "@/components/ui/card";
 import { formatDiaryDate, formatDiaryWeekday } from "@/config/diary-mock";
 import { ROUTES } from "@/config/routes";
@@ -11,13 +12,14 @@ type DiaryDateScrollSectionProps = {
   className?: string;
 };
 
-const TILES = ["bg-[#1a2744]", "bg-[#032426]", "bg-[#2a1a3a]"] as const;
+const HOME_THUMB_SLOTS = 3;
 
 /** Figma Hybrid Diary — 일자 + 3열 모자이크 */
 export function DiaryDateScrollSection({ entry, className }: DiaryDateScrollSectionProps) {
   const dateLabel = formatDiaryDate(entry.date);
   const weekday = formatDiaryWeekday(entry.date);
   const isEmpty = entry.isEmpty || !entry.hasClips;
+  const thumbnailSlots = Array.from({ length: HOME_THUMB_SLOTS }, (_, index) => entry.thumbnailPaths?.[index]);
   const href = isEmpty
     ? ROUTES.capture.videoWith({ destination: "diary" })
     : ROUTES.diary.date(entry.date);
@@ -45,9 +47,15 @@ export function DiaryDateScrollSection({ entry, className }: DiaryDateScrollSect
               <span className="text-xs font-bold text-[var(--dl-color-text-brand)]">다이어리 기록</span>
             </div>
           ) : (
-            <div className="grid h-full min-h-0 flex-1 grid-cols-3 gap-px bg-white rounded-[18px] overflow-hidden">
-              {TILES.map((tile) => (
-                <div key={tile} className={cn("min-h-0", tile)} aria-hidden />
+            <div className="grid h-full min-h-0 flex-1 grid-cols-3 gap-px overflow-hidden rounded-[18px] bg-white">
+              {thumbnailSlots.map((thumbnailSrc, index) => (
+                <VideoClipThumbnail
+                  key={`${entry.date}-${index}`}
+                  src={thumbnailSrc}
+                  alt=""
+                  className="size-full min-h-[96px] object-cover"
+                  fallbackClassName="size-full min-h-[96px]"
+                />
               ))}
             </div>
           )}
