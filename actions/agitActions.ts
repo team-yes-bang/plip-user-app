@@ -1,6 +1,8 @@
 "use server";
 
 import { ApiError } from "@/lib/api/apiFetch";
+import { getServerUserUuid } from "@/lib/auth/server-token";
+import { saveProfileImageFile } from "@/lib/user/saveProfileImage";
 import * as agitService from "@/services/agitService";
 import { notifyJoinOutcome } from "@/services/notificationService";
 import { actionFailure, actionSuccess, type ActionResult } from "@/types/action-result";
@@ -261,15 +263,42 @@ export async function updateAgitAction(
 
 export async function updateMyAgitProfileAction(
   agitId: string,
-  nickname: unknown,
+  formData: FormData,
 ): Promise<ActionResult<void>> {
-  const parsed = parseAgitNickname(nickname);
+  const nicknameValue = formData.get("nickname");
+  const imageValue = formData.get("profileImage");
+  const imageFile = imageValue instanceof File && imageValue.size > 0 ? imageValue : null;
+
+  const parsed = parseAgitNickname(nicknameValue);
   if (!parsed.ok) {
     return actionFailure(parsed.error);
   }
 
   try {
-    await agitService.updateMyMemberProfile(agitId, { nickname: parsed.nickname });
+    const userUuid = await getServerUserUuid();
+    if (!userUuid) {
+      return actionFailure("로그인이 필요합니다.");
+    }
+
+    const detail = await agitService.getAgitAndMembers(agitId);
+    const me = detail.members.find((member) => member.userUuid === userUuid);
+    if (!me) {
+      return actionFailure("멤버 정보를 확인할 수 없습니다.");
+    }
+
+    const nicknameChanged = parsed.nickname !== me.nickname;
+    const profileImagePath = imageFile
+      ? await saveProfileImageFile(userUuid, imageFile)
+      : undefined;
+
+    if (!nicknameChanged && !profileImagePath) {
+      return actionFailure("변경 사항이 없습니다.");
+    }
+
+    await agitService.updateMyMemberProfile(agitId, {
+      ...(nicknameChanged ? { nickname: parsed.nickname } : {}),
+      ...(profileImagePath ? { profileImagePath } : {}),
+    });
     return actionSuccess(undefined);
   } catch (error) {
     return toActionError(error);

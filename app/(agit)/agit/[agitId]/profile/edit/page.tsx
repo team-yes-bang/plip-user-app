@@ -1,5 +1,6 @@
 import { AgitProfileEditTemplate } from "@/components/templates";
 import { getServerUserUuid } from "@/lib/auth/server-token";
+import { resolveProfileImageUrl } from "@/lib/user/profileImage";
 import { getAgitAndMembers } from "@/services/agitService";
 import type { UiAgit } from "@/types/agit/ui";
 
@@ -11,6 +12,7 @@ export default async function AgitProfileEditPage({ params }: PageProps) {
   const { agitId } = await params;
   let agit: UiAgit | null = null;
   let nickname = "";
+  let profileImageUrl = resolveProfileImageUrl(null);
 
   try {
     const detail = await getAgitAndMembers(agitId);
@@ -18,9 +20,12 @@ export default async function AgitProfileEditPage({ params }: PageProps) {
     const userUuid = await getServerUserUuid();
     const me = detail.members.find((member) => member.userUuid === userUuid);
     nickname = me?.nickname ?? "";
+    profileImageUrl = resolveProfileImageUrl(me?.profileImagePath);
   } catch {
     agit = null;
   }
 
-  return <AgitProfileEditTemplate agit={agit} nickname={nickname} />;
+  return (
+    <AgitProfileEditTemplate agit={agit} nickname={nickname} profileImageUrl={profileImageUrl} />
+  );
 }
