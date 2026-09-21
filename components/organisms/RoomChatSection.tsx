@@ -10,7 +10,6 @@ import {
 } from "@/components/molecules";
 import { ROUTES } from "@/config/routes";
 import { useAgitChatSocket } from "@/hooks/useAgitChatSocket";
-import { createLocalTalkMessage } from "@/lib/chat/createLocalMessage";
 import { formatChatDateLabel, isSameChatDay, isSameChatMessageGroup, shouldShowChatMessageTime } from "@/lib/chat/formatMessageTime";
 import { normalizeChatDraft } from "@/lib/chat/limits";
 import { mapApiChatMessage } from "@/lib/chat/mapMessage";
@@ -31,7 +30,6 @@ type RoomChatSectionProps = {
   initialHistory: UiChatHistory;
   members: ApiAgitDetailMember[];
   currentUserUuid?: string;
-  enableRemoteChat?: boolean;
 };
 
 function mergeMessages(existing: UiChatMessage[], incoming: UiChatMessage[]): UiChatMessage[] {
@@ -50,7 +48,6 @@ export function RoomChatSection({
   initialHistory,
   members,
   currentUserUuid,
-  enableRemoteChat = false,
 }: RoomChatSectionProps) {
   const [notify, setNotify] = useState(true);
   const [draft, setDraft] = useState("");
@@ -58,6 +55,7 @@ export function RoomChatSection({
   const [nextCursor, setNextCursor] = useState(initialHistory.nextCursor);
   const [hasNext, setHasNext] = useState(initialHistory.hasNext);
   const [loadingOlder, setLoadingOlder] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const listRef = useRef<HTMLElement>(null);
   const shouldStickToBottomRef = useRef(true);
   const messagesRef = useRef(messages);
@@ -97,9 +95,9 @@ export function RoomChatSection({
     );
   }, []);
 
-  const { sendMessage: sendRemoteMessage } = useAgitChatSocket({
+  const { sendMessage: sendRemoteMessage, isConnected } = useAgitChatSocket({
     agitUuid: agit.id,
-    enabled: enableRemoteChat && Boolean(currentUserUuid),
+    enabled: Boolean(currentUserUuid),
     onMessage: handleIncomingMessage,
     onReceipt: handleIncomingReceipt,
   });
@@ -121,16 +119,13 @@ export function RoomChatSection({
   }, [agit.id]);
 
   useEffect(() => {
-    if (!enableRemoteChat || messages.length === 0) {
+    if (messages.length === 0) {
       return;
     }
     markReadUpToLatest();
-  }, [enableRemoteChat, markReadUpToLatest, messages]);
+  }, [markReadUpToLatest, messages]);
 
   useEffect(() => {
-    if (!enableRemoteChat) {
-      return;
-    }
     return () => {
       const latest = messagesRef.current.at(-1);
       if (!latest) {
@@ -142,12 +137,9 @@ export function RoomChatSection({
         }
       });
     };
-  }, [agit.id, enableRemoteChat]);
+  }, [agit.id]);
 
   useEffect(() => {
-    if (!enableRemoteChat) {
-      return;
-    }
     const cached = readRoomHistoryCache(agit.id);
     if (!cached) {
       return;
@@ -157,12 +149,9 @@ export function RoomChatSection({
     setMessages((current) => mergeMessages(current, cached.messages));
     setNextCursor((current) => cached.nextCursor ?? current);
     setHasNext((current) => cached.hasNext ?? current);
-  }, [agit.id, enableRemoteChat]);
+  }, [agit.id]);
 
   useEffect(() => {
-    if (!enableRemoteChat) {
-      return;
-    }
     writeRoomHistoryCache(agit.id, { messages, nextCursor, hasNext });
     return () => {
       writeRoomHistoryCache(agit.id, {
@@ -171,25 +160,7 @@ export function RoomChatSection({
         hasNext: hasNextRef.current,
       });
     };
-  }, [agit.id, enableRemoteChat, hasNext, messages, nextCursor]);
-
-  useEffect(() => {
-    if (!enableRemoteChat) {
-      return;
-    }
-    let cancelled = false;
-    void getChatHistoryAction(agit.id).then((result) => {
-      if (cancelled || !result.ok) {
-        return;
-      }
-      setMessages((current) => mergeMessages(current, result.data.messages));
-      setNextCursor(result.data.nextCursor);
-      setHasNext(result.data.hasNext);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [agit.id, enableRemoteChat]);
+  }, [agit.id, hasNext, messages, nextCursor]);
 
   useEffect(() => {
     if (!shouldStickToBottomRef.current) {
@@ -199,13 +170,16 @@ export function RoomChatSection({
   }, [messages]);
 
   const loadOlderMessages = useCallback(async () => {
-    if (!enableRemoteChat || !hasNext || !nextCursor || loadingOlder) {
+    if (!hasNext || !nextCursor || loadingOlder) {
       return;
     }
     setLoadingOlder(true);
     const result = await getChatHistoryAction(agit.id, {
-      cursorCreatedAt: nextCursor.createdAt,
-      cursorId: nextCursor.id,
+      cursor: {
+        cursorCreatedAt: nextCursor.createdAt,
+        cursorId: nextCursor.id,
+      },
+      members,
     });
     setLoadingOlder(false);
     if (!result.ok) {
@@ -222,7 +196,7 @@ export function RoomChatSection({
       }
       container.scrollTop = container.scrollHeight - previousHeight;
     });
-  }, [agit.id, enableRemoteChat, hasNext, loadingOlder, nextCursor]);
+  }, [agit.id, hasNext, loadingOlder, members, nextCursor]);
 
   const handleScroll = useCallback(() => {
     const container = listRef.current;
@@ -231,10 +205,10 @@ export function RoomChatSection({
     }
     const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
     shouldStickToBottomRef.current = distanceFromBottom < 80;
-    if (enableRemoteChat && container.scrollTop < 48) {
+    if (container.scrollTop < 48) {
       void loadOlderMessages();
     }
-  }, [enableRemoteChat, loadOlderMessages]);
+  }, [loadOlderMessages]);
 
   const renderedMessages = useMemo(
     () =>
@@ -261,20 +235,22 @@ export function RoomChatSection({
       return;
     }
 
-    if (enableRemoteChat) {
-      const sent = sendRemoteMessage(content);
-      if (!sent) {
-        return;
-      }
-    } else {
-      const localMessage = createLocalTalkMessage(agit.id, content, currentUserUuid);
-      setMessages((current) => mergeMessages(current, [localMessage]));
+    if (!isConnected()) {
+      setSendError("채팅 서버에 연결 중입니다. 잠시 후 다시 시도해 주세요.");
+      return;
     }
 
+    const sent = sendRemoteMessage(content);
+    if (!sent) {
+      setSendError("메시지를 보내지 못했습니다.");
+      return;
+    }
+
+    setSendError(null);
     shouldStickToBottomRef.current = true;
     setDraft("");
     requestAnimationFrame(() => scrollToBottom(listRef.current));
-  }, [agit.id, currentUserUuid, draft, enableRemoteChat, sendRemoteMessage]);
+  }, [draft, sendRemoteMessage]);
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
@@ -326,6 +302,11 @@ export function RoomChatSection({
       </PageContainer>
 
       <PageContainer as="div" gap="none" className="flex-none overflow-hidden pb-[12px]">
+        {sendError ? (
+          <p className="m-0 px-1 pb-2 text-center text-xs text-[#d64545]" role="alert">
+            {sendError}
+          </p>
+        ) : null}
         <ChatComposer value={draft} onChange={setDraft} onSubmit={handleSend} />
       </PageContainer>
     </div>

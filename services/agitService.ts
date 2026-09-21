@@ -1,5 +1,4 @@
 import * as agitApi from "@/lib/api/agitApi";
-import { isEnableRemoteChatEnabled } from "@/lib/api/env";
 import * as chatService from "@/services/chatService";
 import type {
   ApiAgitDetail,
@@ -75,7 +74,7 @@ export async function listMyAgits(): Promise<UiAgit[]> {
   const items = await agitApi.getMyAgits();
   const agits = items.map(mapMyAgit);
 
-  if (!isEnableRemoteChatEnabled() || agits.length === 0) {
+  if (agits.length === 0) {
     return agits;
   }
 

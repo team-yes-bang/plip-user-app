@@ -18,13 +18,11 @@ export function AgitListTemplate({
   items,
   error,
   currentUserUuid,
-  enableRemoteChat = false,
   inboxUnreadCount = 0,
 }: {
   items: UiAgit[];
   error?: string;
   currentUserUuid?: string;
-  enableRemoteChat?: boolean;
   inboxUnreadCount?: number;
 }) {
   return (
@@ -33,7 +31,6 @@ export function AgitListTemplate({
         items={items}
         error={error}
         currentUserUuid={currentUserUuid}
-        enableRemoteChat={enableRemoteChat}
         inboxUnreadCount={inboxUnreadCount}
       />
     </AppChromeTemplate>
@@ -77,13 +74,11 @@ export function AgitChatTemplate({
   initialHistory,
   members,
   currentUserUuid,
-  enableRemoteChat = false,
 }: {
   agit: UiAgit | null;
   initialHistory: UiChatHistory;
   members: ApiAgitDetailMember[];
   currentUserUuid?: string;
-  enableRemoteChat?: boolean;
 }) {
   if (!agit) {
     return (
@@ -103,7 +98,6 @@ export function AgitChatTemplate({
         initialHistory={initialHistory}
         members={members}
         currentUserUuid={currentUserUuid}
-        enableRemoteChat={enableRemoteChat}
       />
     </AppChromeTemplate>
   );

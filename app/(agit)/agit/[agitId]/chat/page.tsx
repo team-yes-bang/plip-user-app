@@ -1,8 +1,6 @@
 import { getChatHistoryAction } from "@/actions/chatActions";
 import { AgitChatTemplate } from "@/components/templates";
 import { ROUTES } from "@/config/routes";
-import { isEnableRemoteChatEnabled } from "@/lib/api/env";
-import { buildSeedChatHistory } from "@/lib/chat/seedMessages";
 import { getServerUserUuid } from "@/lib/auth/server-token";
 import { getAgitAndMembers } from "@/services/agitService";
 import type { ApiAgitDetailMember } from "@/types/agit/api";
@@ -22,7 +20,6 @@ const EMPTY_CHAT_HISTORY: UiChatHistory = {
 
 export default async function AgitChatPage({ params }: PageProps) {
   const { agitId } = await params;
-  const enableRemoteChat = isEnableRemoteChatEnabled();
 
   let agit: UiAgit | null = null;
   let members: ApiAgitDetailMember[] = [];
@@ -36,13 +33,8 @@ export default async function AgitChatPage({ params }: PageProps) {
     redirect(ROUTES.agit.detail(agitId));
   }
 
-  let initialHistory: UiChatHistory;
-  if (enableRemoteChat) {
-    const historyResult = await getChatHistoryAction(agitId);
-    initialHistory = historyResult.ok ? historyResult.data : EMPTY_CHAT_HISTORY;
-  } else {
-    initialHistory = buildSeedChatHistory(agitId, members, currentUserUuid);
-  }
+  const historyResult = await getChatHistoryAction(agitId, { members });
+  const initialHistory = historyResult.ok ? historyResult.data : EMPTY_CHAT_HISTORY;
 
   return (
     <AgitChatTemplate
@@ -50,7 +42,6 @@ export default async function AgitChatPage({ params }: PageProps) {
       initialHistory={initialHistory}
       members={members}
       currentUserUuid={currentUserUuid}
-      enableRemoteChat={enableRemoteChat}
     />
   );
 }
