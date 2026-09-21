@@ -11,6 +11,7 @@ import { getAgitById } from "@/config/agit-mock";
 import { ROUTES } from "@/config/routes";
 import { isSameKstDate, shouldShowTopicCaptureSlot } from "@/lib/topic/selectAgitTopic";
 import { extractDate } from "@/lib/video/formatOverlayClock";
+import type { ApiAgitDetailMember } from "@/types/agit/api";
 import type { UiAgit } from "@/types/agit/ui";
 import type { UiTopicDetail, UiTopicFeedWindow, UiTopicVideo } from "@/types/topic/ui";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -22,6 +23,7 @@ const FEED_SCROLL_END_DELAY_MS = 120;
 type TopicFeedSectionProps = {
   agitId: string;
   agit?: UiAgit | null;
+  members: ApiAgitDetailMember[];
   initialWindow: UiTopicFeedWindow;
   initialVideos: Record<string, UiTopicVideo[]>;
 };
@@ -87,7 +89,13 @@ function TopicFeedEmptyCover({
   );
 }
 
-export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }: TopicFeedSectionProps) {
+export function TopicFeedSection({
+  agitId,
+  agit,
+  members,
+  initialWindow,
+  initialVideos,
+}: TopicFeedSectionProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -182,7 +190,7 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
             return;
           }
           loadingVideoIds.current.add(id);
-          const result = await getTopicVideosAction(agitId, id);
+          const result = await getTopicVideosAction(agitId, id, members);
           loadingVideoIds.current.delete(id);
           if (!result.ok) {
             return;
@@ -192,7 +200,7 @@ export function TopicFeedSection({ agitId, agit, initialWindow, initialVideos }:
         }),
       );
     },
-    [agitId],
+    [agitId, members],
   );
 
   const prefetchNearEdge = useCallback(() => {

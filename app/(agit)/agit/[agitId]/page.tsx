@@ -20,40 +20,37 @@ const EMPTY_WINDOW: UiTopicFeedWindow = {
 export default async function AgitDetailPage({ params }: AgitDetailPageProps) {
   const { agitId } = await params;
 
-  const detail = await getAgitAndMembers(agitId).catch(() => null);
-  if (!detail) {
-    redirect(ROUTES.agit.root);
-  }
-
-  let initialWindow: UiTopicFeedWindow = EMPTY_WINDOW;
-  const initialVideos: Record<string, UiTopicVideo[]> = {};
-
-  try {
-    initialWindow = await getTopicFeedWindow({
+  const [detail, initialWindow] = await Promise.all([
+    getAgitAndMembers(agitId).catch(() => null),
+    getTopicFeedWindow({
       agitUuid: agitId,
       date: toKstDateString(new Date()),
       before: 3,
       after: 3,
-    });
-    const center = initialWindow.topics.findIndex((item) => item.id === initialWindow.currentId);
-    const loadIds = [
-      initialWindow.topics[center - 1]?.id,
-      initialWindow.topics[center]?.id,
-      initialWindow.topics[center + 1]?.id,
-    ].filter((id): id is string => Boolean(id));
+    }).catch(() => EMPTY_WINDOW),
+  ]);
 
-    await Promise.all(
-      loadIds.map(async (id) => {
-        initialVideos[id] = await getTopicVideos(id, detail.members);
-      }),
-    );
-  } catch {
-    initialWindow = EMPTY_WINDOW;
+  if (!detail) {
+    redirect(ROUTES.agit.root);
+  }
+
+  const initialVideos: Record<string, UiTopicVideo[]> = {};
+
+  if (initialWindow.currentId) {
+    try {
+      initialVideos[initialWindow.currentId] = await getTopicVideos(
+        initialWindow.currentId,
+        detail.members,
+      );
+    } catch {
+      // ignore
+    }
   }
 
   return (
     <AgitTopicFeedTemplate
       agit={detail.agit}
+      members={detail.members}
       initialWindow={initialWindow}
       initialVideos={initialVideos}
     />

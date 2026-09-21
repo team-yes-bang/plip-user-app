@@ -112,10 +112,12 @@ export function TopicViewerTemplate({
 
 export function TopicFeedTemplate({
   agit,
+  members,
   initialWindow,
   initialVideos,
 }: {
   agit: UiAgit | null;
+  members: ApiAgitDetailMember[];
   initialWindow: UiTopicFeedWindow;
   initialVideos: Record<string, UiTopicVideo[]>;
 }) {
@@ -126,6 +128,7 @@ export function TopicFeedTemplate({
       <TopicFeedSection
         agitId={agit.id}
         agit={agit}
+        members={members}
         initialWindow={initialWindow}
         initialVideos={initialVideos}
       />
