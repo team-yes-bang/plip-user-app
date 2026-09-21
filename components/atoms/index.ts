@@ -32,6 +32,7 @@ export { FeedPill, FeedPillIconButton, feedOverlayGlassClass, feedPillIconButton
 export { ThemeChip } from "./ThemeChip";
 
 // Avatars & Media
+export { DefaultProfileAvatar } from "./DefaultProfileAvatar";
 export { UserAvatar } from "./UserAvatar";
 export { UserProfileAvatar } from "./UserProfileAvatar";
 export { VideoThumbnail } from "./VideoThumbnail";

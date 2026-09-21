@@ -1,6 +1,5 @@
-"use client";
-
-import { DailyIcon } from "@/components/atoms/DailyIcon";
+import { DefaultProfileAvatar } from "@/components/atoms/DefaultProfileAvatar";
+import { isDefaultProfileAvatarUrl, resolveProfileImageUrl } from "@/lib/user/profileImage";
 
 type UserProfileAvatarProps = {
   src?: string | null;
@@ -15,10 +14,10 @@ const SIZE_CLASSES = {
   lg: "w-10 h-10 text-base",
 };
 
-const ICON_SIZES = {
-  sm: 14,
-  md: 18,
-  lg: 22,
+const SIZE_PX = {
+  sm: 24,
+  md: 32,
+  lg: 40,
 };
 
 export function UserProfileAvatar({
@@ -28,29 +27,29 @@ export function UserProfileAvatar({
   className = "",
 }: UserProfileAvatarProps) {
   const sizeClass = SIZE_CLASSES[size] ?? SIZE_CLASSES.md;
-  const iconSize = ICON_SIZES[size] ?? ICON_SIZES.md;
+  const sizePx = SIZE_PX[size] ?? SIZE_PX.md;
+  const alt = nickname ? `${nickname} 프로필` : "사용자 프로필";
+  const resolvedSrc = resolveProfileImageUrl(src);
 
-  const fallbackChar = nickname ? nickname.trim().charAt(0).toUpperCase() : "";
-
-  if (src && src.trim()) {
+  if (isDefaultProfileAvatarUrl(resolvedSrc)) {
     return (
-      <img
-        src={src}
-        alt={nickname ? `${nickname} 프로필` : "사용자 프로필"}
-        className={`rounded-full object-cover shrink-0 ${sizeClass} ${className}`}
+      <DefaultProfileAvatar
+        alt={alt}
+        size={sizePx}
+        sizeClass={sizeClass}
+        className={`shrink-0 ${className}`.trim()}
+        wrapperClassName=""
       />
     );
   }
 
   return (
-    <div
-      className={`flex items-center justify-center rounded-full bg-[var(--dl-color-bg-surface-subtle,#e5e7eb)] text-[var(--dl-color-text-secondary,#4b5563)] font-semibold shrink-0 select-none ${sizeClass} ${className}`}
-    >
-      {fallbackChar ? (
-        <span>{fallbackChar}</span>
-      ) : (
-        <DailyIcon name="messageBrand" size={iconSize} className="opacity-60" />
-      )}
-    </div>
+    <img
+      src={resolvedSrc}
+      alt={alt}
+      width={sizePx}
+      height={sizePx}
+      className={`rounded-full object-cover shrink-0 ${sizeClass} ${className}`}
+    />
   );
 }
