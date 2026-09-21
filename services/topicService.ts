@@ -5,8 +5,7 @@ import * as topicApi from "@/lib/api/topicApi";
 import { toFeedOrder } from "@/lib/topic/mergeTopicFeed";
 import { resolveVideoThumbnail } from "@/lib/video/thumbnail";
 import { formatKstDotDate, isSameKstDate, selectAgitTopic, toKstDateString } from "@/lib/topic/selectAgitTopic";
-
-const FALLBACK_AVATAR = "/plip/v13/profile-avatar.svg";
+import { resolveProfileImageUrl } from "@/lib/user/profileImage";
 const FALLBACK_NICKNAME = "멤버";
 
 type MemberProfile = {
@@ -19,7 +18,7 @@ function memberMap(members: ApiAgitDetailMember[]): Map<string, MemberProfile> {
   for (const member of members) {
     map.set(member.userUuid, {
       nickname: member.nickname.trim() || FALLBACK_NICKNAME,
-      profileImageSrc: member.profileImagePath?.trim() || FALLBACK_AVATAR,
+      profileImageSrc: resolveProfileImageUrl(member.profileImagePath),
     });
   }
   return map;
@@ -29,7 +28,7 @@ function profileOf(userUuid: string, members: Map<string, MemberProfile>): Membe
   return (
     members.get(userUuid) ?? {
       nickname: FALLBACK_NICKNAME,
-      profileImageSrc: FALLBACK_AVATAR,
+      profileImageSrc: resolveProfileImageUrl(null),
     }
   );
 }

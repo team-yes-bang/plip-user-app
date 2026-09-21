@@ -12,13 +12,24 @@ const EXT_BY_TYPE: Record<string, ".jpg" | ".png" | ".webp"> = {
   "image/webp": ".webp",
 };
 
+export function isDefaultProfileAvatarUrl(url?: string | null): boolean {
+  const trimmed = url?.trim() ?? "";
+  return trimmed.length === 0 || trimmed === DEFAULT_PROFILE_AVATAR;
+}
+
 export function resolveProfileImageUrl(profileImagePath?: string | null): string {
   if (!profileImagePath?.trim()) {
     return DEFAULT_PROFILE_AVATAR;
   }
 
   const trimmed = profileImagePath.trim();
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/")) {
+  if (
+    trimmed.startsWith("blob:") ||
+    trimmed.startsWith("data:") ||
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("/")
+  ) {
     return trimmed;
   }
 

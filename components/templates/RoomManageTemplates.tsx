@@ -200,16 +200,22 @@ export function MembersPermissionsTemplate({
 export function RoomProfileEditTemplate({
   agit,
   nickname,
+  profileImageUrl,
 }: {
   agit: UiAgit | null;
   nickname: string;
+  profileImageUrl: string;
 }) {
   if (!agit) return <RoomMissing />;
 
   return (
     <AgitFlowChrome>
       <AuthTopBar title="내프로필관리" backHref={ROUTES.agit.detail(agit.id)} />
-      <AgitProfileEditForm agitId={agit.id} nickname={nickname} />
+      <AgitProfileEditForm
+        agitId={agit.id}
+        nickname={nickname}
+        profileImageUrl={profileImageUrl}
+      />
     </AgitFlowChrome>
   );
 }

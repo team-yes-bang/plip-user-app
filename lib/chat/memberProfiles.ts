@@ -1,6 +1,5 @@
+import { resolveProfileImageUrl } from "@/lib/user/profileImage";
 import type { ApiAgitDetailMember } from "@/types/agit/api";
-
-const FALLBACK_AVATAR = "/plip/v13/profile-avatar.svg";
 const FALLBACK_NICKNAME = "멤버";
 
 export type ChatMemberProfile = {
@@ -15,7 +14,7 @@ export function buildChatMemberProfiles(
   for (const member of members) {
     map.set(member.userUuid, {
       nickname: member.nickname.trim() || FALLBACK_NICKNAME,
-      profileImageSrc: member.profileImagePath?.trim() || FALLBACK_AVATAR,
+      profileImageSrc: resolveProfileImageUrl(member.profileImagePath),
     });
   }
   return map;
@@ -28,13 +27,13 @@ export function resolveChatMemberProfile(
   if (!userUuid) {
     return {
       nickname: "시스템",
-      profileImageSrc: FALLBACK_AVATAR,
+      profileImageSrc: resolveProfileImageUrl(null),
     };
   }
   return (
     members.get(userUuid) ?? {
       nickname: FALLBACK_NICKNAME,
-      profileImageSrc: FALLBACK_AVATAR,
+      profileImageSrc: resolveProfileImageUrl(null),
     }
   );
 }

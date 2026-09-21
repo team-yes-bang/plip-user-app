@@ -13,6 +13,8 @@ type AuthFieldProps = {
   inputMode?: ComponentProps<typeof Input>["inputMode"];
   required?: boolean;
   defaultValue?: string;
+  value?: string;
+  onChange?: ComponentProps<typeof Input>["onChange"];
   maxLength?: number;
   pattern?: string;
   title?: string;
@@ -30,6 +32,8 @@ export function AuthField({
   inputMode,
   required,
   defaultValue,
+  value,
+  onChange,
   maxLength,
   pattern,
   title,
@@ -49,6 +53,8 @@ export function AuthField({
         inputMode={inputMode}
         required={required}
         defaultValue={defaultValue}
+        value={value}
+        onChange={onChange}
         maxLength={maxLength}
         pattern={pattern}
         title={title}
