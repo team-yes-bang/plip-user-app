@@ -78,15 +78,21 @@ export function useAgitChatSocket({
 
   const sendMessage = (content: string) => {
     const trimmed = content.trim();
-    if (!trimmed || !clientRef.current?.connected) {
+    if (!trimmed) {
       return false;
     }
-    clientRef.current.publish({
+    const client = clientRef.current;
+    if (!client?.connected) {
+      return false;
+    }
+    client.publish({
       destination: `/app/agits/${agitUuid}/send`,
       body: JSON.stringify({ content: trimmed }),
     });
     return true;
   };
 
-  return { sendMessage };
+  const isConnected = () => Boolean(clientRef.current?.connected);
+
+  return { sendMessage, isConnected };
 }

@@ -2,7 +2,6 @@ import { AgitListTemplate } from "@/components/templates";
 import { listMyAgits } from "@/services/agitService";
 import { getInboxUnreadCount } from "@/services/notificationService";
 import { getServerUserUuid } from "@/lib/auth/server-token";
-import { isEnableRemoteChatEnabled } from "@/lib/api/env";
 import type { UiAgit } from "@/types/agit/ui";
 
 export default async function AgitListPage() {
@@ -10,7 +9,6 @@ export default async function AgitListPage() {
   let error: string | undefined;
   let inboxUnreadCount = 0;
   const currentUserUuid = await getServerUserUuid();
-  const enableRemoteChat = isEnableRemoteChatEnabled();
 
   try {
     items = await listMyAgits();
@@ -33,7 +31,6 @@ export default async function AgitListPage() {
       items={items}
       error={error}
       currentUserUuid={currentUserUuid}
-      enableRemoteChat={enableRemoteChat}
       inboxUnreadCount={inboxUnreadCount}
     />
   );

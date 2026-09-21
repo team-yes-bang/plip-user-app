@@ -12,7 +12,6 @@ type AgitListSectionProps = {
   items: UiAgit[];
   error?: string;
   currentUserUuid?: string;
-  enableRemoteChat?: boolean;
   inboxUnreadCount?: number;
 };
 
@@ -20,13 +19,12 @@ export function AgitListSection({
   items,
   error,
   currentUserUuid,
-  enableRemoteChat = false,
   inboxUnreadCount = 0,
 }: AgitListSectionProps) {
   const rooms = items;
   const totalVideos = rooms.reduce((sum, room) => sum + (room.todayVideoCount ?? 0), 0);
 
-  useAgitListChatSync({ items: rooms, currentUserUuid, enabled: enableRemoteChat });
+  useAgitListChatSync({ items: rooms, currentUserUuid, enabled: Boolean(currentUserUuid) });
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">

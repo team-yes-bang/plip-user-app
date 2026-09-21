@@ -6,6 +6,7 @@ import { getServerUserUuid } from "@/lib/auth/server-token";
 import * as chatService from "@/services/chatService";
 import { getAgitAndMembers } from "@/services/agitService";
 import { actionFailure, actionSuccess, type ActionResult } from "@/types/action-result";
+import type { ApiAgitDetailMember } from "@/types/agit/api";
 import type { UiChatHistory } from "@/types/chat/ui";
 
 const CHAT_LOGIN_REQUIRED = "로그인이 필요합니다.";
@@ -37,10 +38,15 @@ type ChatHistoryCursor = {
   cursorId: string;
 };
 
+type GetChatHistoryOptions = {
+  cursor?: ChatHistoryCursor;
+  size?: number;
+  members?: ApiAgitDetailMember[];
+};
+
 export async function getChatHistoryAction(
   agitId: string,
-  cursor?: ChatHistoryCursor,
-  size = 20,
+  options?: GetChatHistoryOptions,
 ): Promise<ActionResult<UiChatHistory>> {
   const loginError = await requireLogin();
   if (loginError) {
@@ -49,13 +55,13 @@ export async function getChatHistoryAction(
 
   try {
     const currentUserUuid = await getServerUserUuid();
-    const { members } = await getAgitAndMembers(agitId);
+    const members = options?.members ?? (await getAgitAndMembers(agitId)).members;
     const history = await chatService.getChatHistory(agitId, {
       members,
       currentUserUuid,
-      cursorCreatedAt: cursor?.cursorCreatedAt,
-      cursorId: cursor?.cursorId,
-      size,
+      cursorCreatedAt: options?.cursor?.cursorCreatedAt,
+      cursorId: options?.cursor?.cursorId,
+      size: options?.size ?? 20,
     });
     return actionSuccess(history);
   } catch (error) {
