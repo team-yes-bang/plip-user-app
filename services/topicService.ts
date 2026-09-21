@@ -5,7 +5,6 @@ import * as topicApi from "@/lib/api/topicApi";
 import { toFeedOrder } from "@/lib/topic/mergeTopicFeed";
 import { resolveVideoThumbnail } from "@/lib/video/thumbnail";
 import { formatKstDotDate, isSameKstDate, selectAgitTopic, toKstDateString } from "@/lib/topic/selectAgitTopic";
-import * as videoService from "@/services/videoService";
 
 const FALLBACK_AVATAR = "/plip/v13/profile-avatar.svg";
 const FALLBACK_NICKNAME = "멤버";
@@ -35,33 +34,19 @@ function profileOf(userUuid: string, members: Map<string, MemberProfile>): Membe
   );
 }
 
-async function mapTopicVideo(
+function mapTopicVideoLight(
   item: ApiTopicVideo,
   members: Map<string, MemberProfile>,
-): Promise<UiTopicVideo> {
-  const attached = profileOf(item.userUuid, members);
-  try {
-    const detail = await videoService.getVideoDetail(item.videoUuid);
-    const profile = profileOf(detail.userUuid || item.userUuid, members);
-    return {
-      id: item.videoUuid,
-      thumbnailSrc: resolveVideoThumbnail(detail.thumbnailUrl),
-      profileImageSrc: profile.profileImageSrc,
-      profileNickname: profile.nickname,
-      uploadedAt: detail.createdAt.toISOString(),
-      caption: detail.caption?.trim() ?? "",
-      rawPlaybackUrl: detail.rawPlaybackUrl,
-    };
-  } catch {
-    return {
-      id: item.videoUuid,
-      thumbnailSrc: resolveVideoThumbnail(null),
-      profileImageSrc: attached.profileImageSrc,
-      profileNickname: attached.nickname,
-      uploadedAt: item.createdAt,
-      caption: "",
-    };
-  }
+): UiTopicVideo {
+  const profile = profileOf(item.userUuid, members);
+  return {
+    id: item.videoUuid,
+    thumbnailSrc: resolveVideoThumbnail(null),
+    profileImageSrc: profile.profileImageSrc,
+    profileNickname: profile.nickname,
+    uploadedAt: item.createdAt,
+    caption: "",
+  };
 }
 
 export function toUiTopicListItem(topic: ApiTopic): UiTopicListItem {
@@ -136,7 +121,7 @@ export async function getTopicViewer(
     topicApi.listTopicVideos(topicUuid),
   ]);
   const profiles = memberMap(members);
-  const videos = await Promise.all(topicVideos.map((item) => mapTopicVideo(item, profiles)));
+  const videos = topicVideos.map((item) => mapTopicVideoLight(item, profiles));
   return { topic: toUiTopicDetail(topic), videos };
 }
 
@@ -152,7 +137,7 @@ export async function getTopicGallery(
 
   const topicVideos = await topicApi.listTopicVideos(selected.topicUuid);
   const profiles = memberMap(members);
-  const videos = await Promise.all(topicVideos.map((item) => mapTopicVideo(item, profiles)));
+  const videos = topicVideos.map((item) => mapTopicVideoLight(item, profiles));
   return { topic: mapSummary(selected), videos };
 }
 
@@ -208,6 +193,7 @@ export async function getTopicVideos(
   topicUuid: string,
   members: ApiAgitDetailMember[],
 ): Promise<UiTopicVideo[]> {
-  const viewer = await getTopicViewer(topicUuid, members);
-  return viewer.videos;
+  const topicVideos = await topicApi.listTopicVideos(topicUuid);
+  const profiles = memberMap(members);
+  return topicVideos.map((item) => mapTopicVideoLight(item, profiles));
 }

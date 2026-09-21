@@ -5,6 +5,7 @@ import { getServerUserUuid } from "@/lib/auth/server-token";
 import { TOPIC_FORBIDDEN, TOPIC_LOGIN_REQUIRED } from "@/lib/topic/actionErrors";
 import * as topicService from "@/services/topicService";
 import { actionFailure, actionSuccess, type ActionResult } from "@/types/action-result";
+import type { ApiAgitDetailMember } from "@/types/agit/api";
 import type { ApiTopicListStatus } from "@/types/topic/api";
 import { parseCreateTopicInput, parseUpdateTopicInput } from "@/types/topic/schema";
 import type { UiTopicFeedWindow, UiTopicListItem, UiTopicVideo } from "@/types/topic/ui";
@@ -146,10 +147,11 @@ export async function getTopicFeedWindowAction(
 export async function getTopicVideosAction(
   agitId: string,
   topicUuid: string,
+  members?: ApiAgitDetailMember[],
 ): Promise<ActionResult<UiTopicVideo[]>> {
   try {
-    const detail = await getAgitAndMembers(agitId);
-    const videos = await topicService.getTopicVideos(topicUuid, detail.members);
+    const resolvedMembers = members ?? (await getAgitAndMembers(agitId)).members;
+    const videos = await topicService.getTopicVideos(topicUuid, resolvedMembers);
     return actionSuccess(videos);
   } catch (error) {
     return toActionError(error);
