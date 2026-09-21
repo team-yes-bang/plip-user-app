@@ -9,12 +9,6 @@ type ParsedRoomCacheEntry = {
   history: RoomHistoryCache;
 };
 
-function stripUnreadMemberCount(message: UiChatMessage): UiChatMessage {
-  const { unreadMemberCount, ...rest } = message;
-  void unreadMemberCount;
-  return rest;
-}
-
 const parsedRoomCache = new Map<string, ParsedRoomCacheEntry>();
 
 function storageKey(agitId: string): string {
@@ -25,13 +19,9 @@ export function writeRoomHistoryCache(agitId: string, history: RoomHistoryCache)
   if (typeof window === "undefined") {
     return;
   }
-  const sanitized: RoomHistoryCache = {
-    ...history,
-    messages: history.messages.map(stripUnreadMemberCount),
-  };
-  const raw = JSON.stringify(sanitized);
+  const raw = JSON.stringify(history);
   sessionStorage.setItem(storageKey(agitId), raw);
-  parsedRoomCache.set(agitId, { raw, history: sanitized });
+  parsedRoomCache.set(agitId, { raw, history });
 }
 
 export function readRoomHistoryCache(agitId: string): RoomHistoryCache | null {
@@ -49,12 +39,8 @@ export function readRoomHistoryCache(agitId: string): RoomHistoryCache | null {
   }
   try {
     const history = JSON.parse(raw) as RoomHistoryCache;
-    const sanitized: RoomHistoryCache = {
-      ...history,
-      messages: history.messages.map(stripUnreadMemberCount),
-    };
-    parsedRoomCache.set(agitId, { raw, history: sanitized });
-    return sanitized;
+    parsedRoomCache.set(agitId, { raw, history });
+    return history;
   } catch {
     parsedRoomCache.delete(agitId);
     return null;

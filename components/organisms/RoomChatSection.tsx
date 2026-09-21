@@ -13,6 +13,7 @@ import { useAgitChatSocket } from "@/hooks/useAgitChatSocket";
 import { formatChatDateLabel, isSameChatDay, isSameChatMessageGroup, shouldShowChatMessageTime } from "@/lib/chat/formatMessageTime";
 import { normalizeChatDraft } from "@/lib/chat/limits";
 import { mapApiChatMessage } from "@/lib/chat/mapMessage";
+import { normalizeChatMessageId } from "@/lib/chat/messageId";
 import {
   mergeChatMessages,
   readRoomHistoryCache,
@@ -62,6 +63,7 @@ export function RoomChatSection({
   const nextCursorRef = useRef(nextCursor);
   const hasNextRef = useRef(hasNext);
   const lastMarkedMessageIdRef = useRef<string | null>(null);
+  const unreadSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     messagesRef.current = messages;
@@ -69,26 +71,58 @@ export function RoomChatSection({
     hasNextRef.current = hasNext;
   }, [hasNext, messages, nextCursor]);
 
+  useEffect(() => {
+    return () => {
+      if (unreadSyncTimerRef.current) {
+        clearTimeout(unreadSyncTimerRef.current);
+      }
+    };
+  }, []);
+
+  const syncUnreadCountsFromServer = useCallback(async () => {
+    const visibleCount = messagesRef.current.length;
+    if (visibleCount === 0) {
+      return;
+    }
+
+    const result = await getChatHistoryAction(agit.id, {
+      members,
+      size: Math.min(100, Math.max(20, visibleCount)),
+    });
+    if (!result.ok) {
+      return;
+    }
+
+    setMessages((current) => mergeMessages(current, result.data.messages));
+  }, [agit.id, members]);
+
+  const queueUnreadSync = useCallback(() => {
+    if (unreadSyncTimerRef.current) {
+      clearTimeout(unreadSyncTimerRef.current);
+    }
+    unreadSyncTimerRef.current = setTimeout(() => {
+      unreadSyncTimerRef.current = null;
+      void syncUnreadCountsFromServer();
+    }, 200);
+  }, [syncUnreadCountsFromServer]);
+
   const handleIncomingMessage = useCallback(
     (payload: Parameters<typeof mapApiChatMessage>[0]) => {
       const mapped = mapApiChatMessage(payload, members, currentUserUuid);
-      const withUnreadCount =
-        mapped.type === "TALK" && mapped.unreadMemberCount === undefined
-          ? {
-              ...mapped,
-              unreadMemberCount: Math.max(0, members.length - 1),
-            }
-          : mapped;
-      setMessages((current) => mergeMessages(current, [withUnreadCount]));
+      setMessages((current) => mergeMessages(current, [mapped]));
+
+      if (mapped.type === "TALK" && !mapped.isMine) {
+        queueUnreadSync();
+      }
     },
-    [currentUserUuid, members],
+    [currentUserUuid, members, queueUnreadSync],
   );
 
   const handleIncomingReceipt = useCallback((payload: ApiChatReceiptPayload) => {
-    const receiptMessageId = payload.messageId.toLowerCase();
+    const receiptMessageId = normalizeChatMessageId(payload.messageId);
     setMessages((current) =>
       current.map((message) =>
-        message.id.toLowerCase() === receiptMessageId
+        normalizeChatMessageId(message.id) === receiptMessageId
           ? { ...message, unreadMemberCount: payload.unreadMemberCount }
           : message,
       ),
@@ -114,9 +148,10 @@ export function RoomChatSection({
     void markChatReadAction(agit.id, new Date().toISOString()).then((result) => {
       if (result.ok) {
         setAgitChatUnread(agit.id, 0);
+        queueUnreadSync();
       }
     });
-  }, [agit.id]);
+  }, [agit.id, queueUnreadSync]);
 
   useEffect(() => {
     if (messages.length === 0) {
