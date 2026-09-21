@@ -35,23 +35,26 @@ export function NotificationBell({ variant = "light", unreadCount = 0 }: Notific
 
   const refresh = useCallback(async () => {
     const result = await getNotificationInboxAction();
-    if (result.ok) {
-      setInbox(result.data);
+    if (!result.ok) {
+      return;
     }
+    setInbox({
+      items: result.data.items,
+      unreadCount: result.data.items.filter((item) => !item.read).length,
+    });
   }, []);
 
   useEffect(() => {
-    const immediate = window.setTimeout(() => {
-      void refresh();
-    }, 0);
+    if (!open) {
+      return;
+    }
     const timer = window.setInterval(() => {
       void refresh();
     }, 30_000);
     return () => {
-      window.clearTimeout(immediate);
       window.clearInterval(timer);
     };
-  }, [refresh]);
+  }, [open, refresh]);
 
   async function handleMarkRead(id: string) {
     const result = await markNotificationReadAction(id);
