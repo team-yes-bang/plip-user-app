@@ -28,8 +28,12 @@ import {
 } from "@/lib/video/actionPayload";
 import * as videoService from "@/services/videoService";
 
-const UUID_PATTERN =
+const SESSION_UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** fixture 등 RFC version/variant 미설정 UUID 허용 */
+const RESOURCE_UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const ALLOWED_CONTENT_TYPES = new Set(["video/mp4", "video/quicktime"]);
 const ALLOWED_THUMBNAIL_CONTENT_TYPES = new Set(["image/jpeg"]);
@@ -43,16 +47,30 @@ async function requireSessionUserUuid(): Promise<
     return { ok: false, error: VIDEO_LOGIN_REQUIRED };
   }
 
-  if (!UUID_PATTERN.test(userUuid)) {
+  if (!SESSION_UUID_PATTERN.test(userUuid)) {
     return { ok: false, error: VIDEO_SESSION_INVALID };
   }
 
   return { ok: true, userUuid };
 }
 
+function normalizeResourceUuid(value: string): string | null {
+  const trimmed = value.trim();
+  if (RESOURCE_UUID_PATTERN.test(trimmed)) {
+    return trimmed.toLowerCase();
+  }
+
+  const compact = trimmed.replace(/-/g, "");
+  if (!/^[0-9a-f]{32}$/i.test(compact)) {
+    return null;
+  }
+
+  const hex = compact.toLowerCase();
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 function resolveVideoUuid(videoUuid: string): string | null {
-  const trimmed = videoUuid.trim();
-  return UUID_PATTERN.test(trimmed) ? trimmed : null;
+  return normalizeResourceUuid(videoUuid);
 }
 
 function resolveContentType(contentType?: string): string | undefined {
@@ -219,14 +237,14 @@ function toDestinationPayload(destination: VideoDestination): VideoDestinationRe
   if (destination.kind === "topic") {
     const agitUuid = destination.agitUuid.trim();
     const topicUuid = destination.topicUuid.trim();
-    if (!UUID_PATTERN.test(agitUuid) || !UUID_PATTERN.test(topicUuid)) {
+    if (!SESSION_UUID_PATTERN.test(agitUuid) || !SESSION_UUID_PATTERN.test(topicUuid)) {
       return null;
     }
     return { kind: "TOPIC", topicUuid, agitUuid };
   }
 
   const themeUuid = destination.themeUuid.trim();
-  if (!UUID_PATTERN.test(themeUuid)) {
+  if (!SESSION_UUID_PATTERN.test(themeUuid)) {
     return null;
   }
 
